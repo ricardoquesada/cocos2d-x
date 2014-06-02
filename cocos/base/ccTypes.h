@@ -219,6 +219,16 @@ struct Quad3 {
     Vec3        tr;
 };
 
+//! a Vec2 with a vertex point, a tex coord point
+struct V2F_T2F
+{
+    //! vertices (3F)
+    Vec2     vertices;            // 8 bytes
+
+    // tex coords (2F)
+    Tex2F        texCoords;       // 8 bytes
+};
+
 //! a Vec2 with a vertex point, a tex coord point and a color 4B
 struct V2F_C4B_T2F
 {
@@ -263,6 +273,17 @@ struct V2F_C4B_T2F_Triangle
 	V2F_C4B_T2F b;
 	//! Vec2 B
 	V2F_C4B_T2F c;
+};
+
+struct V2F_T2F_Quad {
+    //! bottom left
+    V2F_T2F    bl;
+    //! bottom right
+    V2F_T2F    br;
+    //! top left
+    V2F_T2F    tl;
+    //! top right
+    V2F_T2F    tr;
 };
 
 //! A Quad of V2F_C4B_T2F
