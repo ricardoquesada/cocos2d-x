@@ -185,6 +185,7 @@ protected:
     int updateTiles(const Rect& culledRect, V2F_T2F_Quad *quads, GLushort *indices);
     void setupVBO();
     Point calculateLayerOffset(const Point& offset);
+    Mat4 getTileToNodeTransform() const;
 
     /* The layer recognizes some special properties, like cc_vertez */
     void parseInternalProperties();

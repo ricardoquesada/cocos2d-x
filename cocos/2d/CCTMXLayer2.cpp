@@ -32,6 +32,9 @@ THE SOFTWARE.
  Further info: http://www.cocos2d-iphone.org/forums/topic/hktmxtiledmap/
 
  It was rewritten again, and only a small part of the original HK ideas/code remains in this implementation
+ 
+ 
+ Isometric code conversion from cocos2d-iphone: http://www.cocos2d-iphone.org
 
  */
 #include "2d/CCTMXLayer2.h"
@@ -121,6 +124,42 @@ void TMXLayer2::draw(Renderer *renderer, const Mat4 &transform, bool transformUp
     renderer->addCommand(&_customCommand);
 }
 
+Mat4 TMXLayer2::getTileToNodeTransform() const
+{
+    Mat4 ret;
+    float w = _mapTileSize.width;
+    float h = _mapTileSize.height;
+    float offY = _layerSize.height;
+
+    switch(_layerOrientation) {
+        case TMXOrientationOrtho:
+            ret =  Mat4(w, 0.0f, 0.0f, 0.0f,
+                        0.0f,   -h, 0.0f, 0.0f,
+                        0.0f, 0.0f, 1.0f, 0.0f,
+                        0.0f, offY, 0.0f, 1.0f
+                        );
+            break;
+        case TMXOrientationIso:
+        {
+            float offX = _layerSize.width*w/2;
+            ret = Mat4(w/2, -h/2, 00.f, 0.0f,
+                       -w/2, -h/2, 0.0f, 0.0f,
+                       0.0f, 0.0f, 1.0f, 0.0f,
+                       offX, offY, 0.0f, 1.0f
+                       );
+            break;
+        }
+        case TMXOrientationHex:
+            CCASSERT(false, "Hexa layout not supported yet");
+            break;
+
+        default:
+            CCASSERT(false, "Unsupported tile format");
+    }
+
+    return ret;
+}
+
 void TMXLayer2::onDraw(const Mat4 &transform, bool transformUpdated)
 {
     GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POSITION | GL::VERTEX_ATTRIB_FLAG_TEX_COORD);
@@ -133,11 +172,14 @@ void TMXLayer2::onDraw(const Mat4 &transform, bool transformUpdated)
 
 
     if( transformUpdated ) {
-    
+
+        Mat4 tileToNode = getTileToNodeTransform();
+        Mat4 tileToWorld = transform * tileToNode;
+
         Size s = Director::getInstance()->getWinSize();
 		auto rect = Rect(0, 0, s.width, s.height);
 
-        Mat4 inv = transform.getInversed();
+        Mat4 inv = tileToWorld.getInversed();
         rect = RectApplyTransform(rect, inv);
 
         if( !rect.equals(_previousRect) ) {

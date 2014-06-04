@@ -3,6 +3,7 @@
 
 #include "../testBasic.h"
 #include "../BaseTest.h"
+#include "renderer/CCCustomCommand.h"
 
 class TileDemo : public BaseTest
 {
@@ -297,8 +298,32 @@ public:
 protected:
     CustomCommand _renderCmd;
     void onDraw(const Mat4 &transform, bool transformUpdated);
-    
 };
+
+
+class FastTMXOrthoTest1 : public TileDemo
+{
+public:
+    FastTMXOrthoTest1();
+    virtual std::string title() const override;
+};
+
+class FastTMXOrthoTest2 : public TileDemo
+{
+public:
+    FastTMXOrthoTest2();
+    virtual std::string title() const override;
+};
+
+class FastTMXOrthoTest3 : public TileDemo
+{
+public:
+    FastTMXOrthoTest3();
+    virtual std::string title() const override;
+};
+
+
+// main
 
 class TileMapTestScene : public TestScene
 {

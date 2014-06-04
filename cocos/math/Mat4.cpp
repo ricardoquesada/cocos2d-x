@@ -629,7 +629,9 @@ void Mat4::getBackVector(Vec3* dst) const
 Mat4 Mat4::getInversed() const
 {
     Mat4 mat(*this);
-    mat.inverse();
+    auto invertible = mat.inverse();
+    GP_ASSERT(invertible);
+
     return mat;
 }
 
