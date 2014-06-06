@@ -117,13 +117,6 @@ TMXLayer2::~TMXLayer2()
     CC_SAFE_DELETE_ARRAY(_tiles);
 }
 
-void TMXLayer2::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
-{
-    _customCommand.init(_globalZOrder);
-    _customCommand.func = CC_CALLBACK_0(TMXLayer2::onDraw, this, transform, transformUpdated);
-    renderer->addCommand(&_customCommand);
-}
-
 Mat4 TMXLayer2::getTileToNodeTransform() const
 {
     Mat4 ret;
@@ -160,7 +153,14 @@ Mat4 TMXLayer2::getTileToNodeTransform() const
     return ret;
 }
 
-void TMXLayer2::onDraw(const Mat4 &transform, bool transformUpdated)
+void TMXLayer2::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+{
+    _customCommand.init(_globalZOrder);
+    _customCommand.func = CC_CALLBACK_0(TMXLayer2::onDraw, this, transform, flags);
+    renderer->addCommand(&_customCommand);
+}
+
+void TMXLayer2::onDraw(const Mat4 &transform, uint32_t flags)
 {
     GL::enableVertexAttribs(GL::VERTEX_ATTRIB_FLAG_POSITION | GL::VERTEX_ATTRIB_FLAG_TEX_COORD);
     GL::bindTexture2D( _texture->getName() );
@@ -171,7 +171,7 @@ void TMXLayer2::onDraw(const Mat4 &transform, bool transformUpdated)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _buffersVBO[1]);
 
 
-    if( transformUpdated ) {
+    if( flags & FLAGS_TRANSFORM_DIRTY ) {
 
         Mat4 tileToNode = getTileToNodeTransform();
         Mat4 tileToWorld = transform * tileToNode;

@@ -25,6 +25,10 @@ THE SOFTWARE.
 #include "ui/UIWidget.h"
 #include "ui/UILayout.h"
 #include "ui/UIHelper.h"
+#include "base/CCEventListenerTouch.h"
+#include "base/CCEventListenerKeyboard.h"
+#include "base/CCDirector.h"
+#include "base/CCEventFocus.h"
 
 NS_CC_BEGIN
 
@@ -225,12 +229,12 @@ void Widget::onExit()
     ProtectedNode::onExit();
 }
 
-void Widget::visit(Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated)
+void Widget::visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags)
 {
     if (_visible)
     {
         adaptRenderers();
-        ProtectedNode::visit(renderer, parentTransform, parentTransformUpdated);
+        ProtectedNode::visit(renderer, parentTransform, parentFlags);
     }
 }
 

@@ -177,7 +177,7 @@ public:
     // Override
     //
     virtual std::string getDescription() const override;
-    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
 
 protected:
 
@@ -190,7 +190,7 @@ protected:
     /* The layer recognizes some special properties, like cc_vertez */
     void parseInternalProperties();
 
-    void onDraw(const Mat4 &transform, bool transformUpdated);
+    void onDraw(const Mat4 &transform, uint32_t flags);
 
     // index
     ssize_t atlasIndexForExistantZ(int z);

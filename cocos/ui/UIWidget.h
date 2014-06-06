@@ -28,9 +28,12 @@ THE SOFTWARE.
 #include "ui/CCProtectedNode.h"
 #include "ui/UILayoutParameter.h"
 #include "ui/GUIDefine.h"
-#include "ui/UILayoutParameter.h"
+#include "base/CCMap.h"
 
 NS_CC_BEGIN
+
+class EventListenerTouchOneByOne;
+
 
 namespace ui {
     
@@ -237,7 +240,7 @@ public:
      */
     virtual Widget* getChildByName(const std::string& name) const;
 
-    virtual void visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated) override;
+    virtual void visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
 
     /**
      * Sets the touch event target/selector of the menu item
