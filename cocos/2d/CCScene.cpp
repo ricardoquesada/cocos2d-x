@@ -180,7 +180,7 @@ void Scene::addChild(Node* child, int zOrder, const std::string &name)
 void Scene::update(float delta)
 {
     Node::update(delta);
-    if (nullptr != _physicsWorld && _physicsWorld->isAutoStep())
+    if (_physicsWorld && _physicsWorld->isAutoStep())
     {
         _physicsWorld->update(delta);
     }

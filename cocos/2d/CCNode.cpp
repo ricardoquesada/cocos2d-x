@@ -121,6 +121,9 @@ Node::Node(void)
 #endif
 , _componentContainer(nullptr)
 #if CC_USE_PHYSICS
+, _physicsTranslateDirty(true)
+, _physicsScaleDirty(true)
+, _physicsRotateDirty(true)
 , _physicsBody(nullptr)
 , _physicsScaleStartX(1.0f)
 , _physicsScaleStartY(1.0f)
@@ -331,9 +334,7 @@ void Node::setRotation(float rotation)
 
 #if CC_USE_PHYSICS
     if (!_physicsBody || !_physicsBody->_rotationResetTag)
-    {
-        updatePhysicsBodyRotation(getScene());
-    }
+        _physicsRotateDirty = true;
 #endif
 }
 
@@ -427,13 +428,7 @@ void Node::setScale(float scale)
     _transformUpdated = _transformDirty = _inverseDirty = true;
     
 #if CC_USE_PHYSICS
-    if(g_physicsSceneCount == 0)
-        return;
-    auto scene = getScene();
-    if (!scene || scene->getPhysicsWorld())
-    {
-        updatePhysicsBodyTransform(scene);
-    }
+    _physicsScaleDirty = true;
 #endif
 }
 
@@ -454,13 +449,7 @@ void Node::setScale(float scaleX,float scaleY)
     _transformUpdated = _transformDirty = _inverseDirty = true;
     
 #if CC_USE_PHYSICS
-    if(g_physicsSceneCount == 0)
-        return;
-    auto scene = getScene();
-    if (!scene || scene->getPhysicsWorld())
-    {
-        updatePhysicsBodyTransform(scene);
-    }
+    _physicsScaleDirty = true;
 #endif
 }
 
@@ -474,13 +463,7 @@ void Node::setScaleX(float scaleX)
     _transformUpdated = _transformDirty = _inverseDirty = true;
     
 #if CC_USE_PHYSICS
-    if(g_physicsSceneCount == 0)
-        return;
-    auto scene = getScene();
-    if (!scene || scene->getPhysicsWorld())
-    {
-        updatePhysicsBodyTransform(scene);
-    }
+    _physicsScaleDirty = true;
 #endif
 }
 
@@ -523,13 +506,7 @@ void Node::setScaleY(float scaleY)
     _transformUpdated = _transformDirty = _inverseDirty = true;
     
 #if CC_USE_PHYSICS
-    if(g_physicsSceneCount == 0)
-        return;
-    auto scene = getScene();
-    if (!scene || scene->getPhysicsWorld())
-    {
-        updatePhysicsBodyTransform(scene);
-    }
+    _physicsScaleDirty = true;
 #endif
 }
 
@@ -565,9 +542,7 @@ void Node::setPosition(float x, float y)
     
 #if CC_USE_PHYSICS
     if (!_physicsBody || !_physicsBody->_positionResetTag)
-    {
-        updatePhysicsBodyPosition(getScene());
-    }
+        _physicsTranslateDirty = true;
 #endif
 }
 
@@ -678,9 +653,10 @@ const Vec2& Node::getAnchorPoint() const
 void Node::setAnchorPoint(const Vec2& point)
 {
 #if CC_USE_PHYSICS
-    if (_physicsBody != nullptr && !point.equals(Vec2::ANCHOR_MIDDLE))
+    // TODO BUG Calculating these warnings are expensive. They must only be done in DEBUG mode
+    if (_physicsBody && !point.equals(Vec2::ANCHOR_MIDDLE))
     {
-        CCLOG("Node warning: This node has a physics body, the anchor must be in the middle, you cann't change this to other value.");
+        CCLOG("Warning: Node::setAnchorPoint(): This node has a physics body, the anchor must be in the middle, you cann't change this to other value.");
         return;
     }
 #endif
@@ -1265,7 +1241,31 @@ uint32_t Node::processParentFlags(const Mat4& parentTransform, uint32_t parentFl
     uint32_t flags = parentFlags;
     flags |= (_transformUpdated ? FLAGS_TRANSFORM_DIRTY : 0);
     flags |= (_contentSizeDirty ? FLAGS_CONTENT_SIZE_DIRTY : 0);
-    
+
+#if CC_USE_PHYSICS
+    flags |= (_physicsTranslateDirty ? FLAGS_PHYSICS_TRANSLATE_DIRTY : 0);
+    flags |= (_physicsScaleDirty ? FLAGS_PHYSICS_SCALE_DIRTY : 0);
+    flags |= (_physicsRotateDirty ? FLAGS_PHYSICS_ROTATE_DIRTY : 0);
+
+    if( flags & FLAGS_PHYSICS_DIRTY_MASK) {
+        // TODO expensive: find a way to cache getScene()
+        auto scene = getScene();
+
+        if(flags & FLAGS_PHYSICS_SCALE_DIRTY)
+        {
+            // body transform updates position, scale and rotation
+            updatePhysicsBodyTransform(scene);
+        }
+        else
+        {
+            if(flags & FLAGS_PHYSICS_TRANSLATE_DIRTY)
+                updatePhysicsBodyPosition(scene);
+            if(flags & FLAGS_PHYSICS_ROTATE_DIRTY)
+                updatePhysicsBodyRotation(scene);
+        }
+        _physicsTranslateDirty = _physicsScaleDirty = _physicsRotateDirty = false;
+    }
+#endif // CC_USE_PHYSICS
 
     if(flags & FLAGS_DIRTY_MASK)
         _modelViewTransform = this->transform(parentTransform);
@@ -1988,11 +1988,12 @@ void Node::updatePhysicsBodyTransform(Scene* scene)
 
 void Node::updatePhysicsBodyPosition(Scene* scene)
 {
-    if (_physicsBody != nullptr)
+    if (_physicsBody)
     {
         if (scene && scene->getPhysicsWorld())
         {
-            Vec2 pos = _parent == scene ? _position : scene->convertToNodeSpace(_parent->convertToWorldSpace(_position));
+            // TODO BUG: Can't we just use the Transform Matrix to get the position value?
+            Vec2 pos = (_parent == scene) ? _position : scene->convertToNodeSpace(_parent->convertToWorldSpace(_position));
             _physicsBody->setPosition(pos);
         }
         else
@@ -2000,20 +2001,17 @@ void Node::updatePhysicsBodyPosition(Scene* scene)
             _physicsBody->setPosition(_position);
         }
     }
-    
-    for (Node* child : _children)
-    {
-        child->updatePhysicsBodyPosition(scene);
-    }
 }
 
 void Node::updatePhysicsBodyRotation(Scene* scene)
 {
-    if (_physicsBody != nullptr)
+    if (_physicsBody)
     {
-        if (scene != nullptr && scene->getPhysicsWorld() != nullptr)
+        if (scene && scene->getPhysicsWorld())
         {
             float rotation = _rotationZ_X;
+
+            // TODO BUG: Can't we just use the Transform Matrix to get the rotation value?
             for (Node* parent = _parent; parent != scene; parent = parent->_parent)
             {
                 rotation += parent->getRotation();
@@ -2025,22 +2023,18 @@ void Node::updatePhysicsBodyRotation(Scene* scene)
             _physicsBody->setRotation(_rotationZ_X);
         }
     }
-    
-    for (auto child : _children)
-    {
-        child->updatePhysicsBodyRotation(scene);
-        child->updatePhysicsBodyPosition(scene);
-    }
 }
 
 void Node::updatePhysicsBodyScale(Scene* scene)
 {
-    if (_physicsBody != nullptr)
+    if (_physicsBody)
     {
-        if (scene != nullptr && scene->getPhysicsWorld() != nullptr)
+        if (scene && scene->getPhysicsWorld())
         {
             float scaleX = _scaleX / _physicsScaleStartX;
             float scaleY = _scaleY / _physicsScaleStartY;
+
+            // TODO BUG: Can't we just use the Transform Matrix to get the scale value?
             for (Node* parent = _parent; parent != scene; parent = parent->_parent)
             {
                 scaleX *= parent->_scaleX;
@@ -2052,11 +2046,6 @@ void Node::updatePhysicsBodyScale(Scene* scene)
         {
             _physicsBody->setScale(_scaleX / _physicsScaleStartX, _scaleY / _physicsScaleStartY);
         }
-    }
-    
-    for (auto child : _children)
-    {
-        child->updatePhysicsBodyScale(scene);
     }
 }
 
@@ -2079,9 +2068,11 @@ void Node::setPhysicsBody(PhysicsBody* body)
         
         // physics rotation based on body position, but node rotation based on node anthor point
         // it cann't support both of them, so I clear the anthor point to default.
+
+        // TODO BUG Calculating these warnings are expensive. They must only be done in DEBUG mode
         if (!getAnchorPoint().equals(Vec2::ANCHOR_MIDDLE))
         {
-            CCLOG("Node warning: setPhysicsBody sets anchor point to Vec2::ANCHOR_MIDDLE.");
+            CCLOG("Warning: Node::setPhysicsBody() setPhysicsBody sets anchor point to Vec2::ANCHOR_MIDDLE.");
             setAnchorPoint(Vec2::ANCHOR_MIDDLE);
         }
     }
@@ -2107,6 +2098,8 @@ void Node::setPhysicsBody(PhysicsBody* body)
     {
         Node* node;
         Scene* scene = nullptr;
+
+        // XXX BUG: Why not calling getScene() ?
         for (node = this->getParent(); node != nullptr; node = node->getParent())
         {
             Scene* tmpScene = dynamic_cast<Scene*>(node);

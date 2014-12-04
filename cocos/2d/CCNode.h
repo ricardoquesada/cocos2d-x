@@ -108,7 +108,15 @@ public:
         FLAGS_TRANSFORM_DIRTY = (1 << 0),
         FLAGS_CONTENT_SIZE_DIRTY = (1 << 1),
 
+        // only affects the transform
         FLAGS_DIRTY_MASK = (FLAGS_TRANSFORM_DIRTY | FLAGS_CONTENT_SIZE_DIRTY),
+
+        // Physics related only. Should not be coverted by FLAGS_DIRTY_MASK
+        FLAGS_PHYSICS_TRANSLATE_DIRTY = (1 << 2),
+        FLAGS_PHYSICS_SCALE_DIRTY = (1 << 3),
+        FLAGS_PHYSICS_ROTATE_DIRTY = (1 << 4),
+
+        FLAGS_PHYSICS_DIRTY_MASK = (FLAGS_PHYSICS_TRANSLATE_DIRTY | FLAGS_PHYSICS_SCALE_DIRTY | FLAGS_PHYSICS_ROTATE_DIRTY)
     };
     /// @{
     /// @name Constructor, Destructor and Initializers
@@ -1597,9 +1605,9 @@ protected:
     bool isVisitableByVisitingCamera() const;
     
 #if CC_USE_PHYSICS
-    void updatePhysicsBodyTransform(Scene* layer);
-    virtual void updatePhysicsBodyPosition(Scene* layer);
-    virtual void updatePhysicsBodyRotation(Scene* layer);
+    void updatePhysicsBodyTransform(Scene* scene);
+    virtual void updatePhysicsBodyPosition(Scene* scene);
+    virtual void updatePhysicsBodyRotation(Scene* scene);
     virtual void updatePhysicsBodyScale(Scene* scene);
 #endif // CC_USE_PHYSICS
     
@@ -1688,6 +1696,9 @@ protected:
     ComponentContainer *_componentContainer;        ///< Dictionary of components
 
 #if CC_USE_PHYSICS
+    bool _physicsTranslateDirty;
+    bool _physicsScaleDirty;
+    bool _physicsRotateDirty;
     PhysicsBody* _physicsBody;        ///< the physicsBody the node have
     float _physicsScaleStartX;         ///< the scale x value when setPhysicsBody
     float _physicsScaleStartY;         ///< the scale y value when setPhysicsBody
