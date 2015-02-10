@@ -59,6 +59,7 @@ option(BUILD_EDITOR_SPINE "Build editor support for spine" ON)
 option(BUILD_EDITOR_COCOSTUDIO "Build editor support for cocostudio" ON)
 option(BUILD_EDITOR_COCOSBUILDER "Build editor support for cocosbuilder" ON)
 option(BUILD_CPP_TESTS "Build TestCpp samples" ON)
+option(BUILD_CPP_EMPTY_TEST "Build C++ emtpy test" ON)
 option(BUILD_LUA_LIBS "Build lua libraries" ON)
 option(BUILD_LUA_TESTS "Build TestLua samples" ON)
 option(BUILD_JS_LIBS "Build js libraries" ON)
@@ -275,9 +276,11 @@ add_subdirectory(cocos)
 
 # build cpp tests
 if(BUILD_CPP_TESTS)
-  add_subdirectory(tests/cpp-empty-test)
   add_subdirectory(tests/cpp-tests)
 endif(BUILD_CPP_TESTS)
+if(BUILD_CPP_EMPTY_TEST)
+  add_subdirectory(tests/cpp-empty-test)
+endif(BUILD_CPP_EMPTY_TEST)
 
 ## Scripting
 if(BUILD_LUA_LIBS)
