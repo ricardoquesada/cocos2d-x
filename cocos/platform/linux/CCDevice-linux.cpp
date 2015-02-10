@@ -27,7 +27,8 @@ THE SOFTWARE.
 #if CC_TARGET_PLATFORM == CC_PLATFORM_LINUX
 
 #include "platform/CCDevice.h"
-#include <X11/Xlib.h>
+// XXX FIXME XXX CI20
+//#include <X11/Xlib.h>
 #include <stdio.h>
 
 #include <algorithm>
@@ -79,6 +80,8 @@ NS_CC_BEGIN
 
 int Device::getDPI()
 {
+// XXX FIXME XXX CI20
+#if 0
     static int dpi = -1;
     if (dpi == -1)
     {
@@ -100,6 +103,8 @@ int Device::getDPI()
         XCloseDisplay (dpy);
     }
     return dpi;
+#endif
+    return 72;
 }
 
 void Device::setAccelerometerEnabled(bool isEnabled)

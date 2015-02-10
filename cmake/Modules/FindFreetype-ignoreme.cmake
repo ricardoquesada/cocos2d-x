@@ -66,6 +66,7 @@ find_path(FREETYPE_INCLUDE_DIR_ft2build ft2build.h
   HINTS
     ENV FREETYPE_DIR
   PATHS
+    /home/riq/ci20_host
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
@@ -87,6 +88,7 @@ find_path(FREETYPE_INCLUDE_DIR_freetype2
   HINTS
     ENV FREETYPE_DIR
   PATHS
+    /home/riq/ci20_host
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
@@ -107,6 +109,7 @@ find_library(FREETYPE_LIBRARY
     ENV FREETYPE_DIR
   PATH_SUFFIXES lib
   PATHS
+    /home/riq/ci20_host
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local

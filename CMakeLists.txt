@@ -32,7 +32,7 @@ cmake_policy(SET CMP0017 NEW)
 project (Cocos2d-X)
 
 # The version number
-set(COCOS2D_X_VERSION 3.3.0-rc1)
+set(COCOS2D_X_VERSION 4.0.0-alpha0)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake/Modules/")
 include(CocosBuildHelpers)
@@ -168,8 +168,9 @@ if(LINUX OR MACOSX OR WINDOWS)
     find_package(Threads REQUIRED)
     set(THREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
-    cocos_find_package(FMODEX FMODEX REQUIRED)
-    cocos_find_package(Fontconfig FONTCONFIG REQUIRED)
+    cocos_find_package(FMODEX FMODEX)
+    # FIXME ci20
+#    cocos_find_package(Fontconfig FONTCONFIG REQUIRED)
   endif()
 
   if(WINDOWS)

@@ -119,6 +119,7 @@ if(NOT GLFW3_FOUND)
     ENV GLFW3_DIR
     PATH_SUFFIXES include/GLFW include
     PATHS
+    /home/riq/ci20_host
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
@@ -135,6 +136,7 @@ if(NOT GLFW3_FOUND)
     ENV GLFW3_DIR
     PATH_SUFFIXES lib
     PATHS
+    /home/riq/ci20_host
     ~/Library/Frameworks
     /Library/Frameworks
     /usr/local
