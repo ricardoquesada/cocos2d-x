@@ -63,6 +63,7 @@ option(BUILD_LUA_LIBS "Build lua libraries" ON)
 option(BUILD_LUA_TESTS "Build TestLua samples" ON)
 option(BUILD_JS_LIBS "Build js libraries" ON)
 option(BUILD_JS_TESTS "Build TestJs samples" ON)
+option(BUILD_AUDIO "Build audio library" ON)
 option(USE_PREBUILT_LIBS "Use prebuilt libraries in external directory" ${USE_PREBUILT_LIBS_DEFAULT})
 
 if(USE_PREBUILT_LIBS AND MINGW)
