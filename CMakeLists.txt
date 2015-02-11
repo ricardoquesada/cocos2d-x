@@ -170,6 +170,8 @@ if(LINUX OR MACOSX OR WINDOWS)
     find_package(Threads REQUIRED)
     set(THREADS_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
+    find_package(X11 REQUIRED)
+
     cocos_find_package(FMODEX FMODEX)
     # FIXME ci20
 #    cocos_find_package(Fontconfig FONTCONFIG REQUIRED)
