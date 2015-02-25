@@ -358,10 +358,13 @@ bool Console::listenOnTCP(int port)
 #endif
 #endif
 
+// XXX FIXME CI20
+#if 0
     if ( (n = getaddrinfo(nullptr, serv, &hints, &res)) != 0) {
         fprintf(stderr,"net_listen error for %s: %s", serv, gai_strerror(n));
         return false;
     }
+#endif
 
     ressave = res;
 
