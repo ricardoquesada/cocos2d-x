@@ -27,10 +27,10 @@ def initBuildConstant(ndk_build_param, build_mode):
         sys.exit(1)
  
     try:
-        toolchain = os.environ['NDK_TOOLCHAIN_VERSION']
+        toolchainVersion = os.environ['NDK_TOOLCHAIN_VERSION']
     except KeyError, e:
         # No toolchain, using 4.9 then
-        toolchain = '4.9'
+        toolchainVersion = '4.9'
 
     print '*** Using NDK_TOOLCHAIN_VERSION = %s ***' % toolchainVersion
     if toolchainVersion == '4.8':
@@ -74,7 +74,7 @@ For More information:
     except Exception:
         print "Can't know cpuinfo, use default 1 cpu"
         num_of_cpu = 1
-        
+
     if ndk_build_param == None:
         BUILD_CONSTANT.NDK_BUILD_COMMAND = '%s -j%d NDK_DEBUG=%d %s NDK_TOOLCHAIN_VERSION=%s' % (ndk_build_path, num_of_cpu, build_mode=='debug', ndk_module_path, toolchainVersion)
     else:
