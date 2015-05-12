@@ -37,6 +37,7 @@
 #include "renderer/CCTechnique.h"
 #include "renderer/CCPass.h"
 #include "renderer/CCRenderer.h"
+#include "renderer/CCVertexAttribBinding.h"
 #include "math/Mat4.h"
 
 using namespace std;
@@ -300,6 +301,18 @@ void Mesh::setMaterial(Material* material)
         CC_SAFE_RELEASE(_material);
         _material = material;
         CC_SAFE_RETAIN(_material);
+    }
+
+    if (_material)
+    {
+        for (auto technique: _material->getTechniques())
+        {
+            for (auto pass: technique->getPasses())
+            {
+                auto vertexAttribBinding = VertexAttribBinding::create(_meshIndexData, pass->getGLProgramState());
+                pass->setVertexAttribBinding(vertexAttribBinding);
+            }
+        }
     }
 }
 
