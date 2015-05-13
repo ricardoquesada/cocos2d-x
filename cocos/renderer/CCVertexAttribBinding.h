@@ -81,6 +81,12 @@ public:
      */
     void unbind();
 
+    /**
+     * Returns the vertex attrib flags
+     */
+    uint32_t getVertexAttribsFlags() const;
+
+
 private:
 
     bool init(MeshIndexData* meshIndexData, GLProgramState* glProgramState);

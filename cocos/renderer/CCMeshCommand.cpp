@@ -335,9 +335,7 @@ void MeshCommand::batchDraw()
     {
         for(const auto& pass: _material->_currentTechnique->_passes)
         {
-            // don't bind attributes, since they were
-            // already bound in preBatchDraw
-            pass->bind(_mv, false);
+            pass->bind(_mv);
 
             glDrawElements(_primitive, (GLsizei)_indexCount, _indexFormat, 0);
             CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, _indexCount);

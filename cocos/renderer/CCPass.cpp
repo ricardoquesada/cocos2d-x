@@ -139,8 +139,6 @@ void Pass::bind(const Mat4& modelView, bool bindAttributes)
     auto glprogramstate = _glProgramState ? _glProgramState : getTarget()->getGLProgramState();
 
     glprogramstate->applyGLProgram(modelView);
-    if (bindAttributes)
-        glprogramstate->applyAttributes();
     glprogramstate->applyUniforms();
 
     //set render state
@@ -160,8 +158,7 @@ void Pass::unbind()
 {
     RenderState::StateBlock::restore(0);
 
-    if (_vertexAttribBinding)
-        _vertexAttribBinding->unbind();
+    _vertexAttribBinding->unbind();
 }
 
 void Pass::setVertexAttribBinding(VertexAttribBinding* binding)

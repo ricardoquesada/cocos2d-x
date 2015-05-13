@@ -364,7 +364,7 @@ void Mesh::draw(Renderer* renderer, float globalZOrder, const Mat4& transform, u
             programState->setUniformVec4v("u_matrixPalette", _skin->getMatrixPalette(), (GLsizei)_skin->getMatrixPaletteSize());
 
         if (scene && scene->getLights().size() > 0)
-            setLightUniforms(programState, scene, color, lightMask);
+            setLightUniforms(pass, scene, color, lightMask);
     }
 
     renderer->addCommand(&_meshCommand);
@@ -471,9 +471,9 @@ void Mesh::bindMeshCommand()
     }
 }
 
-void Mesh::setLightUniforms(GLProgramState* glProgramState, Scene* scene, const Vec4& color, unsigned int lightmask)
+void Mesh::setLightUniforms(Pass* pass, Scene* scene, const Vec4& color, unsigned int lightmask)
 {
-    CCASSERT(glProgramState, "Invalid glProgramstate");
+    CCASSERT(pass, "Invalid Pass");
     CCASSERT(scene, "Invalid scene");
 
     const auto& conf = Configuration::getInstance();
@@ -482,8 +482,10 @@ void Mesh::setLightUniforms(GLProgramState* glProgramState, Scene* scene, const 
     int maxSpotLight = conf->getMaxSupportSpotLightInShader();
     auto &lights = scene->getLights();
 
+    auto glProgramState = pass->getGLProgramState();
+    auto attributes = pass->getVertexAttributeBinding()->getVertexAttribsFlags();
 
-    if (glProgramState->getVertexAttribsFlags() & (1 << GLProgram::VERTEX_ATTRIB_NORMAL))
+    if (attributes & (1 << GLProgram::VERTEX_ATTRIB_NORMAL))
     {
         resetLightUniformValues();
 
