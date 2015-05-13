@@ -28,7 +28,7 @@
 
 NS_CC_BEGIN
 
-static std::string s_attributeNames[] = {
+std::string s_attributeNames[] = {
     GLProgram::ATTRIBUTE_NAME_POSITION,
     GLProgram::ATTRIBUTE_NAME_COLOR,
     GLProgram::ATTRIBUTE_NAME_TEX_COORD,
@@ -121,9 +121,25 @@ bool VertexAttribBinding::init(MeshIndexData* meshIndexData, GLProgramState* glP
     auto meshVertexData = meshIndexData->getMeshVertexData();
     auto attributeCount = meshVertexData->getMeshVertexAttribCount();
 
-    // hardware
-//    if (Configuration::getInstance()->supportsShareableVAO())
-    if (0)
+
+    // Parse and set attributes
+    parseAttributes();
+    long offset = 0;
+    for (auto k = 0; k < attributeCount; k++)
+    {
+        auto meshattribute = meshVertexData->getMeshVertexAttrib(k);
+        setVertexAttribPointer(
+                               s_attributeNames[meshattribute.vertexAttrib],
+                               meshattribute.size,
+                               meshattribute.type,
+                               GL_FALSE,
+                               meshVertexData->getVertexBuffer()->getSizePerVertex(),
+                               (GLvoid*)offset);
+        offset += meshattribute.attribSizeBytes;
+    }
+
+    // VAO hardware
+    if (Configuration::getInstance()->supportsShareableVAO())
     {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -141,44 +157,29 @@ bool VertexAttribBinding::init(MeshIndexData* meshIndexData, GLProgramState* glP
         }
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshIndexData->getIndexBuffer()->getVBO());
-    }
 
+        for(auto &attribute : _attributes)
+        {
+            attribute.second.apply();
+        }
 
-    parseAttributes();
-
-    long offset = 0;
-    for (auto k = 0; k < attributeCount; k++)
-    {
-        auto meshattribute = meshVertexData->getMeshVertexAttrib(k);
-        setVertexAttribPointer(
-                               s_attributeNames[meshattribute.vertexAttrib],
-                               meshattribute.size,
-                               meshattribute.type,
-                               GL_FALSE,
-                               meshVertexData->getVertexBuffer()->getSizePerVertex(),
-                               (GLvoid*)offset);
-        offset += meshattribute.attribSizeBytes;
-    }
-
-    for(auto &attribute : _attributes)
-    {
-        attribute.second.apply();
-    }
-
-    if (_handle)
         GL::bindVAO(0);
+    }
 
     return true;
 }
 
 void VertexAttribBinding::bind()
 {
+
     if (_handle)
     {
+        // hardware
         GL::bindVAO(_handle);
     }
     else
     {
+        // software
         auto meshVertexData = _meshIndexData->getMeshVertexData();
         glBindBuffer(GL_ARRAY_BUFFER, meshVertexData->getVertexBuffer()->getVBO());
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _meshIndexData->getIndexBuffer()->getVBO());
@@ -198,11 +199,12 @@ void VertexAttribBinding::unbind()
 {
     if (_handle)
     {
-        // Hardware mode
-       GL::bindVAO(_handle);
+        // Hardware
+       GL::bindVAO(0);
     }
     else
     {
+        // Software
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }

@@ -51,18 +51,6 @@ NS_CC_BEGIN
 
 static GLProgramState* getGLProgramStateForAttribs(MeshVertexData* meshVertexData, bool usesLight);
 
-std::string s_attributeNames[] = {
-    GLProgram::ATTRIBUTE_NAME_POSITION,
-    GLProgram::ATTRIBUTE_NAME_COLOR,
-    GLProgram::ATTRIBUTE_NAME_TEX_COORD,
-    GLProgram::ATTRIBUTE_NAME_TEX_COORD1,
-    GLProgram::ATTRIBUTE_NAME_TEX_COORD2,
-    GLProgram::ATTRIBUTE_NAME_TEX_COORD3,
-    GLProgram::ATTRIBUTE_NAME_NORMAL,
-    GLProgram::ATTRIBUTE_NAME_BLEND_WEIGHT,
-    GLProgram::ATTRIBUTE_NAME_BLEND_INDEX
-};
-
 Sprite3D* Sprite3D::create()
 {
     //
