@@ -254,7 +254,7 @@ void PUParticle3DQuadRender::render(Renderer* renderer, const Mat4 &transform, P
                            index,
                            transform,
                            Node::FLAGS_RENDER_AS_3D);
-        _meshCommand->setTransparent(true);
+        _meshCommand->setSkipBatching(true);
         _glProgramState->setUniformVec4("u_color", Vec4(1,1,1,1));
         renderer->addCommand(_meshCommand);
     }
@@ -571,7 +571,7 @@ bool PUParticle3DEntityRender::initRender( const std::string &texFile )
     _glProgramState = glProgramState;
 
     _meshCommand = new (std::nothrow) MeshCommand();
-    _meshCommand->setTransparent(true);
+    _meshCommand->setSkipBatching(true);
 
     _stateBlock->setDepthTest(_depthTest);
     _stateBlock->setDepthWrite(_depthWrite);
@@ -707,7 +707,7 @@ void PUParticle3DBoxRender::render( Renderer* renderer, const Mat4 &transform, P
                            index,
                            transform,
                            Node::FLAGS_RENDER_AS_3D);
-        _meshCommand->setTransparent(true);
+        _meshCommand->setSkipBatching(true);
         _glProgramState->setUniformVec4("u_color", Vec4(1,1,1,1));
         renderer->addCommand(_meshCommand);
     }
@@ -871,7 +871,7 @@ void PUSphereRender::render( Renderer* renderer, const Mat4 &transform, Particle
                            index,
                            transform,
                            Node::FLAGS_RENDER_AS_3D);
-        _meshCommand->setTransparent(true);
+        _meshCommand->setSkipBatching(true);
         _glProgramState->setUniformVec4("u_color", Vec4(1,1,1,1));        
         renderer->addCommand(_meshCommand);
     }

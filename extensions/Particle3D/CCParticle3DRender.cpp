@@ -204,7 +204,7 @@ bool Particle3DQuadRender::initQuadRender( const std::string& texFile )
     //ret->_indexBuffer->retain();
 
     _meshCommand = new (std::nothrow) MeshCommand();
-    _meshCommand->setTransparent(true);
+    _meshCommand->setSkipBatching(true);
     _stateBlock->setDepthTest(_depthTest);
     _stateBlock->setDepthWrite(_depthWrite);
     _stateBlock->setCullFace(true);
