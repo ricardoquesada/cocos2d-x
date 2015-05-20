@@ -677,6 +677,7 @@ void PUBillboardChain::init( const std::string &texFile )
 
     _meshCommand = new (std::nothrow) MeshCommand();
     _meshCommand->setSkipBatching(true);
+    _meshCommand->setTransparent(true);
     _stateBlock->setDepthTest(true);
     _stateBlock->setDepthWrite(false);
     _stateBlock->setCullFaceSide(RenderState::CULL_FACE_SIDE_BACK);
@@ -708,7 +709,8 @@ void PUBillboardChain::render( Renderer* renderer, const Mat4 &transform, Partic
                                transform,
                                Node::FLAGS_RENDER_AS_3D);
             _meshCommand->setSkipBatching(true);
-            _glProgramState->setUniformVec4("u_color", Vec4(1,1,1,1));            
+            _meshCommand->setTransparent(true);            
+            _glProgramState->setUniformVec4("u_color", Vec4(1,1,1,1));
             renderer->addCommand(_meshCommand);
         }
     }

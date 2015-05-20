@@ -34,8 +34,6 @@
 NS_CC_BEGIN
 
 class GLProgramState;
-class GLProgram;
-struct Uniform;
 class EventListenerCustom;
 class EventCustom;
 class Material;
@@ -46,7 +44,7 @@ class CC_DLL MeshCommand : public RenderCommand
 public:
 
     MeshCommand();
-    ~MeshCommand();
+    virtual ~MeshCommand();
 
     void init(float globalZOrder, Material* material, GLuint vertexBuffer, GLuint indexBuffer, GLenum primitive, GLenum indexFormat, ssize_t indexCount, const Mat4 &mv, uint32_t flags);
 
