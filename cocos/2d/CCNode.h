@@ -1831,7 +1831,7 @@ protected:
     ccScriptType _scriptType;         ///< type of script binding, lua or javascript
 #endif
     
-    ComponentContainer *_componentContainer;        ///< Dictionary of components
+    Vector<Component*> _components;   ///< Array of components
 
 #if CC_USE_PHYSICS
     PhysicsBody* _physicsBody;        ///< the physicsBody the node have

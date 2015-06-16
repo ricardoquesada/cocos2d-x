@@ -1147,10 +1147,6 @@
 		1A57030D180BCF190088DEC7 /* CCComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A570308180BCF190088DEC7 /* CCComponent.cpp */; };
 		1A57030E180BCF190088DEC7 /* CCComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A570309180BCF190088DEC7 /* CCComponent.h */; };
 		1A57030F180BCF190088DEC7 /* CCComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A570309180BCF190088DEC7 /* CCComponent.h */; };
-		1A570310180BCF190088DEC7 /* CCComponentContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A57030A180BCF190088DEC7 /* CCComponentContainer.cpp */; };
-		1A570311180BCF190088DEC7 /* CCComponentContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A57030A180BCF190088DEC7 /* CCComponentContainer.cpp */; };
-		1A570312180BCF190088DEC7 /* CCComponentContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A57030B180BCF190088DEC7 /* CCComponentContainer.h */; };
-		1A570313180BCF190088DEC7 /* CCComponentContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A57030B180BCF190088DEC7 /* CCComponentContainer.h */; };
 		1A570347180BD0850088DEC7 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A570346180BD0850088DEC7 /* libglfw3.a */; };
 		1A57034B180BD09B0088DEC7 /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A570349180BD09B0088DEC7 /* tinyxml2.cpp */; };
 		1A57034C180BD09B0088DEC7 /* tinyxml2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A570349180BD09B0088DEC7 /* tinyxml2.cpp */; };
@@ -3832,8 +3828,6 @@
 		1A5702FF180BCE890088DEC7 /* CCParallaxNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCParallaxNode.h; sourceTree = "<group>"; };
 		1A570308180BCF190088DEC7 /* CCComponent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CCComponent.cpp; sourceTree = "<group>"; };
 		1A570309180BCF190088DEC7 /* CCComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCComponent.h; sourceTree = "<group>"; };
-		1A57030A180BCF190088DEC7 /* CCComponentContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CCComponentContainer.cpp; sourceTree = "<group>"; };
-		1A57030B180BCF190088DEC7 /* CCComponentContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CCComponentContainer.h; sourceTree = "<group>"; };
 		1A570346180BD0850088DEC7 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = ../external/glfw3/prebuilt/mac/libglfw3.a; sourceTree = "<group>"; };
 		1A570349180BD09B0088DEC7 /* tinyxml2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxml2.cpp; sourceTree = "<group>"; };
 		1A57034A180BD09B0088DEC7 /* tinyxml2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tinyxml2.h; sourceTree = "<group>"; };
@@ -6050,8 +6044,6 @@
 			children = (
 				1A570308180BCF190088DEC7 /* CCComponent.cpp */,
 				1A570309180BCF190088DEC7 /* CCComponent.h */,
-				1A57030A180BCF190088DEC7 /* CCComponentContainer.cpp */,
-				1A57030B180BCF190088DEC7 /* CCComponentContainer.h */,
 			);
 			name = support;
 			sourceTree = "<group>";
@@ -9463,7 +9455,6 @@
 				B6CAB5251AF9AA1A00B9B856 /* btQuickprof.h in Headers */,
 				B665E2AC1AA80A6500DDB1C5 /* CCPUFlockCenteringAffector.h in Headers */,
 				B6CAB4E91AF9AA1A00B9B856 /* TrbDynBody.h in Headers */,
-				1A570312180BCF190088DEC7 /* CCComponentContainer.h in Headers */,
 				15AE1B7119AADA9900C27E9E /* CocosGUI.h in Headers */,
 				B665E2381AA80A6500DDB1C5 /* CCPUBoxEmitterTranslator.h in Headers */,
 				B6CAB4211AF9AA1A00B9B856 /* btMLCPSolver.h in Headers */,
@@ -10431,7 +10422,6 @@
 				B6CAB1EA1AF9AA1A00B9B856 /* btAxisSweep3.h in Headers */,
 				B665E3511AA80A6500DDB1C5 /* CCPUOnPositionObserverTranslator.h in Headers */,
 				B6CAB3A21AF9AA1A00B9B856 /* btKinematicCharacterController.h in Headers */,
-				1A570313180BCF190088DEC7 /* CCComponentContainer.h in Headers */,
 				B6CAB5381AF9AA1A00B9B856 /* btVector3.h in Headers */,
 				B6CAB4DC1AF9AA1A00B9B856 /* SpuMinkowskiPenetrationDepthSolver.h in Headers */,
 				B665E2F51AA80A6500DDB1C5 /* CCPULineEmitterTranslator.h in Headers */,
@@ -11381,7 +11371,6 @@
 				B6CAB28F1AF9AA1A00B9B856 /* btCollisionShape.cpp in Sources */,
 				B6CAB39F1AF9AA1A00B9B856 /* btKinematicCharacterController.cpp in Sources */,
 				B6CAB2051AF9AA1A00B9B856 /* btOverlappingPairCache.cpp in Sources */,
-				1A570310180BCF190088DEC7 /* CCComponentContainer.cpp in Sources */,
 				15AE190719AAD35000C27E9E /* CCDatas.cpp in Sources */,
 				1A01C69C18F57BE800EFE3A6 /* CCString.cpp in Sources */,
 				B6DD2FCB1B04825B00E47F5F /* DetourNavMeshQuery.cpp in Sources */,
@@ -12236,7 +12225,6 @@
 				B665E3031AA80A6500DDB1C5 /* CCPUMeshSurfaceEmitter.cpp in Sources */,
 				B665E3571AA80A6500DDB1C5 /* CCPUOnQuotaObserverTranslator.cpp in Sources */,
 				15AE1B7619AADA9A00C27E9E /* UIPageView.cpp in Sources */,
-				1A570311180BCF190088DEC7 /* CCComponentContainer.cpp in Sources */,
 				50ABBE2C1925AB6F00A911A9 /* ccCArray.cpp in Sources */,
 				15AE193219AAD35100C27E9E /* CCActionNode.cpp in Sources */,
 				15AE195319AAD35100C27E9E /* CCDisplayFactory.cpp in Sources */,

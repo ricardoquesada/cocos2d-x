@@ -41,7 +41,6 @@ THE SOFTWARE.
 #include "2d/CCActionManager.h"
 #include "2d/CCScene.h"
 #include "2d/CCComponent.h"
-#include "2d/CCComponentContainer.h"
 #include "renderer/CCGLProgram.h"
 #include "renderer/CCGLProgramState.h"
 #include "renderer/CCMaterial.h"
@@ -117,7 +116,7 @@ Node::Node(void)
 #if CC_ENABLE_SCRIPT_BINDING
 , _updateScriptHandler(0)
 #endif
-, _componentContainer(nullptr)
+, _components()
 #if CC_USE_PHYSICS
 , _physicsBody(nullptr)
 , _physicsScaleStartX(1.0f)
@@ -190,10 +189,6 @@ Node::~Node()
         child->_parent = nullptr;
     }
 
-    removeAllComponents();
-    
-    CC_SAFE_DELETE(_componentContainer);
-    
 #if CC_USE_PHYSICS
     setPhysicsBody(nullptr);
 
@@ -1411,9 +1406,9 @@ void Node::onEnter()
     if (_onEnterCallback)
         _onEnterCallback();
 
-    if (_componentContainer && !_componentContainer->isEmpty())
+    for (auto component: _components)
     {
-        _componentContainer->onEnter();
+        component->onEnter();
     }
 
 #if CC_ENABLE_SCRIPT_BINDING
@@ -1495,9 +1490,9 @@ void Node::onExit()
     if (_onExitCallback)
         _onExitCallback();
     
-    if (_componentContainer && !_componentContainer->isEmpty())
+    for (auto component: _components)
     {
-        _componentContainer->onExit();
+        component->onExit();
     }
 
 #if CC_ENABLE_SCRIPT_BINDING
@@ -1731,21 +1726,21 @@ void Node::pauseSchedulerAndActions()
 }
 
 // override me
-void Node::update(float fDelta)
+void Node::update(float delta)
 {
 #if CC_ENABLE_SCRIPT_BINDING
     if (0 != _updateScriptHandler)
     {
         //only lua use
-        SchedulerScriptData data(_updateScriptHandler,fDelta);
+        SchedulerScriptData data(_updateScriptHandler,delta);
         ScriptEvent event(kScheduleEvent,&data);
         ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
     }
 #endif
     
-    if (_componentContainer && !_componentContainer->isEmpty())
+    for (auto component: _components)
     {
-        _componentContainer->visit(fDelta);
+        component->update(delta);
     }
 }
 
@@ -2004,43 +1999,39 @@ void Node::updateTransform()
 
 Component* Node::getComponent(const std::string& name)
 {
-    if (_componentContainer)
-        return _componentContainer->get(name);
-    
+    for (auto component: _components)
+    {
+        if (component->getName().compare(name) == 0)
+            return component;
+    }
     return nullptr;
 }
 
-bool Node::addComponent(Component *component)
+bool Node::addComponent(Component* component)
 {
-    // lazy alloc
-    if (!_componentContainer)
-        _componentContainer = new (std::nothrow) ComponentContainer(this);
-    
-    return _componentContainer->add(component);
+    CCASSERT(component, "invalid component");
+    _components.pushBack(component);
+    return true;
 }
 
 bool Node::removeComponent(const std::string& name)
 {
-    if (_componentContainer)
-        return _componentContainer->remove(name);
-    
+    auto component = getComponent(name);
+    if (component)
+        return removeComponent(component);
     return false;
 }
 
 bool Node::removeComponent(Component *component)
 {
-    if (_componentContainer)
-    {
-        return _componentContainer->remove(component);
-    }
-    
-    return false;
+    CCASSERT(component, "invalid component");
+    _components.eraseObject(component);
+    return true;
 }
 
 void Node::removeAllComponents()
 {
-    if (_componentContainer)
-        _componentContainer->removeAll();
+    _components.clear();
 }
 
 #if CC_USE_PHYSICS
