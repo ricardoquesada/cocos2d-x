@@ -71,10 +71,11 @@ public:
     const std::string& getName() const;
     void setName(const std::string& name);
     
-    void setOwner(Node *pOwner);
+    void setOwner(Node *owner);
     Node* getOwner() const;
 
 protected:
+    // weak ref
     Node *_owner;
     std::string _name;
     bool _enabled;

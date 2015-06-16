@@ -184,7 +184,7 @@ Node::~Node()
     // attributes
     CC_SAFE_RELEASE_NULL(_glProgramState);
 
-    for (auto& child : _children)
+    for (auto child : _children)
     {
         child->_parent = nullptr;
     }
