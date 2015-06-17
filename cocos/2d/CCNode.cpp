@@ -65,8 +65,8 @@ NS_CC_BEGIN
 
 bool nodeComparisonLess(Node* n1, Node* n2)
 {
-    return( n1->getLocalZOrder() < n2->getLocalZOrder() ||
-           ( n1->getLocalZOrder() == n2->getLocalZOrder() && n1->getOrderOfArrival() < n2->getOrderOfArrival() )
+    return (n1->getLocalZOrder() < n2->getLocalZOrder() ||
+           (n1->getLocalZOrder() == n2->getLocalZOrder() && n1->getOrderOfArrival() < n2->getOrderOfArrival())
            );
 }
 
@@ -168,7 +168,7 @@ Node * Node::create()
 
 Node::~Node()
 {
-    CCLOGINFO( "deallocing Node: %p - tag: %i", this, _tag );
+    CCLOGINFO ("deallocing Node: %p - tag: %i", this, _tag);
     
 #if CC_ENABLE_SCRIPT_BINDING
     if (_updateScriptHandler)
@@ -184,7 +184,7 @@ Node::~Node()
     // attributes
     CC_SAFE_RELEASE_NULL(_glProgramState);
 
-    for (auto child : _children)
+    for (const auto& child : _children)
     {
         child->_parent = nullptr;
     }
@@ -231,7 +231,7 @@ void Node::cleanup()
 #endif // #if CC_ENABLE_SCRIPT_BINDING
 
     // timers
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->cleanup();
 }
 
@@ -1068,7 +1068,7 @@ void Node::addChildHelper(Node* child, int localZOrder, int tag, const std::stri
     }
 #endif
     
-    if( _running )
+    if (_running)
     {
         child->onEnter();
         // prevent onEnterTransitionDidFinish to be called twice when a node is added in onEnter
@@ -1127,8 +1127,8 @@ void Node::removeChild(Node* child, bool cleanup /* = true */)
     }
 
     ssize_t index = _children.getIndex(child);
-    if( index != CC_INVALID_INDEX )
-        this->detachChild( child, index, cleanup );
+    if (index != CC_INVALID_INDEX)
+        this->detachChild(child, index, cleanup);
 }
 
 void Node::removeChildByTag(int tag, bool cleanup/* = true */)
@@ -1176,7 +1176,7 @@ void Node::removeFromPhysicsWorld()
         _physicsBody->removeFromWorld();
     }
 
-    for (auto child : _children)
+    for (const auto& child : _children)
     {
         child->removeFromPhysicsWorld();
     }
@@ -1365,7 +1365,7 @@ void Node::visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t paren
     {
         sortAllChildren();
         // draw children zOrder < 0
-        for( ; i < _children.size(); i++ )
+        for (; i < _children.size(); i++)
         {
             auto node = _children.at(i);
 
@@ -1378,7 +1378,7 @@ void Node::visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t paren
         if (visibleByCamera)
             this->draw(renderer, _modelViewTransform, flags);
 
-        for(auto it=_children.cbegin()+i; it != _children.cend(); ++it)
+        for (auto it=_children.cbegin()+i; it != _children.cend(); ++it)
             (*it)->visit(renderer, _modelViewTransform, flags);
     }
     else if (visibleByCamera)
@@ -1406,7 +1406,7 @@ void Node::onEnter()
     if (_onEnterCallback)
         _onEnterCallback();
 
-    for (auto component: _components)
+    for (const auto& component: _components)
     {
         component->onEnter();
     }
@@ -1421,7 +1421,7 @@ void Node::onEnter()
     
     _isTransitionFinished = false;
     
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->onEnter();
     
     this->resume();
@@ -1450,7 +1450,7 @@ void Node::onEnterTransitionDidFinish()
 #endif
 
     _isTransitionFinished = true;
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->onEnterTransitionDidFinish();
     
 #if CC_ENABLE_SCRIPT_BINDING
@@ -1474,7 +1474,7 @@ void Node::onExitTransitionDidStart()
     }
 #endif
     
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->onExitTransitionDidStart();
     
 #if CC_ENABLE_SCRIPT_BINDING
@@ -1490,7 +1490,7 @@ void Node::onExit()
     if (_onExitCallback)
         _onExitCallback();
     
-    for (auto component: _components)
+    for (const auto& component: _components)
     {
         component->onExit();
     }
@@ -1507,7 +1507,7 @@ void Node::onExit()
     
     _running = false;
     
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->onExit();
     
 #if CC_ENABLE_SCRIPT_BINDING
@@ -1531,7 +1531,7 @@ void Node::setEventDispatcher(EventDispatcher* dispatcher)
 
 void Node::setActionManager(ActionManager* actionManager)
 {
-    if( actionManager != _actionManager )
+    if (actionManager != _actionManager)
     {
         this->stopAllActions();
         CC_SAFE_RETAIN(actionManager);
@@ -1586,7 +1586,7 @@ ssize_t Node::getNumberOfRunningActions() const
 
 void Node::setScheduler(Scheduler* scheduler)
 {
-    if( scheduler != _scheduler )
+    if (scheduler != _scheduler)
     {
         this->unscheduleAllCallbacks();
         CC_SAFE_RETAIN(scheduler);
@@ -1738,7 +1738,7 @@ void Node::update(float delta)
     }
 #endif
     
-    for (auto component: _components)
+    for (const auto& component: _components)
     {
         component->update(delta);
     }
@@ -1769,7 +1769,7 @@ const Mat4& Node::getNodeToParentTransform() const
             y += _anchorPointInPoints.y;
         }
         
-        bool needsSkewMatrix = ( _skewX || _skewY );
+        bool needsSkewMatrix = (_skewX || _skewY);
         
         
         Vec2 anchorPoint(_anchorPointInPoints.x * _scaleX, _anchorPointInPoints.y * _scaleY);
@@ -1897,7 +1897,7 @@ AffineTransform Node::getParentToNodeAffineTransform() const
 
 const Mat4& Node::getParentToNodeTransform() const
 {
-    if ( _inverseDirty )
+    if (_inverseDirty)
     {
         _inverse = getNodeToParentTransform().getInversed();
         _inverseDirty = false;
@@ -1991,7 +1991,7 @@ Vec2 Node::convertTouchToNodeSpaceAR(Touch *touch) const
 void Node::updateTransform()
 {
     // Recursively iterate over children
-    for( const auto &child: _children)
+    for (const auto& child: _children)
         child->updateTransform();
 }
 
@@ -1999,7 +1999,7 @@ void Node::updateTransform()
 
 Component* Node::getComponent(const std::string& name)
 {
-    for (auto component: _components)
+    for (const auto& component: _components)
     {
         if (component->getName().compare(name) == 0)
             return component;
@@ -2010,6 +2010,11 @@ Component* Node::getComponent(const std::string& name)
 bool Node::addComponent(Component* component)
 {
     CCASSERT(component, "invalid component");
+
+    // auto-schedule update() in case a component is added
+    if (_components.size()==0)
+        this->scheduleUpdate();
+
     _components.pushBack(component);
     return true;
 }
@@ -2019,6 +2024,7 @@ bool Node::removeComponent(const std::string& name)
     auto component = getComponent(name);
     if (component)
         return removeComponent(component);
+
     return false;
 }
 
@@ -2026,12 +2032,21 @@ bool Node::removeComponent(Component *component)
 {
     CCASSERT(component, "invalid component");
     _components.eraseObject(component);
+
+    // auto-unschedule update() in case no more components are needed
+    // what happens if a user manually schedule update() ?
+    // Best practice: don't schedule update() if you are going to use components
+    if (_components.size()==0)
+        this->unscheduleUpdate();
+
     return true;
 }
 
 void Node::removeAllComponents()
 {
     _components.clear();
+
+    this->unscheduleUpdate();
 }
 
 #if CC_USE_PHYSICS
@@ -2122,7 +2137,7 @@ void Node::updatePhysicsBodyTransform(const Mat4& parentTransform, uint32_t pare
         _physicsBody->setRotation(_physicsRotation - _physicsRotationOffset);
     }
 
-    for (auto node : _children)
+    for (const auto& node : _children)
     {
         node->updatePhysicsBodyTransform(_modelViewTransform, flags, scaleX, scaleY);
     }
@@ -2174,7 +2189,7 @@ void Node::updateDisplayedOpacity(GLubyte parentOpacity)
     
     if (_cascadeOpacityEnabled)
     {
-        for(const auto& child : _children)
+        for (const auto& child : _children)
         {
             child->updateDisplayedOpacity(_displayedOpacity);
         }
@@ -2221,7 +2236,7 @@ void Node::disableCascadeOpacity()
 {
     _displayedOpacity = _realOpacity;
     
-    for(const auto& child : _children)
+    for (const auto& child : _children)
     {
         child->updateDisplayedOpacity(255);
     }
@@ -2253,7 +2268,7 @@ void Node::updateDisplayedColor(const Color3B& parentColor)
     
     if (_cascadeColorEnabled)
     {
-        for(const auto &child : _children)
+        for (const auto& child : _children)
         {
             child->updateDisplayedColor(_displayedColor);
         }
@@ -2297,7 +2312,7 @@ void Node::updateCascadeColor()
 
 void Node::disableCascadeColor()
 {
-    for(const auto& child : _children)
+    for (const auto& child : _children)
     {
         child->updateDisplayedColor(Color3B::WHITE);
     }
