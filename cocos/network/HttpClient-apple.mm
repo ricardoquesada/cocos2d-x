@@ -24,6 +24,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
+#include "platform/CCPlatformConfig.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+
 #include "HttpClient.h"
 
 #include <queue>
@@ -601,5 +604,8 @@ const std::string& HttpClient::getSSLVerification()
 }
 
 NS_CC_END
+
+#endif // #if CC_TARGET_PLATFORM == CC_PLATFORM_MAC
+
 
 
