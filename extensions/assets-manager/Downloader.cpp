@@ -23,11 +23,14 @@
  ****************************************************************************/
 
 #include "Downloader.h"
-#include "cocos2d.h"
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <cstdio>
 #include <cerrno>
+
+#include "base/CCDirector.h"
+#include "base/CCScheduler.h"
+#include "deprecated/CCString.h"
 
 NS_CC_EXT_BEGIN
 
@@ -273,10 +276,10 @@ void Downloader::prepareDownload(const std::string &srcUrl, const std::string &s
     }
 }
 
-Downloader::HeaderInfo Downloader::prepareHeader(const std::string &srcUrl, void* header/* = nullptr */)
+network::HeaderInfo Downloader::prepareHeader(const std::string &srcUrl, void* header/* = nullptr */)
 {
     bool headerGiven = true;
-    HeaderInfo info;
+    network::HeaderInfo info;
     info.valid = false;
     
     if (!header)
@@ -284,32 +287,11 @@ Downloader::HeaderInfo Downloader::prepareHeader(const std::string &srcUrl, void
         headerGiven = false;
         header = curl_easy_init();
     }
-    
-    curl_easy_setopt(header, CURLOPT_URL, srcUrl.c_str());
-    curl_easy_setopt(header, CURLOPT_HEADER, 1);
-    curl_easy_setopt(header, CURLOPT_NOBODY, 1);
-    curl_easy_setopt(header, CURLOPT_NOSIGNAL, 1);
-    if (curl_easy_perform(header) == CURLE_OK)
-    {
-        char *url;
-        char *contentType;
-        curl_easy_getinfo(header, CURLINFO_EFFECTIVE_URL, &url);
-        curl_easy_getinfo(header, CURLINFO_CONTENT_TYPE, &contentType);
-        curl_easy_getinfo(header, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &info.contentSize);
-        curl_easy_getinfo(header, CURLINFO_RESPONSE_CODE, &info.responseCode);
-        
-        if (contentType == nullptr || info.contentSize == -1 || info.responseCode >= 400)
-        {
-            info.valid = false;
-        }
-        else
-        {
-            info.url = url;
-            info.contentType = contentType;
-            info.valid = true;
-        }
-    }
-    
+
+    network::URLDownload dowload;
+
+    dowload.getHeader(srcUrl, &info);
+
     if (info.valid && _onHeader)
     {
         _onHeader(srcUrl, info);
@@ -330,11 +312,11 @@ Downloader::HeaderInfo Downloader::prepareHeader(const std::string &srcUrl, void
 
 long Downloader::getContentSize(const std::string &srcUrl)
 {
-    HeaderInfo info = prepareHeader(srcUrl);
+    network::HeaderInfo info = prepareHeader(srcUrl);
     return info.contentSize;
 }
 
-Downloader::HeaderInfo Downloader::getHeader(const std::string &srcUrl)
+network::HeaderInfo Downloader::getHeader(const std::string &srcUrl)
 {
     return prepareHeader(srcUrl);
 }
@@ -460,7 +442,7 @@ void Downloader::downloadSync(const std::string &srcUrl, const std::string &stor
     }
 }
 
-void Downloader::download(const std::string &srcUrl, const std::string &customId, const FileDescriptor &fDesc, const ProgressData &data)
+void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, const ProgressData& data)
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
     CURL *curl = curl_easy_init();
@@ -478,7 +460,8 @@ void Downloader::download(const std::string &srcUrl, const std::string &customId
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-    if (_connectionTimeout) curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
+    if (_connectionTimeout)
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
@@ -532,7 +515,7 @@ void Downloader::batchDownloadSync(const DownloadUnits &units, const std::string
         CURL *header = curl_easy_init();
         // Make a resume request
         curl_easy_setopt(header, CURLOPT_RESUME_FROM_LARGE, 0);
-        HeaderInfo headerInfo = prepareHeader(units.begin()->second.srcUrl, header);
+        network::HeaderInfo headerInfo = prepareHeader(units.begin()->second.srcUrl, header);
         if (headerInfo.valid)
         {
             if (headerInfo.responseCode == HTTP_CODE_SUPPORT_RESUME)
@@ -601,7 +584,8 @@ void Downloader::groupBatchDownload(const DownloadUnits &units)
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, batchDownloadProgressFunc);
             curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, data);
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-            if (_connectionTimeout) curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
+            if (_connectionTimeout)
+                curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
             curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
             curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
             curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);

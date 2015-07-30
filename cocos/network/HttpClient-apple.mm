@@ -32,7 +32,7 @@
 #include <queue>
 #include <errno.h>
 
-#import "network/HttpAsynConnection.h"
+#import "network/HttpAsynConnection-apple.h"
 #include "network/HttpCookie.h"
 #include "base/CCDirector.h"
 #include "platform/CCFileUtils.h"

@@ -25,6 +25,8 @@
 #ifndef __Downloader__
 #define __Downloader__
 
+#include "network/CCURLDownload.h"
+
 #include "platform/CCFileUtils.h"
 #include "extensions/ExtensionMacros.h"
 #include "extensions/ExtensionExport.h"
@@ -100,22 +102,13 @@ public:
         long total;
         unsigned char *buffer;
     };
-    
-    struct HeaderInfo
-    {
-        bool valid;
-        std::string url;
-        std::string contentType;
-        double contentSize;
-        long responseCode;
-    };
-    
+
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
     
     typedef std::function<void(const Downloader::Error &)> ErrorCallback;
     typedef std::function<void(double, double, const std::string &, const std::string &)> ProgressCallback;
     typedef std::function<void(const std::string &, const std::string &, const std::string &)> SuccessCallback;
-    typedef std::function<void(const std::string &, const HeaderInfo &)> HeaderCallback;
+    typedef std::function<void(const std::string &, const network::HeaderInfo &)> HeaderCallback;
 
     int getConnectionTimeout();
 
@@ -139,7 +132,7 @@ public:
     
     long getContentSize(const std::string &srcUrl);
     
-    HeaderInfo getHeader(const std::string &srcUrl);
+    network::HeaderInfo getHeader(const std::string &srcUrl);
     
     void getHeaderAsync(const std::string &srcUrl, const HeaderCallback &callback);
     
@@ -172,7 +165,7 @@ protected:
 
     void prepareDownload(const std::string &srcUrl, const std::string &storagePath, const std::string &customId, bool resumeDownload, FileDescriptor *fDesc, ProgressData *pData);
     
-    HeaderInfo prepareHeader(const std::string &srcUrl, void* header = nullptr);
+    network::HeaderInfo prepareHeader(const std::string &srcUrl, void* header = nullptr);
     
     void downloadToBuffer(const std::string &srcUrl, const std::string &customId, const StreamData &buffer, const ProgressData &data);
 
