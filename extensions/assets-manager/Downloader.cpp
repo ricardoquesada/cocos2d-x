@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cerrno>
 
+#include "network/CCURLDownload.h"
 #include "base/CCDirector.h"
 #include "base/CCScheduler.h"
 #include "deprecated/CCString.h"
@@ -43,14 +44,14 @@ NS_CC_EXT_BEGIN
 
 #define TEMP_EXT            ".temp"
 
-size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
+static size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
     FILE *fp = (FILE*)userdata;
     size_t written = fwrite(ptr, size, nmemb, fp);
     return written;
 }
 
-size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
+static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
     Downloader::StreamData *streamBuffer = (Downloader::StreamData *)userdata;
     size_t written = size * nmemb;
@@ -65,7 +66,7 @@ size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 }
 
 // This is only for batchDownload process, will notify file succeed event in progress function
-int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
     if (ptr->totalToDownload == 0)
     {
@@ -119,7 +120,7 @@ int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownl
 }
 
 // Compare to batchDownloadProgressFunc, this only handles progress information notification
-int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded)
 {
     if (ptr->totalToDownload == 0)
     {
@@ -444,41 +445,29 @@ void Downloader::downloadSync(const std::string &srcUrl, const std::string &stor
 
 void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, const ProgressData& data)
 {
+    // XXX: Why ProgressData is being passed as 'const' ?.
+    // its values are going to get updated.
+    ProgressData *dataPtr = const_cast<ProgressData*>(&data);
+
     std::weak_ptr<Downloader> ptr = shared_from_this();
-    CURL *curl = curl_easy_init();
-    if (!curl)
-    {
-        this->notifyError(ErrorCode::CURL_EASY_ERROR, "Can not init curl with curl_easy_init", customId);
-        return;
-    }
-    
-    // Download pacakge
-    curl_easy_setopt(curl, CURLOPT_URL, srcUrl.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fileWriteFunc);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fDesc.fp);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
-    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-    if (_connectionTimeout)
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
-    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
-    
-    CURLcode res = curl_easy_perform(curl);
-    if (res != CURLE_OK)
+
+    network::URLDownload dowload;
+    int res = dowload.performDownload(srcUrl,
+                                      std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, fDesc.fp),
+                                      std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
+                            );
+
+    if (res != 0)
     {
         _fileUtils->removeFile(data.path + data.name + TEMP_EXT);
-        std::string msg = StringUtils::format("Unable to download file: [curl error]%s", curl_easy_strerror(res));
+        std::string msg = StringUtils::format("Unable to download file: [curl error]%s", dowload.getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
     
     fclose(fDesc.fp);
-    curl_easy_cleanup(curl);
-    
+
     // This can only be done after fclose
-    if (res == CURLE_OK)
+    if (res == 0)
     {
         _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
         

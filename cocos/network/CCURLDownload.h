@@ -25,6 +25,7 @@
 #pragma once
 
 #include <string>
+#include <curl/curl.h>
 
 #include "network/CCIURLDownload.h"
 #include "platform/CCPlatformMacros.h"
@@ -45,19 +46,21 @@ namespace network
         virtual ~URLDownload();
 
         virtual int performDownload(const std::string& url,
-                                    const std::function<void()>& writterCallback,
-                                    const std::function<void()>& progressCallback
+                                    const WritterCallback& writterCallback,
+                                    const ProgressCallback& progressCallback
                                     ) override;
         virtual int getHeader(const std::string& url, HeaderInfo* headerInfo) override;
 
+        virtual std::string getStrError() const override;
 
-        const std::function<void()>& getWritterCallback() const { return _writterCallback; }
-        const std::function<void()>& getProgressCallback() const { return _progressCallback; }
+        const WritterCallback& getWritterCallback() const { return _writterCallback; }
+        const ProgressCallback& getProgressCallback() const { return _progressCallback; }
 
     private:
         void* _curl;
-        std::function<void()> _writterCallback;
-        std::function<void()> _progressCallback;
+        CURLcode _lastErrCode;
+        WritterCallback _writterCallback;
+        ProgressCallback _progressCallback;
     };
 
 } // namespace network

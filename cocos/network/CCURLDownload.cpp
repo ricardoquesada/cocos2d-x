@@ -35,6 +35,7 @@ static const int DEFAULT_TIMEOUT = 5;
 
 URLDownload::URLDownload()
 : _curl(nullptr)
+, _lastErrCode(CURLE_OK)
 {
     _curl = curl_easy_init();
 }
@@ -46,19 +47,23 @@ URLDownload::~URLDownload()
 
 size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, URLDownload* this_)
 {
-    this_->getWritterCallback()();
-    return size;
+    return this_->getWritterCallback()(ptr, size, nmemb);
 }
 
 int static downloadProgressFunc(URLDownload* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
-    this_->getProgressCallback()();
+    this_->getProgressCallback()(totalToDownload, nowDownloaded);
     return 0;
 }
 
+std::string URLDownload::getStrError() const
+{
+    return curl_easy_strerror(_lastErrCode);
+}
+
 int URLDownload::performDownload(const std::string& url,
-                            const std::function<void()>& writterCallback,
-                            const std::function<void()>& progressCallback
+                            const WritterCallback& writterCallback,
+                            const ProgressCallback& progressCallback
                             )
 {
     // Download pacakge
@@ -78,8 +83,8 @@ int URLDownload::performDownload(const std::string& url,
 
     _writterCallback = writterCallback;
     _progressCallback = progressCallback;
-    CURLcode res = curl_easy_perform(_curl);
-    return res;
+    _lastErrCode = curl_easy_perform(_curl);
+    return _lastErrCode;
 }
 
 int URLDownload::getHeader(const std::string& url, HeaderInfo* headerInfo)
@@ -91,7 +96,7 @@ int URLDownload::getHeader(const std::string& url, HeaderInfo* headerInfo)
     curl_easy_setopt(_curl, CURLOPT_HEADER, 1);
     curl_easy_setopt(_curl, CURLOPT_NOBODY, 1);
     curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1);
-    if (curl_easy_perform(_curl) == CURLE_OK)
+    if ((_lastErrCode=curl_easy_perform(_curl)) == CURLE_OK)
     {
         char *effectiveUrl;
         char *contentType;

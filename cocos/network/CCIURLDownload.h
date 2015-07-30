@@ -50,14 +50,19 @@ namespace network
     class IURLDownload
     {
     public:
+        typedef std::function<int(void *ptr, ssize_t, ssize_t)> WritterCallback;
+        typedef std::function<int(double, double)> ProgressCallback;
+
         IURLDownload();
         virtual ~IURLDownload();
 
         virtual int performDownload(const std::string& url,
-                                     const std::function<void()>& writterCallback,
-                                     const std::function<void()>& progressCallback
+                                    const WritterCallback& writterCallback,
+                                    const ProgressCallback& progressCallback
                                     ) = 0;
         virtual int getHeader(const std::string& url, HeaderInfo* headerInfo) = 0;
+
+        virtual std::string getStrError() const = 0;
     };
 }
 

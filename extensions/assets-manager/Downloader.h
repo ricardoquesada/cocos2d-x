@@ -204,7 +204,7 @@ private:
     bool _supportResuming;
 };
 
-int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
+int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded);
 
 NS_CC_EXT_END
 
