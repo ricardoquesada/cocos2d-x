@@ -36,7 +36,15 @@
 #include <functional>
 #include <memory>
 
+
+namespace cocos2d {
+    namespace network {
+        class URLDownload;
+    }
+}
+
 NS_CC_EXT_BEGIN
+
 
 class CC_EX_DLL Downloader : public std::enable_shared_from_this<Downloader>
 {
@@ -106,9 +114,9 @@ public:
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
     
     typedef std::function<void(const Downloader::Error &)> ErrorCallback;
-    typedef std::function<void(double, double, const std::string &, const std::string &)> ProgressCallback;
-    typedef std::function<void(const std::string &, const std::string &, const std::string &)> SuccessCallback;
-    typedef std::function<void(const std::string &, const network::HeaderInfo &)> HeaderCallback;
+    typedef std::function<void(double, double, const std::string& , const std::string& )> ProgressCallback;
+    typedef std::function<void(const std::string& , const std::string& , const std::string& )> SuccessCallback;
+    typedef std::function<void(const std::string& , const network::HeaderInfo &)> HeaderCallback;
 
     int getConnectionTimeout();
 
@@ -130,23 +138,23 @@ public:
     
     HeaderCallback getHeaderCallback() const { return _onHeader; };
     
-    long getContentSize(const std::string &srcUrl);
+    long getContentSize(const std::string& srcUrl);
     
-    network::HeaderInfo getHeader(const std::string &srcUrl);
+    network::HeaderInfo getHeader(const std::string& srcUrl);
     
-    void getHeaderAsync(const std::string &srcUrl, const HeaderCallback &callback);
+    void getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback);
     
-    void downloadToBufferAsync(const std::string &srcUrl, unsigned char *buffer, const long &size, const std::string &customId = "");
+    void downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
     
-    void downloadToBufferSync(const std::string &srcUrl, unsigned char *buffer, const long &size, const std::string &customId = "");
+    void downloadToBufferSync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
 
-    void downloadAsync(const std::string &srcUrl, const std::string &storagePath, const std::string &customId = "");
+    void downloadAsync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
 
-    void downloadSync(const std::string &srcUrl, const std::string &storagePath, const std::string &customId = "");
+    void downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
     
-    void batchDownloadAsync(const DownloadUnits &units, const std::string &batchId = "");
+    void batchDownloadAsync(const DownloadUnits &units, const std::string& batchId = "");
     
-    void batchDownloadSync(const DownloadUnits &units, const std::string &batchId = "");
+    void batchDownloadSync(const DownloadUnits &units, const std::string& batchId = "");
 
     /**
      *  The default constructor.
@@ -163,21 +171,21 @@ protected:
         void *curl;
     };
 
-    void prepareDownload(const std::string &srcUrl, const std::string &storagePath, const std::string &customId, bool resumeDownload, FileDescriptor *fDesc, ProgressData *pData);
+    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FileDescriptor* fDesc, ProgressData* pData);
     
-    network::HeaderInfo prepareHeader(const std::string &srcUrl, void* header = nullptr);
+    network::HeaderInfo prepareHeader(const std::string& srcUrl);
     
-    void downloadToBuffer(const std::string &srcUrl, const std::string &customId, const StreamData &buffer, const ProgressData &data);
+    void downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData& buffer, const ProgressData& data);
 
-    void download(const std::string &srcUrl, const std::string &customId, const FileDescriptor &fDesc, const ProgressData &data);
+    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, const ProgressData &data);
     
     void groupBatchDownload(const DownloadUnits &units);
 
-    void notifyError(ErrorCode code, const std::string &msg = "", const std::string &customId = "", int curle_code = 0, int curlm_code = 0);
+    void notifyError(ErrorCode code, const std::string& msg = "", const std::string& customId = "", int curle_code = 0, int curlm_code = 0);
     
-    void notifyError(const std::string &msg, int curlm_code, const std::string &customId = "");
+    void notifyError(const std::string& msg, int curlm_code, const std::string& customId = "");
     
-    void notifyError(const std::string &msg, const std::string &customId, int curle_code);
+    void notifyError(const std::string& msg, const std::string& customId, int curle_code);
 
 private:
 
@@ -191,7 +199,7 @@ private:
     
     HeaderCallback _onHeader;
 
-    std::string getFileNameFromUrl(const std::string &srcUrl);
+    std::string getFileNameFromUrl(const std::string& srcUrl);
     
     void clearBatchDownloadData();
     

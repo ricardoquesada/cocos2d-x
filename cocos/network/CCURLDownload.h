@@ -42,25 +42,29 @@ namespace network
     class URLDownload : public IURLDownload
     {
     public:
-        URLDownload();
+        URLDownload(const std::string& url);
         virtual ~URLDownload();
 
-        virtual int performDownload(const std::string& url,
-                                    const WritterCallback& writterCallback,
+        // Overrides
+        virtual int performDownload(const WritterCallback& writterCallback,
                                     const ProgressCallback& progressCallback
                                     ) override;
-        virtual int getHeader(const std::string& url, HeaderInfo* headerInfo) override;
+        virtual int getHeader(HeaderInfo* headerInfo) override;
 
         virtual std::string getStrError() const override;
+        virtual bool checkOption(Options option);
 
+        //
         const WritterCallback& getWritterCallback() const { return _writterCallback; }
         const ProgressCallback& getProgressCallback() const { return _progressCallback; }
 
     private:
-        void* _curl;
-        CURLcode _lastErrCode;
+        std::string _url;
         WritterCallback _writterCallback;
         ProgressCallback _progressCallback;
+
+        void* _curlHandle;
+        CURLcode _lastErrCode;
     };
 
 } // namespace network

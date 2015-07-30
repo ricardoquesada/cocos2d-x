@@ -32,17 +32,21 @@ using namespace cocos2d::network;
 static const long LOW_SPEED_LIMIT = 1;
 static const long LOW_SPEED_TIME = 5;
 static const int DEFAULT_TIMEOUT = 5;
+static const int HTTP_CODE_SUPPORT_RESUME = 206;
 
-URLDownload::URLDownload()
-: _curl(nullptr)
+URLDownload::URLDownload(const std::string& url)
+: IURLDownload(url)
+, _curlHandle(nullptr)
 , _lastErrCode(CURLE_OK)
+, _url(url)
 {
-    _curl = curl_easy_init();
+    _curlHandle = curl_easy_init();
+    curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
 }
 URLDownload::~URLDownload()
 {
-    if (_curl)
-        curl_easy_cleanup(_curl);
+    if (_curlHandle)
+        curl_easy_cleanup(_curlHandle);
 }
 
 size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, URLDownload* this_)
@@ -61,49 +65,46 @@ std::string URLDownload::getStrError() const
     return curl_easy_strerror(_lastErrCode);
 }
 
-int URLDownload::performDownload(const std::string& url,
-                            const WritterCallback& writterCallback,
+int URLDownload::performDownload(const WritterCallback& writterCallback,
                             const ProgressCallback& progressCallback
                             )
 {
     // Download pacakge
-    curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, fileWriteFunc);
-    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(_curlHandle, CURLOPT_WRITEFUNCTION, fileWriteFunc);
+    curl_easy_setopt(_curlHandle, CURLOPT_WRITEDATA, this);
 
-    curl_easy_setopt(_curl, CURLOPT_NOPROGRESS, false);
-    curl_easy_setopt(_curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
-    curl_easy_setopt(_curl, CURLOPT_PROGRESSDATA, this);
+    curl_easy_setopt(_curlHandle, CURLOPT_NOPROGRESS, false);
+    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
+    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSDATA, this);
 
-    curl_easy_setopt(_curl, CURLOPT_FAILONERROR, true);
-    curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT, DEFAULT_TIMEOUT);
-    curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(_curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
-    curl_easy_setopt(_curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
+    curl_easy_setopt(_curlHandle, CURLOPT_FAILONERROR, true);
+    curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, DEFAULT_TIMEOUT);
+    curl_easy_setopt(_curlHandle, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
+    curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
 
     _writterCallback = writterCallback;
     _progressCallback = progressCallback;
-    _lastErrCode = curl_easy_perform(_curl);
+    _lastErrCode = curl_easy_perform(_curlHandle);
     return _lastErrCode;
 }
 
-int URLDownload::getHeader(const std::string& url, HeaderInfo* headerInfo)
+int URLDownload::getHeader(HeaderInfo* headerInfo)
 {
-    CC_ASSERT(_curl && "not initialized");
+    CC_ASSERT(_curlHandle && "not initialized");
     CC_ASSERT(headerInfo && "headerInfo must not be null");
 
-    curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(_curl, CURLOPT_HEADER, 1);
-    curl_easy_setopt(_curl, CURLOPT_NOBODY, 1);
-    curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1);
-    if ((_lastErrCode=curl_easy_perform(_curl)) == CURLE_OK)
+    curl_easy_setopt(_curlHandle, CURLOPT_HEADER, 1);
+    curl_easy_setopt(_curlHandle, CURLOPT_NOBODY, 1);
+    curl_easy_setopt(_curlHandle, CURLOPT_NOSIGNAL, 1);
+    if ((_lastErrCode=curl_easy_perform(_curlHandle)) == CURLE_OK)
     {
         char *effectiveUrl;
         char *contentType;
-        curl_easy_getinfo(_curl, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
-        curl_easy_getinfo(_curl, CURLINFO_CONTENT_TYPE, &contentType);
-        curl_easy_getinfo(_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &headerInfo->contentSize);
-        curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &headerInfo->responseCode);
+        curl_easy_getinfo(_curlHandle, CURLINFO_EFFECTIVE_URL, &effectiveUrl);
+        curl_easy_getinfo(_curlHandle, CURLINFO_CONTENT_TYPE, &contentType);
+        curl_easy_getinfo(_curlHandle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &headerInfo->contentSize);
+        curl_easy_getinfo(_curlHandle, CURLINFO_RESPONSE_CODE, &headerInfo->responseCode);
 
         if (contentType == nullptr || headerInfo->contentSize == -1 || headerInfo->responseCode >= 400)
         {
@@ -120,4 +121,21 @@ int URLDownload::getHeader(const std::string& url, HeaderInfo* headerInfo)
     }
 
     return -1;
+}
+
+bool URLDownload::checkOption(Options option)
+{
+    CC_ASSERT(_curlHandle && "not initialized");
+
+    HeaderInfo headerInfo;
+    // Make a resume request
+
+    if (option == Options::RESUME) {
+        curl_easy_setopt(_curlHandle, CURLOPT_RESUME_FROM_LARGE, 0);
+        if (getHeader(&headerInfo) == 0 && headerInfo.valid)
+        {
+            return (headerInfo.responseCode == HTTP_CODE_SUPPORT_RESUME);
+        }
+    }
+    return false;
 }
