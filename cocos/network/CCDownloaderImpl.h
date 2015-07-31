@@ -25,6 +25,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include <curl/curl.h>
 
 #include "network/CCIDownloaderImpl.h"
@@ -46,16 +48,17 @@ namespace network
         virtual ~DownloaderImpl();
 
         // Overrides
-        virtual int performDownload(const WriterCallback& writerCallback,
+        int performDownload(const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) override;
-        virtual int performBatchDownload(const DownloadUnits& units,
+        int performBatchDownload(const DownloadUnits& units,
                                          const WriterCallback& writerCallback,
-                                         const ProgressCallback& progressCallback
+                                         const ProgressCallback& progressCallback,
+                                         const ErrorCallback& errorCallback                                         
                                          ) override;
-        virtual int getHeader(HeaderInfo* headerInfo) override;
-        virtual std::string getStrError() const override;
-
+        int getHeader(HeaderInfo* headerInfo) override;
+        std::string getStrError() const override;
+        void setConnectionTimeout(int timeout) override;
 
         //
         bool supportsResume();
@@ -64,6 +67,7 @@ namespace network
 
     private:
         std::string _url;
+        int _connectionTimeout;
         WriterCallback _writerCallback;
         ProgressCallback _progressCallback;
 

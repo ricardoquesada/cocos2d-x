@@ -69,7 +69,7 @@ static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userda
 }
 
 // This is only for batchDownload process, will notify file succeed event in progress function
-static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded)
 {
     if (ptr->totalToDownload == 0)
     {

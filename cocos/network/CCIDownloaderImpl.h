@@ -54,6 +54,8 @@ namespace network
         std::string storagePath;
         std::string customId;
         bool resumeDownload;
+
+        FILE* fp;
     };
 
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
@@ -66,6 +68,7 @@ namespace network
 
         typedef std::function<int(void *ptr, ssize_t, ssize_t)> WriterCallback;
         typedef std::function<int(double, double)> ProgressCallback;
+        typedef std::function<int(int, std::string)> ErrorCallback;
 
         enum class Options {
             RESUME
@@ -78,12 +81,15 @@ namespace network
 
         virtual int performBatchDownload(const DownloadUnits& units,
                                          const WriterCallback& writerCallback,
-                                         const ProgressCallback& progressCallback
+                                         const ProgressCallback& progressCallback,
+                                         const ErrorCallback& errorCallback
                                          ) = 0;
 
         virtual int getHeader(HeaderInfo* headerInfo) = 0;
 
         virtual std::string getStrError() const = 0;
+
+        virtual void setConnectionTimeout(int timeout) = 0;
     };
 }
 

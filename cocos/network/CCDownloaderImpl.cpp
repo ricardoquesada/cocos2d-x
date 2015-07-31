@@ -26,19 +26,27 @@
 
 #include <curl/curl.h>
 
+#include "platform/CCFileUtils.h"
+#include "deprecated/CCString.h"
+
 USING_NS_CC;
 using namespace cocos2d::network;
 
 static const long LOW_SPEED_LIMIT = 1;
 static const long LOW_SPEED_TIME = 5;
 static const int DEFAULT_TIMEOUT = 5;
+static const int MAX_REDIRS = 2;
+static const int MAX_WAIT_MSECS = 30*1000; /* Wait max. 30 seconds */
+
 static const int HTTP_CODE_SUPPORT_RESUME = 206;
+static const char* TEMP_EXT = ".temp";
 
 DownloaderImpl::DownloaderImpl(const std::string& url)
 : IDownloaderImpl(url)
 , _curlHandle(nullptr)
 , _lastErrCode(CURLE_OK)
 , _url(url)
+, _connectionTimeout(DEFAULT_TIMEOUT)
 {
     _curlHandle = curl_easy_init();
     curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
@@ -78,7 +86,8 @@ int DownloaderImpl::performDownload(const WriterCallback& writerCallback,
     curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSDATA, this);
 
     curl_easy_setopt(_curlHandle, CURLOPT_FAILONERROR, true);
-    curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, DEFAULT_TIMEOUT);
+    if (_connectionTimeout)
+        curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
     curl_easy_setopt(_curlHandle, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
     curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
@@ -90,11 +99,142 @@ int DownloaderImpl::performDownload(const WriterCallback& writerCallback,
 }
 
 int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
-                                         const WriterCallback& writerCallback,
-                                         const ProgressCallback& progressCallback)
+                                         const WriterCallback& batchWriterCallback,
+                                         const ProgressCallback& batchProgressCallback,
+                                         const ErrorCallback& errorCallback)
 {
-    return -1;
+    CURLM* multi_handle = curl_multi_init();
+    int still_running = 0;
+
+    bool supportResume = supportsResume();
+    auto fileUtils = FileUtils::getInstance();
+
+    _writerCallback = batchWriterCallback;
+    _progressCallback = batchProgressCallback;
+
+    std::vector<CURL*> curls;
+    curls.reserve(units.size());
+
+    for (auto it = units.cbegin(); it != units.cend(); ++it)
+    {
+        DownloadUnit unit = it->second;
+
+        if (unit.fp != NULL)
+        {
+            CURL* curl = curl_easy_init();
+            curl_easy_setopt(curl, CURLOPT_URL, unit.srcUrl.c_str());
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fileWriteFunc);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, this);
+            curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+            if (_connectionTimeout)
+                curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
+            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+            curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
+            curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
+            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
+            curl_easy_setopt(curl, CURLOPT_MAXREDIRS, MAX_REDIRS);
+
+            // Resuming download support
+            if (supportResume && unit.resumeDownload)
+            {
+                // Check already downloaded size for current download unit
+                long size = fileUtils->getFileSize(unit.storagePath + TEMP_EXT);
+                if (size != -1)
+                {
+                    curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, size);
+                }
+            }
+
+            CURLMcode code = curl_multi_add_handle(multi_handle, curl);
+            if (code != CURLM_OK)
+            {
+                errorCallback(code, StringUtils::format("Unable to add curl handler for %s: [curl error]%s", unit.customId.c_str(), curl_multi_strerror(code)));
+                curl_easy_cleanup(curl);
+            }
+            else
+            {
+                curls.push_back(curl);
+            }
+        }
+    }
+
+    // Query multi perform
+    CURLMcode curlm_code = CURLM_CALL_MULTI_PERFORM;
+    while(CURLM_CALL_MULTI_PERFORM == curlm_code) {
+        curlm_code = curl_multi_perform(multi_handle, &still_running);
+    }
+    if (curlm_code != CURLM_OK) {
+        errorCallback(curlm_code, StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)));
+    }
+    else
+    {
+        bool failed = false;
+        while (still_running > 0 && !failed)
+        {
+            // set a suitable timeout to play around with
+            struct timeval select_tv;
+            long curl_timeo = -1;
+            select_tv.tv_sec = 1;
+            select_tv.tv_usec = 0;
+
+            curl_multi_timeout(multi_handle, &curl_timeo);
+            if(curl_timeo >= 0) {
+                select_tv.tv_sec = curl_timeo / 1000;
+                if(select_tv.tv_sec > 1)
+                    select_tv.tv_sec = 1;
+                else
+                    select_tv.tv_usec = (curl_timeo % 1000) * 1000;
+            }
+
+            int rc;
+            fd_set fdread;
+            fd_set fdwrite;
+            fd_set fdexcep;
+            int maxfd = -1;
+            FD_ZERO(&fdread);
+            FD_ZERO(&fdwrite);
+            FD_ZERO(&fdexcep);
+            // FIXME: when jenkins migrate to ubuntu, we should remove this hack code
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
+            curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
+            rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &select_tv);
+#else
+            rc = curl_multi_wait(multi_handle,nullptr, 0, MAX_WAIT_MSECS, &maxfd);
+#endif
+
+            switch(rc)
+            {
+                case -1:
+                    failed = true;
+                    break;
+                case 0:
+                default:
+                    curlm_code = CURLM_CALL_MULTI_PERFORM;
+                    while(CURLM_CALL_MULTI_PERFORM == curlm_code) {
+                        curlm_code = curl_multi_perform(multi_handle, &still_running);
+                    }
+                    if (curlm_code != CURLM_OK) {
+                        errorCallback(curlm_code, StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)));
+                    }
+                    break;
+            }
+        }
+    }
+
+    // Clean up and close files
+    for (auto& curl: curls)
+    {
+        curl_multi_remove_handle(multi_handle, curl);
+        curl_easy_cleanup(curl);
+    }
+    curl_multi_cleanup(multi_handle);
+
+    return 0;
 }
+
 
 int DownloaderImpl::getHeader(HeaderInfo* headerInfo)
 {
@@ -143,4 +283,9 @@ bool DownloaderImpl::supportsResume()
         return (headerInfo.responseCode == HTTP_CODE_SUPPORT_RESUME);
     }
     return false;
+}
+
+void DownloaderImpl::setConnectionTimeout(int connectionTimeout)
+{
+    _connectionTimeout = connectionTimeout;
 }
