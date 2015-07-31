@@ -143,11 +143,11 @@ protected:
     
     /** @brief Update a list of assets under the current AssetsManagerEx context
      */
-    void updateAssets(const Downloader::DownloadUnits& assets);
+    void updateAssets(const network::DownloadUnits& assets);
     
     /** @brief Retrieve all failed assets during the last update
      */
-    const Downloader::DownloadUnits& getFailedAssets() const;
+    const network::DownloadUnits& getFailedAssets() const;
     
     /** @brief Function for destorying the downloaded version file and manifest file
      */
@@ -231,10 +231,10 @@ private:
     bool _waitToUpdate;
     
     //! All assets unit to download
-    Downloader::DownloadUnits _downloadUnits;
+    network::DownloadUnits _downloadUnits;
     
     //! All failed units
-    Downloader::DownloadUnits _failedUnits;
+    network::DownloadUnits _failedUnits;
     
     //! All files to be decompressed
     std::vector<std::string> _compressedFiles;

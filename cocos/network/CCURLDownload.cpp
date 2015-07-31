@@ -89,6 +89,11 @@ int URLDownload::performDownload(const WritterCallback& writterCallback,
     return _lastErrCode;
 }
 
+int URLDownload::performBatchDownload(const DownloadUnits& units)
+{
+    return -1;
+}
+
 int URLDownload::getHeader(HeaderInfo* headerInfo)
 {
     CC_ASSERT(_curlHandle && "not initialized");

@@ -49,6 +49,8 @@ namespace network
         virtual int performDownload(const WritterCallback& writterCallback,
                                     const ProgressCallback& progressCallback
                                     ) override;
+        virtual int performBatchDownload(const DownloadUnits& units) override;
+
         virtual int getHeader(HeaderInfo* headerInfo) override;
 
         virtual std::string getStrError() const override;

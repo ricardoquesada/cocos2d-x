@@ -364,12 +364,6 @@ void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *
 void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData &buffer, const ProgressData &data)
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
-    CURL *curl = curl_easy_init();
-    if (!curl)
-    {
-        this->notifyError(ErrorCode::CURL_EASY_ERROR, "Can not init curl with curl_easy_init", customId);
-        return;
-    }
 
     network::URLDownload dowload(srcUrl);
 
@@ -471,13 +465,13 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     }
 }
 
-void Downloader::batchDownloadAsync(const DownloadUnits &units, const std::string& batchId/* = ""*/)
+void Downloader::batchDownloadAsync(const network::DownloadUnits& units, const std::string& batchId/* = ""*/)
 {
     auto t = std::thread(&Downloader::batchDownloadSync, this, units, batchId);
     t.detach();
 }
 
-void Downloader::batchDownloadSync(const DownloadUnits &units, const std::string& batchId/* = ""*/)
+void Downloader::batchDownloadSync(const network::DownloadUnits& units, const std::string& batchId/* = ""*/)
 {
     // Make sure downloader won't be released
     std::weak_ptr<Downloader> ptr = shared_from_this();
@@ -489,7 +483,7 @@ void Downloader::batchDownloadSync(const DownloadUnits &units, const std::string
         _supportResuming = download.checkOption(network::URLDownload::Options::RESUME);
 
         int count = 0;
-        DownloadUnits group;
+        network::DownloadUnits group;
         for (auto it = units.cbegin(); it != units.cend(); ++it, ++count)
         {
             if (count == FOPEN_MAX)
@@ -499,7 +493,7 @@ void Downloader::batchDownloadSync(const DownloadUnits &units, const std::string
                 count = 0;
             }
             const std::string& key = it->first;
-            const DownloadUnit &unit = it->second;
+            const network::DownloadUnit& unit = it->second;
             group.emplace(key, unit);
         }
         if (group.size() > 0)
@@ -521,14 +515,14 @@ void Downloader::batchDownloadSync(const DownloadUnits &units, const std::string
     _supportResuming = false;
 }
 
-void Downloader::groupBatchDownload(const DownloadUnits &units)
+void Downloader::groupBatchDownload(const network::DownloadUnits& units)
 {
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
     
     for (auto it = units.cbegin(); it != units.cend(); ++it)
     {
-        DownloadUnit unit = it->second;
+        network::DownloadUnit unit = it->second;
         std::string srcUrl = unit.srcUrl;
         std::string storagePath = unit.storagePath;
         std::string customId = unit.customId;

@@ -96,14 +96,6 @@ public:
         double totalToDownload;
     };
 
-    struct DownloadUnit
-    {
-        std::string srcUrl;
-        std::string storagePath;
-        std::string customId;
-        bool resumeDownload;
-    };
-    
     struct StreamData
     {
         long offset;
@@ -111,8 +103,7 @@ public:
         unsigned char *buffer;
     };
 
-    typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
-    
+
     typedef std::function<void(const Downloader::Error &)> ErrorCallback;
     typedef std::function<void(double, double, const std::string& , const std::string& )> ProgressCallback;
     typedef std::function<void(const std::string& , const std::string& , const std::string& )> SuccessCallback;
@@ -152,9 +143,9 @@ public:
 
     void downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
     
-    void batchDownloadAsync(const DownloadUnits &units, const std::string& batchId = "");
+    void batchDownloadAsync(const network::DownloadUnits &units, const std::string& batchId = "");
     
-    void batchDownloadSync(const DownloadUnits &units, const std::string& batchId = "");
+    void batchDownloadSync(const network::DownloadUnits &units, const std::string& batchId = "");
 
     /**
      *  The default constructor.
@@ -177,9 +168,9 @@ protected:
     
     void downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData& buffer, const ProgressData& data);
 
-    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, const ProgressData &data);
+    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, const ProgressData& data);
     
-    void groupBatchDownload(const DownloadUnits &units);
+    void groupBatchDownload(const network::DownloadUnits& units);
 
     void notifyError(ErrorCode code, const std::string& msg = "", const std::string& customId = "", int curle_code = 0, int curlm_code = 0);
     

@@ -134,7 +134,7 @@ protected:
     /** @brief Generate resuming download assets list
      * @param units   The download units reference to be modified by the generation result
      */
-    void genResumeAssetsList(Downloader::DownloadUnits *units) const;
+    void genResumeAssetsList(network::DownloadUnits *units) const;
     
     /** @brief Prepend all search paths to the FileUtils.
      */

@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 #include <string>
 #include <functional>
+#include <unordered_map>
 
 #include "platform/CCPlatformMacros.h"
 
@@ -47,6 +48,16 @@ namespace network
         long responseCode;
     };
 
+    struct DownloadUnit
+    {
+        std::string srcUrl;
+        std::string storagePath;
+        std::string customId;
+        bool resumeDownload;
+    };
+
+    typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
+
     class IURLDownload
     {
     public:
@@ -60,9 +71,13 @@ namespace network
             RESUME
         };
 
+        // methods that must be overriden
         virtual int performDownload(const WritterCallback& writterCallback,
                                     const ProgressCallback& progressCallback
                                     ) = 0;
+
+        virtual int performBatchDownload(const DownloadUnits& units) = 0;
+
         virtual int getHeader(HeaderInfo* headerInfo) = 0;
 
         virtual bool checkOption(Options option) = 0;

@@ -597,7 +597,7 @@ void AssetsManagerEx::startUpdate()
                     // Create path
                     _fileUtils->createDirectory(basename(_storagePath + path));
 
-                    Downloader::DownloadUnit unit;
+                    network::DownloadUnit unit;
                     unit.customId = it->first;
                     unit.srcUrl = packageUrl + path;
                     unit.storagePath = _storagePath + path;
@@ -751,7 +751,7 @@ void AssetsManagerEx::update()
     }
 }
 
-void AssetsManagerEx::updateAssets(const Downloader::DownloadUnits& assets)
+void AssetsManagerEx::updateAssets(const network::DownloadUnits& assets)
 {
     if (!_inited){
         CCLOG("AssetsManagerEx : Manifests uninited.\n");
@@ -776,7 +776,7 @@ void AssetsManagerEx::updateAssets(const Downloader::DownloadUnits& assets)
     }
 }
 
-const Downloader::DownloadUnits& AssetsManagerEx::getFailedAssets() const
+const network::DownloadUnits& AssetsManagerEx::getFailedAssets() const
 {
     return _failedUnits;
 }
@@ -807,7 +807,7 @@ void AssetsManagerEx::onError(const Downloader::Error &error)
         // Found unit and add it to failed units
         if (unitIt != _downloadUnits.end())
         {
-            Downloader::DownloadUnit unit = unitIt->second;
+            network::DownloadUnit unit = unitIt->second;
             _failedUnits.emplace(unit.customId, unit);
         }
         dispatchUpdateEvent(EventAssetsManagerEx::EventCode::ERROR_UPDATING, error.customId, error.message, error.curle_code, error.curlm_code);
