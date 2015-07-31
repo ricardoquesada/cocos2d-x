@@ -79,16 +79,17 @@ AssetsManagerEx::AssetsManagerEx(const std::string& manifestUrl, const std::stri
     _fileUtils = FileUtils::getInstance();
     _updateState = State::UNCHECKED;
 
-    _downloader = std::make_shared<Downloader>();
+    _downloader = std::make_shared<network::Downloader>();
     _downloader->setConnectionTimeout(DEFAULT_CONNECTION_TIMEOUT);
-    _downloader->_onError = std::bind(&AssetsManagerEx::onError, this, std::placeholders::_1);
-    _downloader->_onProgress = std::bind(&AssetsManagerEx::onProgress,
+    _downloader->setErrorCallback(std::bind(&AssetsManagerEx::onError, this, std::placeholders::_1));
+    _downloader->setProgressCallback(std::bind(&AssetsManagerEx::onProgress,
                                          this,
                                          std::placeholders::_1,
                                          std::placeholders::_2,
                                          std::placeholders::_3,
-                                         std::placeholders::_4);
-    _downloader->_onSuccess = std::bind(&AssetsManagerEx::onSuccess, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+                                         std::placeholders::_4)
+                                     );
+    _downloader->setSuccessCallback(std::bind(&AssetsManagerEx::onSuccess, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     setStoragePath(storagePath);
     _cacheVersionPath = _storagePath + VERSION_FILENAME;
     _cacheManifestPath = _storagePath + MANIFEST_FILENAME;
@@ -99,9 +100,9 @@ AssetsManagerEx::AssetsManagerEx(const std::string& manifestUrl, const std::stri
 
 AssetsManagerEx::~AssetsManagerEx()
 {
-    _downloader->_onError = nullptr;
-    _downloader->_onSuccess = nullptr;
-    _downloader->_onProgress = nullptr;
+    _downloader->setErrorCallback(nullptr);
+    _downloader->setSuccessCallback(nullptr);
+    _downloader->setProgressCallback(nullptr);
     CC_SAFE_RELEASE(_localManifest);
     // _tempManifest could share a ptr with _remoteManifest or _localManifest
     if (_tempManifest != _localManifest && _tempManifest != _remoteManifest)
@@ -788,7 +789,7 @@ void AssetsManagerEx::downloadFailedAssets()
 }
 
 
-void AssetsManagerEx::onError(const Downloader::Error &error)
+void AssetsManagerEx::onError(const network::Downloader::Error &error)
 {
     // Skip version error occured
     if (error.customId == VERSION_ID)

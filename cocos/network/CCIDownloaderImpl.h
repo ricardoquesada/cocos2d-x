@@ -58,13 +58,13 @@ namespace network
 
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
 
-    class IURLDownload
+    class IDownloaderImpl
     {
     public:
-        IURLDownload(const std::string& url){}
-        virtual ~IURLDownload(){}
+        IDownloaderImpl(const std::string& url){}
+        virtual ~IDownloaderImpl(){}
 
-        typedef std::function<int(void *ptr, ssize_t, ssize_t)> WritterCallback;
+        typedef std::function<int(void *ptr, ssize_t, ssize_t)> WriterCallback;
         typedef std::function<int(double, double)> ProgressCallback;
 
         enum class Options {
@@ -72,15 +72,16 @@ namespace network
         };
 
         // methods that must be overriden
-        virtual int performDownload(const WritterCallback& writterCallback,
+        virtual int performDownload(const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) = 0;
 
-        virtual int performBatchDownload(const DownloadUnits& units) = 0;
+        virtual int performBatchDownload(const DownloadUnits& units,
+                                         const WriterCallback& writerCallback,
+                                         const ProgressCallback& progressCallback
+                                         ) = 0;
 
         virtual int getHeader(HeaderInfo* headerInfo) = 0;
-
-        virtual bool checkOption(Options option) = 0;
 
         virtual std::string getStrError() const = 0;
     };

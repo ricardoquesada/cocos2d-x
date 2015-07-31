@@ -27,7 +27,7 @@
 #include <string>
 #include <curl/curl.h>
 
-#include "network/CCIURLDownload.h"
+#include "network/CCIDownloaderImpl.h"
 #include "platform/CCPlatformMacros.h"
 
 /**
@@ -39,30 +39,32 @@ NS_CC_BEGIN
 
 namespace network
 {
-    class URLDownload : public IURLDownload
+    class DownloaderImpl : public IDownloaderImpl
     {
     public:
-        URLDownload(const std::string& url);
-        virtual ~URLDownload();
+        DownloaderImpl(const std::string& url);
+        virtual ~DownloaderImpl();
 
         // Overrides
-        virtual int performDownload(const WritterCallback& writterCallback,
+        virtual int performDownload(const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) override;
-        virtual int performBatchDownload(const DownloadUnits& units) override;
-
+        virtual int performBatchDownload(const DownloadUnits& units,
+                                         const WriterCallback& writerCallback,
+                                         const ProgressCallback& progressCallback
+                                         ) override;
         virtual int getHeader(HeaderInfo* headerInfo) override;
-
         virtual std::string getStrError() const override;
-        virtual bool checkOption(Options option);
+
 
         //
-        const WritterCallback& getWritterCallback() const { return _writterCallback; }
+        bool supportsResume();
+        const WriterCallback& getWriterCallback() const { return _writerCallback; }
         const ProgressCallback& getProgressCallback() const { return _progressCallback; }
 
     private:
         std::string _url;
-        WritterCallback _writterCallback;
+        WriterCallback _writerCallback;
         ProgressCallback _progressCallback;
 
         void* _curlHandle;

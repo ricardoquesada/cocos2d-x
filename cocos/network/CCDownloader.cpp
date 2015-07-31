@@ -22,18 +22,21 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "Downloader.h"
+#include "network/CCDownloader.h"
+
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <cstdio>
 #include <cerrno>
 
-#include "network/CCURLDownload.h"
+#include "network/CCDownloaderImpl.h"
 #include "base/CCDirector.h"
 #include "base/CCScheduler.h"
 #include "deprecated/CCString.h"
 
-NS_CC_EXT_BEGIN
+namespace cocos2d {
+namespace network {
+
 
 #define LOW_SPEED_LIMIT     1L
 #define LOW_SPEED_TIME      5L
@@ -277,14 +280,14 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     }
 }
 
-network::HeaderInfo Downloader::prepareHeader(const std::string& srcUrl)
+HeaderInfo Downloader::prepareHeader(const std::string& srcUrl)
 {
-    network::HeaderInfo info;
+    HeaderInfo info;
     info.valid = false;
     
-    network::URLDownload urlDownload(srcUrl);
+    DownloaderImpl DownloaderImpl(srcUrl);
 
-    urlDownload.getHeader(&info);
+    DownloaderImpl.getHeader(&info);
 
     if (info.valid && _onHeader)
     {
@@ -302,11 +305,11 @@ network::HeaderInfo Downloader::prepareHeader(const std::string& srcUrl)
 
 long Downloader::getContentSize(const std::string& srcUrl)
 {
-    network::HeaderInfo info = prepareHeader(srcUrl);
+    HeaderInfo info = prepareHeader(srcUrl);
     return info.contentSize;
 }
 
-network::HeaderInfo Downloader::getHeader(const std::string& srcUrl)
+HeaderInfo Downloader::getHeader(const std::string& srcUrl)
 {
     return prepareHeader(srcUrl);
 }
@@ -365,7 +368,7 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
 
-    network::URLDownload dowload(srcUrl);
+    DownloaderImpl dowload(srcUrl);
 
     // XXX: Why ProgressData and StreamData are being passed as 'const' ?.
     // its values are going to get updated.
@@ -426,7 +429,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
 
-    network::URLDownload dowload(srcUrl);
+    DownloaderImpl dowload(srcUrl);
 
     // XXX: Why ProgressData is being passed as 'const' ?.
     // its values are going to get updated.
@@ -465,13 +468,13 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     }
 }
 
-void Downloader::batchDownloadAsync(const network::DownloadUnits& units, const std::string& batchId/* = ""*/)
+void Downloader::batchDownloadAsync(const DownloadUnits& units, const std::string& batchId/* = ""*/)
 {
     auto t = std::thread(&Downloader::batchDownloadSync, this, units, batchId);
     t.detach();
 }
 
-void Downloader::batchDownloadSync(const network::DownloadUnits& units, const std::string& batchId/* = ""*/)
+void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string& batchId/* = ""*/)
 {
     // Make sure downloader won't be released
     std::weak_ptr<Downloader> ptr = shared_from_this();
@@ -479,11 +482,11 @@ void Downloader::batchDownloadSync(const network::DownloadUnits& units, const st
     if (units.size() != 0)
     {
         // Test server download resuming support with the first unit
-        network::URLDownload download(units.begin()->second.srcUrl);
-        _supportResuming = download.checkOption(network::URLDownload::Options::RESUME);
+        DownloaderImpl download(units.begin()->second.srcUrl);
+        _supportResuming = download.supportsResume();
 
         int count = 0;
-        network::DownloadUnits group;
+        DownloadUnits group;
         for (auto it = units.cbegin(); it != units.cend(); ++it, ++count)
         {
             if (count == FOPEN_MAX)
@@ -493,7 +496,7 @@ void Downloader::batchDownloadSync(const network::DownloadUnits& units, const st
                 count = 0;
             }
             const std::string& key = it->first;
-            const network::DownloadUnit& unit = it->second;
+            const DownloadUnit& unit = it->second;
             group.emplace(key, unit);
         }
         if (group.size() > 0)
@@ -515,14 +518,14 @@ void Downloader::batchDownloadSync(const network::DownloadUnits& units, const st
     _supportResuming = false;
 }
 
-void Downloader::groupBatchDownload(const network::DownloadUnits& units)
+void Downloader::groupBatchDownload(const DownloadUnits& units)
 {
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
     
     for (auto it = units.cbegin(); it != units.cend(); ++it)
     {
-        network::DownloadUnit unit = it->second;
+        DownloadUnit unit = it->second;
         std::string srcUrl = unit.srcUrl;
         std::string storagePath = unit.storagePath;
         std::string customId = unit.customId;
@@ -672,4 +675,6 @@ void Downloader::groupBatchDownload(const network::DownloadUnits& units)
     clearBatchDownloadData();
 }
 
-NS_CC_EXT_END
+} //  namespace network
+}  // namespace cocos2d
+

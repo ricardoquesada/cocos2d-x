@@ -25,13 +25,14 @@
 #ifndef __Manifest__
 #define __Manifest__
 
-#include "extensions/ExtensionMacros.h"
-#include "extensions/ExtensionExport.h"
-#include "Downloader.h"
-
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "extensions/ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
+#include "network/CCDownloader.h"
+
 
 #include "json/document.h"
 

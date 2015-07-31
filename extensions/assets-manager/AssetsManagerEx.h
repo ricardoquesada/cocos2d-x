@@ -25,18 +25,21 @@
 #ifndef __AssetsManagerEx__
 #define __AssetsManagerEx__
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "base/CCEventDispatcher.h"
 #include "platform/CCFileUtils.h"
+#include "network/CCDownloader.h"
+
 #include "CCEventAssetsManagerEx.h"
-#include "Downloader.h"
+
 #include "Manifest.h"
 #include "extensions/ExtensionMacros.h"
 #include "extensions/ExtensionExport.h"
 #include "json/document.h"
 
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 NS_CC_EXT_BEGIN
 
@@ -47,8 +50,7 @@ class CC_EX_DLL AssetsManagerEx : public Ref
 {
 public:
     
-    friend class Downloader;
-    friend int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
+    friend int downloadProgressFunc(network::Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
     
     //! Update states
     enum class State
@@ -160,7 +162,7 @@ protected:
      * @js NA
      * @lua NA
      */
-    virtual void onError(const Downloader::Error &error);
+    virtual void onError(const network::Downloader::Error &error);
     
     /** @brief  Call back function for recording downloading percent of the current asset,
      the progression will then be reported to user's listener registed in addUpdateProgressEventListener
@@ -198,7 +200,7 @@ private:
     State _updateState;
     
     //! Downloader
-    std::shared_ptr<Downloader> _downloader;
+    std::shared_ptr<network::Downloader> _downloader;
     
     //! The reference to the local assets
     const std::unordered_map<std::string, Manifest::Asset> *_assets;

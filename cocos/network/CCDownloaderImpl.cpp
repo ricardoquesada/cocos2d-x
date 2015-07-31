@@ -22,7 +22,7 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "network/CCURLDownload.h"
+#include "network/CCDownloaderImpl.h"
 
 #include <curl/curl.h>
 
@@ -34,8 +34,8 @@ static const long LOW_SPEED_TIME = 5;
 static const int DEFAULT_TIMEOUT = 5;
 static const int HTTP_CODE_SUPPORT_RESUME = 206;
 
-URLDownload::URLDownload(const std::string& url)
-: IURLDownload(url)
+DownloaderImpl::DownloaderImpl(const std::string& url)
+: IDownloaderImpl(url)
 , _curlHandle(nullptr)
 , _lastErrCode(CURLE_OK)
 , _url(url)
@@ -43,29 +43,29 @@ URLDownload::URLDownload(const std::string& url)
     _curlHandle = curl_easy_init();
     curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
 }
-URLDownload::~URLDownload()
+DownloaderImpl::~DownloaderImpl()
 {
     if (_curlHandle)
         curl_easy_cleanup(_curlHandle);
 }
 
-size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, URLDownload* this_)
+size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, DownloaderImpl* this_)
 {
-    return this_->getWritterCallback()(ptr, size, nmemb);
+    return this_->getWriterCallback()(ptr, size, nmemb);
 }
 
-int static downloadProgressFunc(URLDownload* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+static int downloadProgressFunc(DownloaderImpl* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
     this_->getProgressCallback()(totalToDownload, nowDownloaded);
     return 0;
 }
 
-std::string URLDownload::getStrError() const
+std::string DownloaderImpl::getStrError() const
 {
     return curl_easy_strerror(_lastErrCode);
 }
 
-int URLDownload::performDownload(const WritterCallback& writterCallback,
+int DownloaderImpl::performDownload(const WriterCallback& writerCallback,
                             const ProgressCallback& progressCallback
                             )
 {
@@ -83,18 +83,20 @@ int URLDownload::performDownload(const WritterCallback& writterCallback,
     curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
     curl_easy_setopt(_curlHandle, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
 
-    _writterCallback = writterCallback;
+    _writerCallback = writerCallback;
     _progressCallback = progressCallback;
     _lastErrCode = curl_easy_perform(_curlHandle);
     return _lastErrCode;
 }
 
-int URLDownload::performBatchDownload(const DownloadUnits& units)
+int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
+                                         const WriterCallback& writerCallback,
+                                         const ProgressCallback& progressCallback)
 {
     return -1;
 }
 
-int URLDownload::getHeader(HeaderInfo* headerInfo)
+int DownloaderImpl::getHeader(HeaderInfo* headerInfo)
 {
     CC_ASSERT(_curlHandle && "not initialized");
     CC_ASSERT(headerInfo && "headerInfo must not be null");
@@ -128,19 +130,17 @@ int URLDownload::getHeader(HeaderInfo* headerInfo)
     return -1;
 }
 
-bool URLDownload::checkOption(Options option)
+bool DownloaderImpl::supportsResume()
 {
     CC_ASSERT(_curlHandle && "not initialized");
 
     HeaderInfo headerInfo;
     // Make a resume request
 
-    if (option == Options::RESUME) {
-        curl_easy_setopt(_curlHandle, CURLOPT_RESUME_FROM_LARGE, 0);
-        if (getHeader(&headerInfo) == 0 && headerInfo.valid)
-        {
-            return (headerInfo.responseCode == HTTP_CODE_SUPPORT_RESUME);
-        }
+    curl_easy_setopt(_curlHandle, CURLOPT_RESUME_FROM_LARGE, 0);
+    if (getHeader(&headerInfo) == 0 && headerInfo.valid)
+    {
+        return (headerInfo.responseCode == HTTP_CODE_SUPPORT_RESUME);
     }
     return false;
 }

@@ -25,7 +25,7 @@
 #ifndef __Downloader__
 #define __Downloader__
 
-#include "network/CCURLDownload.h"
+#include "network/CCDownloaderImpl.h"
 
 #include "platform/CCFileUtils.h"
 #include "extensions/ExtensionMacros.h"
@@ -38,19 +38,13 @@
 
 
 namespace cocos2d {
-    namespace network {
-        class URLDownload;
-    }
-}
+namespace network {
 
-NS_CC_EXT_BEGIN
-
+class DownloaderImpl;
 
 class CC_EX_DLL Downloader : public std::enable_shared_from_this<Downloader>
 {
 public:
-
-    friend class AssetsManagerEx;
 
     enum class ErrorCode
     {
@@ -107,7 +101,7 @@ public:
     typedef std::function<void(const Downloader::Error &)> ErrorCallback;
     typedef std::function<void(double, double, const std::string& , const std::string& )> ProgressCallback;
     typedef std::function<void(const std::string& , const std::string& , const std::string& )> SuccessCallback;
-    typedef std::function<void(const std::string& , const network::HeaderInfo &)> HeaderCallback;
+    typedef std::function<void(const std::string& , const HeaderInfo &)> HeaderCallback;
 
     int getConnectionTimeout();
 
@@ -131,7 +125,7 @@ public:
     
     long getContentSize(const std::string& srcUrl);
     
-    network::HeaderInfo getHeader(const std::string& srcUrl);
+    HeaderInfo getHeader(const std::string& srcUrl);
     
     void getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback);
     
@@ -143,9 +137,9 @@ public:
 
     void downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
     
-    void batchDownloadAsync(const network::DownloadUnits &units, const std::string& batchId = "");
+    void batchDownloadAsync(const DownloadUnits &units, const std::string& batchId = "");
     
-    void batchDownloadSync(const network::DownloadUnits &units, const std::string& batchId = "");
+    void batchDownloadSync(const DownloadUnits &units, const std::string& batchId = "");
 
     /**
      *  The default constructor.
@@ -164,13 +158,13 @@ protected:
 
     void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FileDescriptor* fDesc, ProgressData* pData);
     
-    network::HeaderInfo prepareHeader(const std::string& srcUrl);
+    HeaderInfo prepareHeader(const std::string& srcUrl);
     
     void downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData& buffer, const ProgressData& data);
 
     void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, const ProgressData& data);
     
-    void groupBatchDownload(const network::DownloadUnits& units);
+    void groupBatchDownload(const DownloadUnits& units);
 
     void notifyError(ErrorCode code, const std::string& msg = "", const std::string& customId = "", int curle_code = 0, int curlm_code = 0);
     
@@ -205,6 +199,8 @@ private:
 
 int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded);
 
-NS_CC_EXT_END
+} // namespace cocos2d
+} // namespace network
+
 
 #endif /* defined(__Downloader__) */
