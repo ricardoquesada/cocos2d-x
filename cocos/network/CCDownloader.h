@@ -40,7 +40,6 @@
 namespace cocos2d {
 namespace network {
 
-class DownloaderImpl;
 
 class CC_EX_DLL Downloader : public std::enable_shared_from_this<Downloader>
 {
@@ -167,9 +166,7 @@ protected:
     void groupBatchDownload(const DownloadUnits& units);
 
     void notifyError(ErrorCode code, const std::string& msg = "", const std::string& customId = "", int curle_code = 0, int curlm_code = 0);
-    
     void notifyError(const std::string& msg, int curlm_code, const std::string& customId = "");
-    
     void notifyError(const std::string& msg, const std::string& customId, int curle_code);
 
 private:
@@ -192,9 +189,11 @@ private:
     
     std::vector<ProgressData *> _progDatas;
     
-    FileUtils *_fileUtils;
-    
+    FileUtils* _fileUtils;
+
     bool _supportResuming;
+
+    DownloaderImpl* _downloaderImpl;
 };
 
 int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded);

@@ -158,12 +158,14 @@ Downloader::Downloader()
 , _onProgress(nullptr)
 , _onSuccess(nullptr)
 , _supportResuming(false)
+, _downloaderImpl(nullptr)
 {
     _fileUtils = FileUtils::getInstance();
 }
 
 Downloader::~Downloader()
 {
+    CC_SAFE_DELETE(_downloaderImpl);
 }
 
 int Downloader::getConnectionTimeout()
@@ -284,10 +286,10 @@ HeaderInfo Downloader::prepareHeader(const std::string& srcUrl)
 {
     HeaderInfo info;
     info.valid = false;
-    
-    DownloaderImpl DownloaderImpl(srcUrl);
 
-    DownloaderImpl.getHeader(&info);
+    // No need to use the _downloaderImpl instance in SYNC methods
+    DownloaderImpl downloaderImpl(srcUrl);
+    downloaderImpl.getHeader(&info);
 
     if (info.valid && _onHeader)
     {
@@ -368,21 +370,24 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
 
-    DownloaderImpl dowload(srcUrl);
+    CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
+
+    // ASYNC methods must use the _downloaderImpl
+    _downloaderImpl = new DownloaderImpl(srcUrl);
 
     // XXX: Why ProgressData and StreamData are being passed as 'const' ?.
     // its values are going to get updated.
     ProgressData *dataPtr = const_cast<ProgressData*>(&data);
     StreamData *bufferPtr = const_cast<StreamData*>(&buffer);
 
-    int res = dowload.performDownload(std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, bufferPtr),
+    int res = _downloaderImpl->performDownload(std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, bufferPtr),
                                       std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
                                       );
 
     // Download pacakge
     if (res != 0)
     {
-        std::string msg = StringUtils::format("Unable to download file to buffer: [curl error]%s", dowload.getStrError().c_str());
+        std::string msg = StringUtils::format("Unable to download file to buffer: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
     else
@@ -429,20 +434,24 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
 
-    DownloaderImpl dowload(srcUrl);
+    CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
+
+    // ASYNC methods must use the _downloaderImpl
+    _downloaderImpl = new DownloaderImpl(srcUrl);
 
     // XXX: Why ProgressData is being passed as 'const' ?.
     // its values are going to get updated.
     ProgressData *dataPtr = const_cast<ProgressData*>(&data);
 
-    int res = dowload.performDownload(std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, fDesc.fp),
-                                      std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
-                            );
+    int res = _downloaderImpl->performDownload(
+                                               std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, fDesc.fp),
+                                               std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
+                                               );
 
     if (res != 0)
     {
         _fileUtils->removeFile(data.path + data.name + TEMP_EXT);
-        std::string msg = StringUtils::format("Unable to download file: [curl error]%s", dowload.getStrError().c_str());
+        std::string msg = StringUtils::format("Unable to download file: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
     
@@ -481,9 +490,14 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
     
     if (units.size() != 0)
     {
+        CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
+
+        // ASYNC methods must use the _downloaderImpl
+
         // Test server download resuming support with the first unit
-        DownloaderImpl download(units.begin()->second.srcUrl);
-        _supportResuming = download.supportsResume();
+        _downloaderImpl = new DownloaderImpl(units.begin()->second.srcUrl);
+
+        _supportResuming = _downloaderImpl->supportsResume();
 
         int count = 0;
         DownloadUnits group;
@@ -520,145 +534,17 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
 
 void Downloader::groupBatchDownload(const DownloadUnits& units)
 {
-    CURLM* multi_handle = curl_multi_init();
-    int still_running = 0;
-    
-    for (auto it = units.cbegin(); it != units.cend(); ++it)
-    {
-        DownloadUnit unit = it->second;
-        std::string srcUrl = unit.srcUrl;
-        std::string storagePath = unit.storagePath;
-        std::string customId = unit.customId;
-        
-        FileDescriptor *fDesc = new FileDescriptor();
-        ProgressData *data = new ProgressData();
-        prepareDownload(srcUrl, storagePath, customId, unit.resumeDownload, fDesc, data);
-        
-        if (fDesc->fp != NULL)
-        {
-            CURL* curl = curl_easy_init();
-            curl_easy_setopt(curl, CURLOPT_URL, srcUrl.c_str());
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fileWriteFunc);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fDesc->fp);
-            curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, batchDownloadProgressFunc);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, data);
-            curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
-            if (_connectionTimeout)
-                curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
-            curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-            curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
-            curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
-            curl_easy_setopt(curl, CURLOPT_MAXREDIRS, MAX_REDIRS);
-            
-            // Resuming download support
-            if (_supportResuming && unit.resumeDownload)
-            {
-                // Check already downloaded size for current download unit
-                long size = _fileUtils->getFileSize(storagePath + TEMP_EXT);
-                if (size != -1)
-                {
-                    curl_easy_setopt(curl, CURLOPT_RESUME_FROM_LARGE, size);
-                }
-            }
-            fDesc->curl = curl;
-            
-            CURLMcode code = curl_multi_add_handle(multi_handle, curl);
-            if (code != CURLM_OK)
-            {
-                // Avoid memory leak
-                fclose(fDesc->fp);
-                delete data;
-                delete fDesc;
-                std::string msg = StringUtils::format("Unable to add curl handler for %s: [curl error]%s", customId.c_str(), curl_multi_strerror(code));
-                this->notifyError(msg, code, customId);
-            }
-            else
-            {
-                // Add to list for tracking
-                _progDatas.push_back(data);
-                _files.push_back(fDesc);
-            }
-        }
-    }
-    
-    // Query multi perform
-    CURLMcode curlm_code = CURLM_CALL_MULTI_PERFORM;
-    while(CURLM_CALL_MULTI_PERFORM == curlm_code) {
-        curlm_code = curl_multi_perform(multi_handle, &still_running);
-    }
-    if (curlm_code != CURLM_OK) {
-        std::string msg = StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code));
-        this->notifyError(msg, curlm_code);
-    }
-    else
-    {
-        bool failed = false;
-        while (still_running > 0 && !failed)
-        {
-            // set a suitable timeout to play around with
-            struct timeval select_tv;
-            long curl_timeo = -1;
-            select_tv.tv_sec = 1;
-            select_tv.tv_usec = 0;
-            
-            curl_multi_timeout(multi_handle, &curl_timeo);
-            if(curl_timeo >= 0) {
-                select_tv.tv_sec = curl_timeo / 1000;
-                if(select_tv.tv_sec > 1)
-                    select_tv.tv_sec = 1;
-                else
-                    select_tv.tv_usec = (curl_timeo % 1000) * 1000;
-            }
-            
-            int rc;
-            fd_set fdread;
-            fd_set fdwrite;
-            fd_set fdexcep;
-            int maxfd = -1;
-            FD_ZERO(&fdread);
-            FD_ZERO(&fdwrite);
-            FD_ZERO(&fdexcep);
-// FIXME: when jenkins migrate to ubuntu, we should remove this hack code
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
-            curl_multi_fdset(multi_handle, &fdread, &fdwrite, &fdexcep, &maxfd);
-            rc = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &select_tv);
-#else          
-            rc = curl_multi_wait(multi_handle,nullptr, 0, MAX_WAIT_MSECS, &maxfd);
-#endif            
-            
-            switch(rc)
-            {
-                case -1:
-                    failed = true;
-                    break;
-                case 0:
-                default:
-                    curlm_code = CURLM_CALL_MULTI_PERFORM;
-                    while(CURLM_CALL_MULTI_PERFORM == curlm_code) {
-                        curlm_code = curl_multi_perform(multi_handle, &still_running);
-                    }
-                    if (curlm_code != CURLM_OK) {
-                        std::string msg = StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code));
-                        this->notifyError(msg, curlm_code);
-                    }
-                    break;
-            }
-        }
-    }
-    
-    // Clean up and close files
-    for (auto it = _files.begin(); it != _files.end(); ++it)
-    {
-        FILE *f = (*it)->fp;
-        fclose(f);
-        auto single = (*it)->curl;
-        curl_multi_remove_handle(multi_handle, single);
-        curl_easy_cleanup(single);
-    }
-    curl_multi_cleanup(multi_handle);
-    
+    // void Downloader::notifyError(ErrorCode code, const std::string& msg, const std::string& customId, int curle_code, int curlm_code)
+
+    auto errorCallback = std::bind( static_cast<void(Downloader::*)(const std::string&, int, const std::string&)>
+                          (&Downloader::notifyError), this,
+                          std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+    _downloaderImpl->performBatchDownload(units,
+                                          std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, nullptr),
+                                          std::bind(&downloadProgressFunc, nullptr, std::placeholders::_1, std::placeholders::_2),
+                                          errorCallback
+                                          );
+
     // Check unfinished files and notify errors, succeed files will be renamed from temporary file name to real name
     for (auto it = _progDatas.begin(); it != _progDatas.end(); ++it) {
         ProgressData *data = *it;

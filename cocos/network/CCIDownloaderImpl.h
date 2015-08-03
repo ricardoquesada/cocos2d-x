@@ -68,7 +68,7 @@ namespace network
 
         typedef std::function<int(void *ptr, ssize_t, ssize_t)> WriterCallback;
         typedef std::function<int(double, double)> ProgressCallback;
-        typedef std::function<int(int, std::string)> ErrorCallback;
+        typedef std::function<void(const std::string&, int, const std::string&)> ErrorCallback;
 
         enum class Options {
             RESUME

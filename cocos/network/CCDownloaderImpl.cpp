@@ -151,7 +151,9 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
             CURLMcode code = curl_multi_add_handle(multi_handle, curl);
             if (code != CURLM_OK)
             {
-                errorCallback(code, StringUtils::format("Unable to add curl handler for %s: [curl error]%s", unit.customId.c_str(), curl_multi_strerror(code)));
+                errorCallback(StringUtils::format("Unable to add curl handler for %s: [curl error]%s", unit.customId.c_str(), curl_multi_strerror(code)),
+                              code,
+                              unit.customId);
                 curl_easy_cleanup(curl);
             }
             else
@@ -167,7 +169,9 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
         curlm_code = curl_multi_perform(multi_handle, &still_running);
     }
     if (curlm_code != CURLM_OK) {
-        errorCallback(curlm_code, StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)));
+        errorCallback(StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)),
+                      curlm_code,
+                      "");
     }
     else
     {
@@ -217,7 +221,9 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
                         curlm_code = curl_multi_perform(multi_handle, &still_running);
                     }
                     if (curlm_code != CURLM_OK) {
-                        errorCallback(curlm_code, StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)));
+                        errorCallback(StringUtils::format("Unable to continue the download process: [curl error]%s", curl_multi_strerror(curlm_code)),
+                                      curlm_code,
+                                      "");
                     }
                     break;
             }
