@@ -376,6 +376,7 @@ void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *
 void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData &buffer, const ProgressData &data)
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
+    std::shared_ptr<Downloader> shared = ptr.lock();
 
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
@@ -396,7 +397,6 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
                                                std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
                                       );
-
     // Download pacakge
     if (res != 0)
     {
@@ -446,6 +446,8 @@ void Downloader::downloadSync(const std::string& srcUrl, const std::string& stor
 void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, const ProgressData& data)
 {
     std::weak_ptr<Downloader> ptr = shared_from_this();
+    std::shared_ptr<Downloader> shared = ptr.lock();
+
 
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
@@ -505,6 +507,7 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
 {
     // Make sure downloader won't be released
     std::weak_ptr<Downloader> ptr = shared_from_this();
+    std::shared_ptr<Downloader> shared = ptr.lock();
     
     if (units.size() != 0)
     {
