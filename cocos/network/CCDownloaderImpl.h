@@ -48,14 +48,15 @@ namespace network
         virtual ~DownloaderImpl();
 
         // Overrides
-        int performDownload(const WriterCallback& writerCallback,
-                                    const ProgressCallback& progressCallback
-                                    ) override;
+        int performDownload(const DownloadUnit& unit,
+                            const WriterCallback& writerCallback,
+                            const ProgressCallback& progressCallback
+                            ) override;
         int performBatchDownload(const DownloadUnits& units,
-                                         const WriterCallback& writerCallback,
-                                         const ProgressCallback& progressCallback,
-                                         const ErrorCallback& errorCallback                                         
-                                         ) override;
+                                 const WriterCallback& writerCallback,
+                                 const ProgressCallback& progressCallback,
+                                 const ErrorCallback& errorCallback                                         
+                                 ) override;
         int getHeader(HeaderInfo* headerInfo) override;
         std::string getStrError() const override;
         void setConnectionTimeout(int timeout) override;
@@ -64,6 +65,9 @@ namespace network
         bool supportsResume();
         const WriterCallback& getWriterCallback() const { return _writerCallback; }
         const ProgressCallback& getProgressCallback() const { return _progressCallback; }
+        const DownloadUnit& getDownloadUnit() const { return _unit; }
+
+        DownloadUnit _unit;
 
     private:
         std::string _url;

@@ -41,6 +41,17 @@ static const int MAX_WAIT_MSECS = 30*1000; /* Wait max. 30 seconds */
 static const int HTTP_CODE_SUPPORT_RESUME = 206;
 static const char* TEMP_EXT = ".temp";
 
+static size_t _fileWriteFunc(void *ptr, size_t size, size_t nmemb, DownloaderImpl* this_)
+{
+    return this_->getWriterCallback()(ptr, size, nmemb, &this_->_unit);
+}
+
+static int _downloadProgressFunc(DownloaderImpl* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+{
+    this_->getProgressCallback()(totalToDownload, nowDownloaded);
+    return 0;
+}
+
 DownloaderImpl::DownloaderImpl(const std::string& url)
 : IDownloaderImpl(url)
 , _curlHandle(nullptr)
@@ -57,32 +68,22 @@ DownloaderImpl::~DownloaderImpl()
         curl_easy_cleanup(_curlHandle);
 }
 
-size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, DownloaderImpl* this_)
-{
-    return this_->getWriterCallback()(ptr, size, nmemb);
-}
-
-static int downloadProgressFunc(DownloaderImpl* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
-{
-    this_->getProgressCallback()(totalToDownload, nowDownloaded);
-    return 0;
-}
-
 std::string DownloaderImpl::getStrError() const
 {
     return curl_easy_strerror(_lastErrCode);
 }
 
-int DownloaderImpl::performDownload(const WriterCallback& writerCallback,
-                            const ProgressCallback& progressCallback
-                            )
+int DownloaderImpl::performDownload(const DownloadUnit& unit,
+                                    const WriterCallback& writerCallback,
+                                    const ProgressCallback& progressCallback
+                                    )
 {
     // Download pacakge
-    curl_easy_setopt(_curlHandle, CURLOPT_WRITEFUNCTION, fileWriteFunc);
+    curl_easy_setopt(_curlHandle, CURLOPT_WRITEFUNCTION, _fileWriteFunc);
     curl_easy_setopt(_curlHandle, CURLOPT_WRITEDATA, this);
 
     curl_easy_setopt(_curlHandle, CURLOPT_NOPROGRESS, false);
-    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
+    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSFUNCTION, _downloadProgressFunc);
     curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSDATA, this);
 
     curl_easy_setopt(_curlHandle, CURLOPT_FAILONERROR, true);
@@ -117,16 +118,16 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
 
     for (auto it = units.cbegin(); it != units.cend(); ++it)
     {
-        DownloadUnit unit = it->second;
+        auto& unit = it->second;
 
         if (unit.fp != NULL)
         {
             CURL* curl = curl_easy_init();
             curl_easy_setopt(curl, CURLOPT_URL, unit.srcUrl.c_str());
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fileWriteFunc);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _fileWriteFunc);
+            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &unit);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, _downloadProgressFunc);
             curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, this);
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
             if (_connectionTimeout)

@@ -54,8 +54,9 @@ namespace network
         std::string storagePath;
         std::string customId;
         bool resumeDownload;
+        void* fp;
 
-        FILE* fp;
+        void* _reserved;
     };
 
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
@@ -66,7 +67,7 @@ namespace network
         IDownloaderImpl(const std::string& url){}
         virtual ~IDownloaderImpl(){}
 
-        typedef std::function<int(void *ptr, ssize_t, ssize_t)> WriterCallback;
+        typedef std::function<int(void *ptr, ssize_t, ssize_t, void* userdata)> WriterCallback;
         typedef std::function<int(double, double)> ProgressCallback;
         typedef std::function<void(const std::string&, int, const std::string&)> ErrorCallback;
 
@@ -75,7 +76,8 @@ namespace network
         };
 
         // methods that must be overriden
-        virtual int performDownload(const WriterCallback& writerCallback,
+        virtual int performDownload(const DownloadUnit& unit,
+                                    const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) = 0;
 

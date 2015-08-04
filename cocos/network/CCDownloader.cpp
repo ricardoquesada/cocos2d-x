@@ -49,14 +49,21 @@ namespace network {
 
 static size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
-    FILE *fp = (FILE*)userdata;
+    CC_ASSERT(userdata && "Invalid userdata");
+    FILE *fp = (FILE*)((DownloadUnit*)userdata)->fp;
+
+    CC_ASSERT(fp && "Invalid FP");
     size_t written = fwrite(ptr, size, nmemb, fp);
     return written;
 }
 
 static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
-    Downloader::StreamData *streamBuffer = (Downloader::StreamData *)userdata;
+    CC_ASSERT(userdata && "Invalid userdata");
+    Downloader::StreamData* streamBuffer = (Downloader::StreamData*)((DownloadUnit*)userdata)->fp;
+
+    CC_ASSERT(streamBuffer && "Invalid streamBuffer");
+
     size_t written = size * nmemb;
     // Avoid pointer overflow
     if (streamBuffer->offset + written <= static_cast<size_t>(streamBuffer->total))
@@ -380,8 +387,14 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     ProgressData *dataPtr = const_cast<ProgressData*>(&data);
     StreamData *bufferPtr = const_cast<StreamData*>(&buffer);
 
-    int res = _downloaderImpl->performDownload(std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, bufferPtr),
-                                      std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
+    DownloadUnit unit;
+    unit.srcUrl = srcUrl;
+    unit.customId = customId;
+    unit.fp = bufferPtr;
+
+    int res = _downloaderImpl->performDownload(unit,
+                                               std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                               std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
                                       );
 
     // Download pacakge
@@ -443,8 +456,13 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     // its values are going to get updated.
     ProgressData *dataPtr = const_cast<ProgressData*>(&data);
 
-    int res = _downloaderImpl->performDownload(
-                                               std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, fDesc.fp),
+    DownloadUnit unit;
+    unit.srcUrl = srcUrl;
+    unit.customId = customId;
+    unit.fp = fDesc.fp;
+
+    int res = _downloaderImpl->performDownload(unit,
+                                               std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
                                                );
 
@@ -536,12 +554,13 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
 {
     // void Downloader::notifyError(ErrorCode code, const std::string& msg, const std::string& customId, int curle_code, int curlm_code)
 
+    // static_cast needed since notifyError is overloaded
     auto errorCallback = std::bind( static_cast<void(Downloader::*)(const std::string&, int, const std::string&)>
                           (&Downloader::notifyError), this,
                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
     _downloaderImpl->performBatchDownload(units,
-                                          std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, nullptr),
-                                          std::bind(&downloadProgressFunc, nullptr, std::placeholders::_1, std::placeholders::_2),
+                                          std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                          std::bind(&batchDownloadProgressFunc, nullptr, std::placeholders::_1, std::placeholders::_2),
                                           errorCallback
                                           );
 
