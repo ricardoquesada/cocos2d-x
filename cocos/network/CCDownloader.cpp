@@ -128,10 +128,8 @@ void Downloader::clearBatchDownloadData()
 
 void Downloader::prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE **fp, ProgressData *pData)
 {
-    std::shared_ptr<Downloader> downloader = shared_from_this();
     pData->customId = customId;
     pData->url = srcUrl;
-    pData->downloader = downloader;
     pData->downloaded = 0;
     pData->totalToDownload = 0;
     
@@ -219,11 +217,9 @@ void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char 
 {
     if (buffer != nullptr)
     {
-        std::shared_ptr<Downloader> downloader = shared_from_this();
         ProgressData data;
         data.customId = customId;
         data.url = srcUrl;
-        data.downloader = downloader;
         data.downloaded = 0;
         data.totalToDownload = 0;
         
@@ -241,11 +237,9 @@ void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *
 {
     if (buffer != nullptr)
     {
-        std::shared_ptr<Downloader> downloader = shared_from_this();
         ProgressData data;
         data.customId = customId;
         data.url = srcUrl;
-        data.downloader = downloader;
         data.downloaded = 0;
         data.totalToDownload = 0;
         
@@ -555,9 +549,10 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
         {
             if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
             {
+                std::weak_ptr<Downloader> _this = shared_from_this();
                 ProgressData copyData = *ptr;
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-                    if (!copyData.downloader.expired())
+                    if (!_this.expired())
                     {
                         this->reportDownloadProgressFinished(totalToDownload, nowDownloaded, &copyData);
                     }
@@ -572,9 +567,10 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
         {
             if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
             {
+                std::weak_ptr<Downloader> _this = shared_from_this();
                 ProgressData copyData = *ptr;
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-                    if (!copyData.downloader.expired())
+                    if (!_this.expired())
                     {
                         reportDownloadProgressInProgress(totalToDownload, nowDownloaded, &copyData);
                     }
@@ -605,11 +601,12 @@ int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, dou
     {
         ptr->downloaded = nowDownloaded;
         ProgressData data = *ptr;
+        std::weak_ptr<Downloader> _this = shared_from_this();
 
         Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-            if (!data.downloader.expired())
+            if (!_this.expired())
             {
-                std::shared_ptr<Downloader> downloader = data.downloader.lock();
+                std::shared_ptr<Downloader> downloader = _this.lock();
                 
                 auto callback = downloader->getProgressCallback();
                 if (callback != nullptr)

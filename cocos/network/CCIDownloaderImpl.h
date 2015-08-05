@@ -60,7 +60,6 @@ namespace network
     class Downloader;
     struct ProgressData
     {
-        std::weak_ptr<Downloader> downloader;
         std::string customId;
         std::string url;
         std::string path;
