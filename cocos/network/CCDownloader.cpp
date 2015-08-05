@@ -28,6 +28,7 @@
 #include <curl/easy.h>
 #include <cstdio>
 #include <cerrno>
+#include <thread>
 
 #include "network/CCDownloaderImpl.h"
 #include "base/CCDirector.h"
@@ -46,124 +47,6 @@ namespace network {
 #define MAX_WAIT_MSECS 30*1000 /* Wait max. 30 seconds */
 
 #define TEMP_EXT            ".temp"
-
-static size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    CC_ASSERT(userdata && "Invalid userdata");
-    FILE *fp = (FILE*)((DownloadUnit*)userdata)->fp;
-
-    CC_ASSERT(fp && "Invalid FP");
-    size_t written = fwrite(ptr, size, nmemb, fp);
-    return written;
-}
-
-static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    CC_ASSERT(userdata && "Invalid userdata");
-    Downloader::StreamData* streamBuffer = (Downloader::StreamData*)((DownloadUnit*)userdata)->fp;
-
-    CC_ASSERT(streamBuffer && "Invalid streamBuffer");
-
-    size_t written = size * nmemb;
-    // Avoid pointer overflow
-    if (streamBuffer->offset + written <= static_cast<size_t>(streamBuffer->total))
-    {
-        memcpy(streamBuffer->buffer + streamBuffer->offset, ptr, written);
-        streamBuffer->offset += written;
-        return written;
-    }
-    else return 0;
-}
-
-// This is only for batchDownload process, will notify file succeed event in progress function
-static int batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
-{
-    CC_ASSERT(userdata && "Invalid userdata");
-
-    ProgressData* ptr = (ProgressData*) userdata;
-    if (ptr->totalToDownload == 0)
-    {
-        ptr->totalToDownload = totalToDownload;
-    }
-    
-    if (ptr->downloaded != nowDownloaded)
-    {
-        ptr->downloaded = nowDownloaded;
-        
-        ProgressData data = *ptr;
-        
-        if (nowDownloaded == totalToDownload)
-        {
-            Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-                if (!data.downloader.expired())
-                {
-                    std::shared_ptr<Downloader> downloader = data.downloader.lock();
-                
-                    auto progressCB = downloader->getProgressCallback();
-                    if (progressCB != nullptr)
-                    {
-                        progressCB(totalToDownload, nowDownloaded, data.url, data.customId);
-                    }
-                    auto successCB = downloader->getSuccessCallback();
-                    if (successCB != nullptr)
-                    {
-                        successCB(data.url, data.path + data.name, data.customId);
-                    }
-                }
-            });
-        }
-        else
-        {
-            Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-                if (!data.downloader.expired())
-                {
-                    std::shared_ptr<Downloader> downloader = data.downloader.lock();
-                
-                    auto callback = downloader->getProgressCallback();
-                    if (callback != nullptr)
-                    {
-                        callback(totalToDownload, nowDownloaded, data.url, data.customId);
-                    }
-                }
-            });
-        }
-    }
-    
-    return 0;
-}
-
-// Compare to batchDownloadProgressFunc, this only handles progress information notification
-static int downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
-{
-    CC_ASSERT(userdata && "Invalid userdata");
-
-    ProgressData* ptr = (ProgressData*)userdata;
-    if (ptr->totalToDownload == 0)
-    {
-        ptr->totalToDownload = totalToDownload;
-    }
-    
-    if (ptr->downloaded != nowDownloaded)
-    {
-        ptr->downloaded = nowDownloaded;
-        ProgressData data = *ptr;
-        
-        Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-            if (!data.downloader.expired())
-            {
-                std::shared_ptr<Downloader> downloader = data.downloader.lock();
-                
-                auto callback = downloader->getProgressCallback();
-                if (callback != nullptr)
-                {
-                    callback(totalToDownload, nowDownloaded, data.url, data.customId);
-                }
-            }
-        });
-    }
-    
-    return 0;
-}
 
 Downloader::Downloader()
 : _connectionTimeout(DEFAULT_TIMEOUT)
@@ -395,8 +278,8 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 
     int res = _downloaderImpl->performDownload(unit,
                                                data,
-                                               std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+                                               std::bind(&Downloader::bufferWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                               std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                       );
     // Download pacakge
     if (res != 0)
@@ -464,8 +347,8 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 
     int res = _downloaderImpl->performDownload(unit,
                                                data,
-                                               std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+                                               std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                               std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                                );
 
     if (res != 0)
@@ -584,8 +467,8 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
     }
     _downloaderImpl->performBatchDownload(units,
                                           _progDatas,
-                                          std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                          std::bind(&batchDownloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+                                          std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
+                                          std::bind(&Downloader::batchDownloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
                                           errorCallback
                                           );
 
@@ -603,6 +486,143 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
     
     clearBatchDownloadData();
 }
+
+// callbacks
+size_t Downloader::fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+    CC_ASSERT(userdata && "Invalid userdata");
+    FILE *fp = (FILE*)((DownloadUnit*)userdata)->fp;
+
+    CC_ASSERT(fp && "Invalid FP");
+    size_t written = fwrite(ptr, size, nmemb, fp);
+    return written;
+}
+
+size_t Downloader::bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
+{
+    CC_ASSERT(userdata && "Invalid userdata");
+    Downloader::StreamData* streamBuffer = (Downloader::StreamData*)((DownloadUnit*)userdata)->fp;
+
+    CC_ASSERT(streamBuffer && "Invalid streamBuffer");
+
+    size_t written = size * nmemb;
+    // Avoid pointer overflow
+    if (streamBuffer->offset + written <= static_cast<size_t>(streamBuffer->total))
+    {
+        memcpy(streamBuffer->buffer + streamBuffer->offset, ptr, written);
+        streamBuffer->offset += written;
+        return written;
+    }
+    else return 0;
+}
+
+void Downloader::reportDownloadProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data)
+{
+    if (_onProgress != nullptr)
+    {
+        _onProgress(totalToDownload, nowDownloaded, data->url, data->customId);
+    }
+    if (_onSuccess != nullptr)
+    {
+        _onSuccess(data->url, data->path + data->name, data->customId);
+    }
+}
+
+void Downloader::reportDownloadProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data)
+{
+    if (_onProgress != nullptr)
+    {
+        _onProgress(totalToDownload, nowDownloaded, data->url, data->customId);
+    }
+}
+
+// This is only for batchDownload process, will notify file succeed event in progress function
+int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
+{
+    CC_ASSERT(userdata && "Invalid userdata");
+
+    ProgressData* ptr = (ProgressData*) userdata;
+    if (ptr->totalToDownload == 0)
+    {
+        ptr->totalToDownload = totalToDownload;
+    }
+
+    if (ptr->downloaded != nowDownloaded)
+    {
+        ptr->downloaded = nowDownloaded;
+
+        if (nowDownloaded == totalToDownload)
+        {
+            if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
+            {
+                ProgressData copyData = *ptr;
+                Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
+                    if (!copyData.downloader.expired())
+                    {
+                        this->reportDownloadProgressFinished(totalToDownload, nowDownloaded, &copyData);
+                    }
+                });
+            }
+            else
+            {
+                reportDownloadProgressFinished(totalToDownload, nowDownloaded, ptr);
+            }
+        }
+        else
+        {
+            if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
+            {
+                ProgressData copyData = *ptr;
+                Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
+                    if (!copyData.downloader.expired())
+                    {
+                        reportDownloadProgressInProgress(totalToDownload, nowDownloaded, &copyData);
+                    }
+                });
+            }
+            else
+            {
+                reportDownloadProgressInProgress(totalToDownload, nowDownloaded, ptr);
+            }
+        }
+    }
+
+    return 0;
+}
+
+// Compare to batchDownloadProgressFunc, this only handles progress information notification
+int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
+{
+    CC_ASSERT(userdata && "Invalid userdata");
+
+    ProgressData* ptr = (ProgressData*)userdata;
+    if (ptr->totalToDownload == 0)
+    {
+        ptr->totalToDownload = totalToDownload;
+    }
+
+    if (ptr->downloaded != nowDownloaded)
+    {
+        ptr->downloaded = nowDownloaded;
+        ProgressData data = *ptr;
+
+        Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
+            if (!data.downloader.expired())
+            {
+                std::shared_ptr<Downloader> downloader = data.downloader.lock();
+                
+                auto callback = downloader->getProgressCallback();
+                if (callback != nullptr)
+                {
+                    callback(totalToDownload, nowDownloaded, data.url, data.customId);
+                }
+            }
+        });
+    }
+    
+    return 0;
+}
+
 
 } //  namespace network
 }  // namespace cocos2d

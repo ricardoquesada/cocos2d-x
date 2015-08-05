@@ -150,8 +150,17 @@ protected:
     void notifyError(const std::string& msg, int curlm_code, const std::string& customId = "");
     void notifyError(const std::string& msg, const std::string& customId, int curle_code);
 
-private:
+    // callbacks
+    int downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded);
+    int batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded);
+    size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata);
+    size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata);
 
+    // callback helpers
+    void reportDownloadProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data);
+    void reportDownloadProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data);
+
+private:
     int _connectionTimeout;
 
     ErrorCallback _onError;
