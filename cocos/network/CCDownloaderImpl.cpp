@@ -41,26 +41,29 @@ static const int MAX_WAIT_MSECS = 30*1000; /* Wait max. 30 seconds */
 static const int HTTP_CODE_SUPPORT_RESUME = 206;
 static const char* TEMP_EXT = ".temp";
 
-static size_t _fileWriteFunc(void *ptr, size_t size, size_t nmemb, DownloaderImpl* this_)
+static size_t _fileWriteFunc(void *ptr, size_t size, size_t nmemb, void* userdata)
 {
-    return this_->getWriterCallback()(ptr, size, nmemb, &this_->_unit);
+    DownloadUnit *unit = (DownloadUnit*)userdata;
+    DownloaderImpl* this_ = (DownloaderImpl*)unit->__reserved;
+    return this_->getWriterCallback()(ptr, size, nmemb, unit);
 }
 
-static int _downloadProgressFunc(DownloaderImpl* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
+static int _downloadProgressFunc(void* userdata, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
-    this_->getProgressCallback()(nullptr, totalToDownload, nowDownloaded);
+    ProgressData *progressData = (ProgressData*)userdata;
+    DownloaderImpl* this_ = (DownloaderImpl*)progressData->__reserved;
+
+    this_->getProgressCallback()(progressData, totalToDownload, nowDownloaded);
     return 0;
 }
 
-DownloaderImpl::DownloaderImpl(const std::string& url)
-: IDownloaderImpl(url)
+DownloaderImpl::DownloaderImpl()
+: IDownloaderImpl()
 , _curlHandle(nullptr)
 , _lastErrCode(CURLE_OK)
-, _url(url)
 , _connectionTimeout(DEFAULT_TIMEOUT)
+, _initialized(false)
 {
-    _curlHandle = curl_easy_init();
-    curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
 }
 DownloaderImpl::~DownloaderImpl()
 {
@@ -68,24 +71,43 @@ DownloaderImpl::~DownloaderImpl()
         curl_easy_cleanup(_curlHandle);
 }
 
+bool DownloaderImpl::init(const std::string& url)
+{
+    CC_ASSERT(!_initialized && "already initialized");
+
+    _curlHandle = curl_easy_init();
+    if (_curlHandle)
+    {
+        curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
+        _initialized = true;
+    }
+    return _initialized;
+}
+
 std::string DownloaderImpl::getStrError() const
 {
     return curl_easy_strerror(_lastErrCode);
 }
 
-int DownloaderImpl::performDownload(const DownloadUnit& unit,
+int DownloaderImpl::performDownload(DownloadUnit* unit,
                                     ProgressData* progressData,
                                     const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     )
 {
+    CC_ASSERT(_initialized && "must be initialized");
+
+    // for callbacks
+    unit->__reserved = this;
+    progressData->__reserved = this;
+
     // Download pacakge
     curl_easy_setopt(_curlHandle, CURLOPT_WRITEFUNCTION, _fileWriteFunc);
-    curl_easy_setopt(_curlHandle, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(_curlHandle, CURLOPT_WRITEDATA, unit);
 
     curl_easy_setopt(_curlHandle, CURLOPT_NOPROGRESS, false);
     curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSFUNCTION, _downloadProgressFunc);
-    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSDATA, this);
+    curl_easy_setopt(_curlHandle, CURLOPT_PROGRESSDATA, progressData);
 
     curl_easy_setopt(_curlHandle, CURLOPT_FAILONERROR, true);
     if (_connectionTimeout)
@@ -101,12 +123,13 @@ int DownloaderImpl::performDownload(const DownloadUnit& unit,
 }
 
 int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
-                                         const ProgressDatas& data,
+                                         const ProgressDatas& datas,
                                          const WriterCallback& batchWriterCallback,
                                          const ProgressCallback& batchProgressCallback,
                                          const ErrorCallback& errorCallback)
 {
-    CC_ASSERT(units.size() == data.size() && "Invalid size in units and data");
+    CC_ASSERT(_initialized && "must be initialized");
+    CC_ASSERT(units.size() == datas.size() && "Invalid size in units and data");
 
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
@@ -120,9 +143,15 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
     std::vector<CURL*> curls;
     curls.reserve(units.size());
 
+    int i=0;
     for (const auto& unitEntry: units)
     {
+        // HACK: Needed for callbacks. "this" + "unit" + "data" are needed
+        unitEntry.second.__reserved = this;
+        datas[i].__reserved = this;
+
         const auto& unit = unitEntry.second;
+        const auto& data = datas[i];
 
         if (unit.fp != NULL)
         {
@@ -249,9 +278,10 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
 
 int DownloaderImpl::getHeader(HeaderInfo* headerInfo)
 {
-    CC_ASSERT(_curlHandle && "not initialized");
+    CC_ASSERT(_initialized && "must be initialized");
     CC_ASSERT(headerInfo && "headerInfo must not be null");
 
+    curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
     curl_easy_setopt(_curlHandle, CURLOPT_HEADER, 1);
     curl_easy_setopt(_curlHandle, CURLOPT_NOBODY, 1);
     curl_easy_setopt(_curlHandle, CURLOPT_NOSIGNAL, 1);
@@ -283,7 +313,7 @@ int DownloaderImpl::getHeader(HeaderInfo* headerInfo)
 
 bool DownloaderImpl::supportsResume()
 {
-    CC_ASSERT(_curlHandle && "not initialized");
+    CC_ASSERT(_initialized && "must be initialized");
 
     HeaderInfo headerInfo;
     // Make a resume request

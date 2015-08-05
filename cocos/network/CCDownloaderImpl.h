@@ -44,11 +44,13 @@ namespace network
     class DownloaderImpl : public IDownloaderImpl
     {
     public:
-        DownloaderImpl(const std::string& url);
+        DownloaderImpl();
         virtual ~DownloaderImpl();
 
+        bool init(const std::string& url);
+
         // Overrides
-        int performDownload(const DownloadUnit& unit,
+        int performDownload(DownloadUnit* unit,
                             ProgressData* progressData,
                             const WriterCallback& writerCallback,
                             const ProgressCallback& progressCallback
@@ -67,9 +69,6 @@ namespace network
         bool supportsResume();
         const WriterCallback& getWriterCallback() const { return _writerCallback; }
         const ProgressCallback& getProgressCallback() const { return _progressCallback; }
-        const DownloadUnit& getDownloadUnit() const { return _unit; }
-
-        DownloadUnit _unit;
 
     private:
         std::string _url;
@@ -79,6 +78,7 @@ namespace network
 
         void* _curlHandle;
         CURLcode _lastErrCode;
+        bool _initialized;
     };
 
 } // namespace network

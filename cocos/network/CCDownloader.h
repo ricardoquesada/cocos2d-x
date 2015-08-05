@@ -90,56 +90,40 @@ public:
     typedef std::function<void(const std::string&, const HeaderInfo&)> HeaderCallback;
 
     int getConnectionTimeout();
-
     void setConnectionTimeout(int timeout);
     
     void setErrorCallback(const ErrorCallback &callback) { _onError = callback; };
-    
     void setProgressCallback(const ProgressCallback &callback) { _onProgress = callback; };
-    
     void setSuccessCallback(const SuccessCallback &callback) { _onSuccess = callback; };
-    
     void setHeaderCallback(const HeaderCallback &callback) { _onHeader = callback; };
 
     ErrorCallback getErrorCallback() const { return _onError; };
-
     ProgressCallback getProgressCallback() const { return _onProgress; };
-
     SuccessCallback getSuccessCallback() const { return _onSuccess; };
-    
     HeaderCallback getHeaderCallback() const { return _onHeader; };
     
-    long getContentSize(const std::string& srcUrl);
-    
     void downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
-    
     void downloadToBufferSync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
 
     void downloadAsync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
-
     void downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId = "");
     
     void batchDownloadAsync(const DownloadUnits &units, const std::string& batchId = "");
-    
     void batchDownloadSync(const DownloadUnits &units, const std::string& batchId = "");
 
     /**
      *  The default constructor.
      */
     Downloader();
-
     ~Downloader();
 
 protected:
-    
-    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE** fp, ProgressData* pData);
-    
-    HeaderInfo prepareHeader(const std::string& srcUrl);
-    
-    void downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data);
 
+
+    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE** fp, ProgressData* pData);
+
+    void downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data);
     void download(const std::string& srcUrl, const std::string& customId, FILE *fp, ProgressData* data);
-    
     void groupBatchDownload(const DownloadUnits& units);
 
     void notifyError(ErrorCode code, const std::string& msg = "", const std::string& customId = "", int curle_code = 0, int curlm_code = 0);
@@ -157,9 +141,6 @@ protected:
     void reportProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data);
     void reportDownloadFinished(const std::string& url, const std::string&, const std::string& customid);
 
-    // Do we need them?
-    HeaderInfo getHeader(const std::string& srcUrl);
-    void getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback);
 
 private:
     int _connectionTimeout;

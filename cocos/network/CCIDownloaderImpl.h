@@ -55,6 +55,8 @@ namespace network
         std::string customId;
         bool resumeDownload;
         void* fp;
+
+        mutable void *__reserved;
     };
 
     class Downloader;
@@ -66,6 +68,8 @@ namespace network
         std::string name;
         double downloaded;
         double totalToDownload;
+
+        mutable void *__reserved;
     };
 
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
@@ -74,19 +78,21 @@ namespace network
     class IDownloaderImpl
     {
     public:
-        IDownloaderImpl(const std::string& url){}
-        virtual ~IDownloaderImpl(){}
-
         typedef std::function<int(void* ptr, ssize_t, ssize_t, void* userdata)> WriterCallback;
         typedef std::function<int(void* userdata, double, double)> ProgressCallback;
         typedef std::function<void(const std::string&, int, const std::string&)> ErrorCallback;
+
+
+        IDownloaderImpl(){}
+        virtual ~IDownloaderImpl(){}
+        virtual bool init(const std::string& url) = 0;
 
         enum class Options {
             RESUME
         };
 
         // methods that must be overriden
-        virtual int performDownload(const DownloadUnit& unit,
+        virtual int performDownload(DownloadUnit* unit,
                                     ProgressData* progressData,
                                     const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
@@ -100,9 +106,7 @@ namespace network
                                          ) = 0;
 
         virtual int getHeader(HeaderInfo* headerInfo) = 0;
-
         virtual std::string getStrError() const = 0;
-
         virtual void setConnectionTimeout(int timeout) = 0;
     };
 }

@@ -58,6 +58,7 @@ Downloader::Downloader()
 , _progDatas({})
 {
     _fileUtils = FileUtils::getInstance();
+    _downloaderImpl = new DownloaderImpl();
 }
 
 Downloader::~Downloader()
@@ -172,47 +173,6 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     }
 }
 
-HeaderInfo Downloader::prepareHeader(const std::string& srcUrl)
-{
-    HeaderInfo info;
-    info.valid = false;
-
-    // No need to use the _downloaderImpl instance in SYNC methods
-    DownloaderImpl downloaderImpl(srcUrl);
-    downloaderImpl.getHeader(&info);
-
-    if (info.valid && _onHeader)
-    {
-        _onHeader(srcUrl, info);
-    }
-    else if (!info.valid)
-    {
-        info.contentSize = -1;
-        std::string msg = StringUtils::format("Can not get content size of file (%s) : Request header failed", srcUrl.c_str());
-        this->notifyError(ErrorCode::PREPARE_HEADER_ERROR, msg);
-    }
-
-    return info;
-}
-
-long Downloader::getContentSize(const std::string& srcUrl)
-{
-    HeaderInfo info = prepareHeader(srcUrl);
-    return info.contentSize;
-}
-
-HeaderInfo Downloader::getHeader(const std::string& srcUrl)
-{
-    return prepareHeader(srcUrl);
-}
-
-void Downloader::getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback)
-{
-    setHeaderCallback(callback);
-    auto t = std::thread(&Downloader::prepareHeader, this, srcUrl);
-    t.detach();
-}
-
 void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId/* = ""*/)
 {
     if (buffer != nullptr)
@@ -259,15 +219,13 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
-    // ASYNC methods must use the _downloaderImpl
-    _downloaderImpl = new DownloaderImpl(srcUrl);
-
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
     unit.fp = buffer;
 
-    int res = _downloaderImpl->performDownload(unit,
+    _downloaderImpl->init(srcUrl);
+    int res = _downloaderImpl->performDownload(&unit,
                                                data,
                                                std::bind(&Downloader::bufferWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
@@ -328,15 +286,13 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     CC_ASSERT(data && "data must not be nill");
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
-    // ASYNC methods must use the _downloaderImpl
-    _downloaderImpl = new DownloaderImpl(srcUrl);
-
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
     unit.fp = fp;
 
-    int res = _downloaderImpl->performDownload(unit,
+    _downloaderImpl->init(srcUrl);
+    int res = _downloaderImpl->performDownload(&unit,
                                                data,
                                                std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
@@ -391,12 +347,7 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
     
     if (units.size() != 0)
     {
-        CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
-
-        // ASYNC methods must use the _downloaderImpl
-
-        // Test server download resuming support with the first unit
-        _downloaderImpl = new DownloaderImpl(units.begin()->second.srcUrl);
+        _downloaderImpl->init(units.begin()->second.srcUrl);
 
         _supportResuming = _downloaderImpl->supportsResume();
 
