@@ -38,6 +38,8 @@
 #include "platform/CCFileUtils.h"
 #include "platform/android/jni/JniHelper.h"
 
+#include "base/ccUTF8.h"
+ 
 NS_CC_BEGIN
 
 namespace network {
@@ -582,17 +584,9 @@ private:
         {
             return nullptr;
         }
-
-        const char* str = nullptr;
-        char* ret = nullptr;
-        str = env->GetStringUTFChars(jstr, nullptr);
-        if (nullptr != str)
-        {
-            ret = strdup(str);
-        }
-
-        env->ReleaseStringUTFChars(jstr, str);
-
+        char *ret = nullptr;
+        std::string strValue = cocos2d::StringUtils::getStringUTFCharsJNI(env, jstr);
+        ret = strdup(strValue.c_str());
         return ret;
     }
 
@@ -718,7 +712,10 @@ void HttpClient::processResponse(HttpResponse* response, char* responseMessage)
     }
     free(contentInfo);
     
-    strcpy(responseMessage, urlConnection.getResponseMessage());
+    char *messageInfo = urlConnection.getResponseMessage();
+    strcpy(responseMessage, messageInfo);
+    free(messageInfo);
+
     urlConnection.disconnect();
 
     // write data to HttpResponse
