@@ -76,8 +76,11 @@ static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userda
 }
 
 // This is only for batchDownload process, will notify file succeed event in progress function
-static int batchDownloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded)
+static int batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
+    CC_ASSERT(userdata && "Invalid userdata");
+
+    ProgressData* ptr = (ProgressData*) userdata;
     if (ptr->totalToDownload == 0)
     {
         ptr->totalToDownload = totalToDownload;
@@ -130,8 +133,11 @@ static int batchDownloadProgressFunc(ProgressData *ptr, double totalToDownload, 
 }
 
 // Compare to batchDownloadProgressFunc, this only handles progress information notification
-int downloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded)
+static int downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
+    CC_ASSERT(userdata && "Invalid userdata");
+
+    ProgressData* ptr = (ProgressData*)userdata;
     if (ptr->totalToDownload == 0)
     {
         ptr->totalToDownload = totalToDownload;
@@ -232,13 +238,12 @@ void Downloader::clearBatchDownloadData()
 {
     _progDatas.clear();
 
-    while (_files.size() != 0) {
-        delete _files.back();
-        _files.pop_back();
-    }
+    for(const auto& fp: _files)
+        fclose(fp);
+    _files.clear();
 }
 
-void Downloader::prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FileDescriptor *fDesc, ProgressData *pData)
+void Downloader::prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE **fp, ProgressData *pData)
 {
     std::shared_ptr<Downloader> downloader = shared_from_this();
     pData->customId = customId;
@@ -247,8 +252,7 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     pData->downloaded = 0;
     pData->totalToDownload = 0;
     
-    fDesc->fp = nullptr;
-    fDesc->curl = nullptr;
+    *fp = nullptr;
     
     Error err;
     err.customId = customId;
@@ -273,13 +277,13 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     const std::string outFileName = storagePath + TEMP_EXT;
     if (_supportResuming && resumeDownload && _fileUtils->isFileExist(outFileName))
     {
-        fDesc->fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "ab");
+        *fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "ab");
     }
     else
     {
-        fDesc->fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "wb");
+        *fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "wb");
     }
-    if (!fDesc->fp)
+    if (! *fp)
     {
         err.code = ErrorCode::CREATE_FILE;
         err.message = StringUtils::format("Can not create file %s: errno %d", outFileName.c_str(), errno);
@@ -390,8 +394,9 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     unit.fp = buffer;
 
     int res = _downloaderImpl->performDownload(unit,
+                                               data,
                                                std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, data, std::placeholders::_1, std::placeholders::_2)
+                                               std::bind(&downloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                       );
     // Download pacakge
     if (res != 0)
@@ -418,28 +423,28 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 
 void Downloader::downloadAsync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
-    FileDescriptor fDesc;
+    FILE* fp;
     ProgressData data;
-    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &data);
-    if (fDesc.fp != NULL)
+    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
+    if (fp != NULL)
     {
-        auto t = std::thread(&Downloader::download, this, srcUrl, customId, fDesc, &data);
+        auto t = std::thread(&Downloader::download, this, srcUrl, customId, fp, &data);
         t.detach();
     }
 }
 
 void Downloader::downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
-    FileDescriptor fDesc;
+    FILE* fp;
     ProgressData data;
-    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &data);
-    if (fDesc.fp != NULL)
+    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
+    if (fp != NULL)
     {
-        download(srcUrl, customId, fDesc, &data);
+        download(srcUrl, customId, fp, &data);
     }
 }
 
-void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, ProgressData* data)
+void Downloader::download(const std::string& srcUrl, const std::string& customId, FILE* fp, ProgressData* data)
 {
     CC_ASSERT(data && "data must not be nill");
 
@@ -455,11 +460,12 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
-    unit.fp = fDesc.fp;
+    unit.fp = fp;
 
     int res = _downloaderImpl->performDownload(unit,
+                                               data,
                                                std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, data, std::placeholders::_1, std::placeholders::_2)
+                                               std::bind(&downloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                                );
 
     if (res != 0)
@@ -469,7 +475,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
         this->notifyError(msg, customId, res);
     }
     
-    fclose(fDesc.fp);
+    fclose(fp);
 
     // This can only be done after fclose
     if (res == 0)
@@ -563,18 +569,23 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
                           (&Downloader::notifyError), this,
                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-    _progDatas.clear();
-    _progDatas.reserve(units.size());
+    CC_ASSERT(_progDatas.size() ==0 && "_progsData must be 0");
+    CC_ASSERT(_files.size() ==0 && "_files must be 0");
+
+    _progDatas.resize(units.size());
+    _files.resize(units.size());
+
     int i=0;
     for (const auto& entry: units)
     {
         auto&& unit = entry.second;
-        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, nullptr, &_progDatas[i++]);
+        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, &_files[i], &_progDatas[i]);
+        i++;
     }
     _downloaderImpl->performBatchDownload(units,
                                           _progDatas,
                                           std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                          std::bind(&batchDownloadProgressFunc, nullptr, std::placeholders::_1, std::placeholders::_2),
+                                          std::bind(&batchDownloadProgressFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
                                           errorCallback
                                           );
 

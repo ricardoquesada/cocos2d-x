@@ -136,19 +136,13 @@ public:
 
 protected:
     
-    struct FileDescriptor
-    {
-        FILE *fp;
-        void *curl;
-    };
-
-    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FileDescriptor* fDesc, ProgressData* pData);
+    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE** fp, ProgressData* pData);
     
     HeaderInfo prepareHeader(const std::string& srcUrl);
     
     void downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data);
 
-    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, ProgressData* data);
+    void download(const std::string& srcUrl, const std::string& customId, FILE *fp, ProgressData* data);
     
     void groupBatchDownload(const DownloadUnits& units);
 
@@ -172,7 +166,7 @@ private:
     
     void clearBatchDownloadData();
     
-    std::vector<FileDescriptor *> _files;
+    std::vector<FILE*> _files;
     ProgressDatas _progDatas;
     
     FileUtils* _fileUtils;
@@ -181,8 +175,6 @@ private:
 
     DownloaderImpl* _downloaderImpl;
 };
-
-int downloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded);
 
 } // namespace cocos2d
 } // namespace network

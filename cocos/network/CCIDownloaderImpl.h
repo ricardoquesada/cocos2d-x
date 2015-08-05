@@ -78,8 +78,8 @@ namespace network
         IDownloaderImpl(const std::string& url){}
         virtual ~IDownloaderImpl(){}
 
-        typedef std::function<int(void *ptr, ssize_t, ssize_t, void* userdata)> WriterCallback;
-        typedef std::function<int(double, double)> ProgressCallback;
+        typedef std::function<int(void* ptr, ssize_t, ssize_t, void* userdata)> WriterCallback;
+        typedef std::function<int(void* userdata, double, double)> ProgressCallback;
         typedef std::function<void(const std::string&, int, const std::string&)> ErrorCallback;
 
         enum class Options {
@@ -88,6 +88,7 @@ namespace network
 
         // methods that must be overriden
         virtual int performDownload(const DownloadUnit& unit,
+                                    ProgressData* progressData,
                                     const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) = 0;

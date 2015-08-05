@@ -48,7 +48,7 @@ static size_t _fileWriteFunc(void *ptr, size_t size, size_t nmemb, DownloaderImp
 
 static int _downloadProgressFunc(DownloaderImpl* this_, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
-    this_->getProgressCallback()(totalToDownload, nowDownloaded);
+    this_->getProgressCallback()(nullptr, totalToDownload, nowDownloaded);
     return 0;
 }
 
@@ -74,6 +74,7 @@ std::string DownloaderImpl::getStrError() const
 }
 
 int DownloaderImpl::performDownload(const DownloadUnit& unit,
+                                    ProgressData* progressData,
                                     const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     )

@@ -49,6 +49,7 @@ namespace network
 
         // Overrides
         int performDownload(const DownloadUnit& unit,
+                            ProgressData* progressData,
                             const WriterCallback& writerCallback,
                             const ProgressCallback& progressCallback
                             ) override;
