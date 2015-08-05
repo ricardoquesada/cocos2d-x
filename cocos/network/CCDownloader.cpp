@@ -257,9 +257,6 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     CC_ASSERT(buffer && "must not be nill");
     CC_ASSERT(data && "must not be nill");
 
-    std::weak_ptr<Downloader> ptr = shared_from_this();
-    std::shared_ptr<Downloader> shared = ptr.lock();
-
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
     // ASYNC methods must use the _downloaderImpl
@@ -283,18 +280,23 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     }
     else
     {
-        Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-            if (!ptr.expired())
-            {
-                std::shared_ptr<Downloader> downloader = ptr.lock();
-                
-                auto successCB = downloader->getSuccessCallback();
-                if (successCB != nullptr)
+        if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
+        {
+            std::weak_ptr<Downloader> ptr = shared_from_this();
+            std::shared_ptr<Downloader> shared = ptr.lock();
+
+            Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
+                if (!ptr.expired())
                 {
-                    successCB(data->url, "", data->customId);
+                    std::shared_ptr<Downloader> downloader = ptr.lock();
+                    reportDownloadFinished(data->url, "", data->customId);
                 }
-            }
-        });
+            });
+        }
+        else
+        {
+            reportDownloadFinished(data->url, "", data->customId);
+        }
     }
 }
 
@@ -324,11 +326,6 @@ void Downloader::downloadSync(const std::string& srcUrl, const std::string& stor
 void Downloader::download(const std::string& srcUrl, const std::string& customId, FILE* fp, ProgressData* data)
 {
     CC_ASSERT(data && "data must not be nill");
-
-    std::weak_ptr<Downloader> ptr = shared_from_this();
-    std::shared_ptr<Downloader> shared = ptr.lock();
-
-
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
     // ASYNC methods must use the _downloaderImpl
@@ -347,6 +344,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 
     if (res != 0)
     {
+        // XXX: If this is called from a different thread, will it crash?
         _fileUtils->removeFile(data->path + data->name + TEMP_EXT);
         std::string msg = StringUtils::format("Unable to download file: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
@@ -358,19 +356,24 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     if (res == 0)
     {
         _fileUtils->renameFile(data->path, data->name + TEMP_EXT, data->name);
-        
-        Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
-            if (!ptr.expired())
-            {
-                std::shared_ptr<Downloader> downloader = ptr.lock();
-                
-                auto successCB = downloader->getSuccessCallback();
-                if (successCB != nullptr)
+
+        if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
+        {
+            std::weak_ptr<Downloader> ptr = shared_from_this();
+            std::shared_ptr<Downloader> shared = ptr.lock();
+
+            Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
+                if (!ptr.expired())
                 {
-                    successCB(data->url, data->path + data->name, data->customId);
+                    std::shared_ptr<Downloader> downloader = ptr.lock();
+                    reportDownloadFinished(data->url, data->path + data->name, data->customId);
                 }
-            }
-        });
+            });
+        }
+        else
+        {
+            reportDownloadFinished(data->url, data->path + data->name, data->customId);
+        }
     }
 }
 
@@ -510,19 +513,23 @@ size_t Downloader::bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *u
     else return 0;
 }
 
-void Downloader::reportDownloadProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data)
+void Downloader::reportDownloadFinished(const std::string& url, const std::string& path, const std::string& customid)
+{
+    if (_onSuccess != nullptr)
+    {
+        _onSuccess(url, path, customid);
+    }
+}
+void Downloader::reportProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data)
 {
     if (_onProgress != nullptr)
     {
         _onProgress(totalToDownload, nowDownloaded, data->url, data->customId);
     }
-    if (_onSuccess != nullptr)
-    {
-        _onSuccess(data->url, data->path + data->name, data->customId);
-    }
+    reportDownloadFinished(data->url, data->path + data->name, data->customId);
 }
 
-void Downloader::reportDownloadProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data)
+void Downloader::reportProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data)
 {
     if (_onProgress != nullptr)
     {
@@ -554,13 +561,13 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
                     if (!_this.expired())
                     {
-                        this->reportDownloadProgressFinished(totalToDownload, nowDownloaded, &copyData);
+                        this->reportProgressFinished(totalToDownload, nowDownloaded, &copyData);
                     }
                 });
             }
             else
             {
-                reportDownloadProgressFinished(totalToDownload, nowDownloaded, ptr);
+                reportProgressFinished(totalToDownload, nowDownloaded, ptr);
             }
         }
         else
@@ -572,13 +579,13 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
                     if (!_this.expired())
                     {
-                        reportDownloadProgressInProgress(totalToDownload, nowDownloaded, &copyData);
+                        reportProgressInProgress(totalToDownload, nowDownloaded, &copyData);
                     }
                 });
             }
             else
             {
-                reportDownloadProgressInProgress(totalToDownload, nowDownloaded, ptr);
+                reportProgressInProgress(totalToDownload, nowDownloaded, ptr);
             }
         }
     }

@@ -111,10 +111,6 @@ public:
     
     long getContentSize(const std::string& srcUrl);
     
-    HeaderInfo getHeader(const std::string& srcUrl);
-    
-    void getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback);
-    
     void downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
     
     void downloadToBufferSync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId = "");
@@ -157,8 +153,13 @@ protected:
     size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata);
 
     // callback helpers
-    void reportDownloadProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data);
-    void reportDownloadProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data);
+    void reportProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data);
+    void reportProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data);
+    void reportDownloadFinished(const std::string& url, const std::string&, const std::string& customid);
+
+    // Do we need them?
+    HeaderInfo getHeader(const std::string& srcUrl);
+    void getHeaderAsync(const std::string& srcUrl, const HeaderCallback &callback);
 
 private:
     int _connectionTimeout;
