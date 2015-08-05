@@ -335,19 +335,19 @@ void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char 
     if (buffer != nullptr)
     {
         std::shared_ptr<Downloader> downloader = shared_from_this();
-        ProgressData pData;
-        pData.customId = customId;
-        pData.url = srcUrl;
-        pData.downloader = downloader;
-        pData.downloaded = 0;
-        pData.totalToDownload = 0;
+        ProgressData data;
+        data.customId = customId;
+        data.url = srcUrl;
+        data.downloader = downloader;
+        data.downloaded = 0;
+        data.totalToDownload = 0;
         
         StreamData streamBuffer;
         streamBuffer.buffer = buffer;
         streamBuffer.total = size;
         streamBuffer.offset = 0;
         
-        auto t = std::thread(&Downloader::downloadToBuffer, this, srcUrl, customId, streamBuffer, pData);
+        auto t = std::thread(&Downloader::downloadToBuffer, this, srcUrl, customId, &streamBuffer, &data);
         t.detach();
     }
 }
@@ -357,24 +357,27 @@ void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *
     if (buffer != nullptr)
     {
         std::shared_ptr<Downloader> downloader = shared_from_this();
-        ProgressData pData;
-        pData.customId = customId;
-        pData.url = srcUrl;
-        pData.downloader = downloader;
-        pData.downloaded = 0;
-        pData.totalToDownload = 0;
+        ProgressData data;
+        data.customId = customId;
+        data.url = srcUrl;
+        data.downloader = downloader;
+        data.downloaded = 0;
+        data.totalToDownload = 0;
         
         StreamData streamBuffer;
         streamBuffer.buffer = buffer;
         streamBuffer.total = size;
         streamBuffer.offset = 0;
         
-        downloadToBuffer(srcUrl, customId, streamBuffer, pData);
+        downloadToBuffer(srcUrl, customId, &streamBuffer, &data);
     }
 }
 
-void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData &buffer, const ProgressData &data)
+void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data)
 {
+    CC_ASSERT(buffer && "must not be nill");
+    CC_ASSERT(data && "must not be nill");
+
     std::weak_ptr<Downloader> ptr = shared_from_this();
     std::shared_ptr<Downloader> shared = ptr.lock();
 
@@ -383,19 +386,14 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     // ASYNC methods must use the _downloaderImpl
     _downloaderImpl = new DownloaderImpl(srcUrl);
 
-    // XXX: Why ProgressData and StreamData are being passed as 'const' ?.
-    // its values are going to get updated.
-    ProgressData *dataPtr = const_cast<ProgressData*>(&data);
-    StreamData *bufferPtr = const_cast<StreamData*>(&buffer);
-
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
-    unit.fp = bufferPtr;
+    unit.fp = buffer;
 
     int res = _downloaderImpl->performDownload(unit,
                                                std::bind(&bufferWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
+                                               std::bind(&downloadProgressFunc, data, std::placeholders::_1, std::placeholders::_2)
                                       );
     // Download pacakge
     if (res != 0)
@@ -413,7 +411,7 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
                 auto successCB = downloader->getSuccessCallback();
                 if (successCB != nullptr)
                 {
-                    successCB(data.url, "", data.customId);
+                    successCB(data->url, "", data->customId);
                 }
             }
         });
@@ -423,11 +421,11 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 void Downloader::downloadAsync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
     FileDescriptor fDesc;
-    ProgressData pData;
-    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &pData);
+    ProgressData data;
+    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &data);
     if (fDesc.fp != NULL)
     {
-        auto t = std::thread(&Downloader::download, this, srcUrl, customId, fDesc, pData);
+        auto t = std::thread(&Downloader::download, this, srcUrl, customId, fDesc, &data);
         t.detach();
     }
 }
@@ -435,16 +433,18 @@ void Downloader::downloadAsync(const std::string& srcUrl, const std::string& sto
 void Downloader::downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
     FileDescriptor fDesc;
-    ProgressData pData;
-    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &pData);
+    ProgressData data;
+    prepareDownload(srcUrl, storagePath, customId, false, &fDesc, &data);
     if (fDesc.fp != NULL)
     {
-        download(srcUrl, customId, fDesc, pData);
+        download(srcUrl, customId, fDesc, &data);
     }
 }
 
-void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, const ProgressData& data)
+void Downloader::download(const std::string& srcUrl, const std::string& customId, const FileDescriptor& fDesc, ProgressData* data)
 {
+    CC_ASSERT(data && "data must not be nill");
+
     std::weak_ptr<Downloader> ptr = shared_from_this();
     std::shared_ptr<Downloader> shared = ptr.lock();
 
@@ -454,10 +454,6 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     // ASYNC methods must use the _downloaderImpl
     _downloaderImpl = new DownloaderImpl(srcUrl);
 
-    // XXX: Why ProgressData is being passed as 'const' ?.
-    // its values are going to get updated.
-    ProgressData *dataPtr = const_cast<ProgressData*>(&data);
-
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
@@ -465,12 +461,12 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 
     int res = _downloaderImpl->performDownload(unit,
                                                std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
-                                               std::bind(&downloadProgressFunc, dataPtr, std::placeholders::_1, std::placeholders::_2)
+                                               std::bind(&downloadProgressFunc, data, std::placeholders::_1, std::placeholders::_2)
                                                );
 
     if (res != 0)
     {
-        _fileUtils->removeFile(data.path + data.name + TEMP_EXT);
+        _fileUtils->removeFile(data->path + data->name + TEMP_EXT);
         std::string msg = StringUtils::format("Unable to download file: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
@@ -480,7 +476,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     // This can only be done after fclose
     if (res == 0)
     {
-        _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
+        _fileUtils->renameFile(data->path, data->name + TEMP_EXT, data->name);
         
         Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
             if (!ptr.expired())
@@ -490,7 +486,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
                 auto successCB = downloader->getSuccessCallback();
                 if (successCB != nullptr)
                 {
-                    successCB(data.url, data.path + data.name, data.customId);
+                    successCB(data->url, data->path + data->name, data->customId);
                 }
             }
         });
@@ -520,23 +516,32 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
 
         _supportResuming = _downloaderImpl->supportsResume();
 
-        int count = 0;
-        DownloadUnits group;
-        for (auto it = units.cbegin(); it != units.cend(); ++it, ++count)
+        // split units in multiple parts if the size is bigger
+        // than FOPEN_MAX
+        if (units.size() >= FOPEN_MAX)
         {
-            if (count == FOPEN_MAX)
+            int count = 0;
+            DownloadUnits group;
+            for (auto it = units.cbegin(); it != units.cend(); ++it, ++count)
+            {
+                if (count == FOPEN_MAX)
+                {
+                    groupBatchDownload(group);
+                    group.clear();
+                    count = 0;
+                }
+                const std::string& key = it->first;
+                const DownloadUnit& unit = it->second;
+                group.emplace(key, unit);
+            }
+            if (group.size() > 0)
             {
                 groupBatchDownload(group);
-                group.clear();
-                count = 0;
             }
-            const std::string& key = it->first;
-            const DownloadUnit& unit = it->second;
-            group.emplace(key, unit);
         }
-        if (group.size() > 0)
+        else
         {
-            groupBatchDownload(group);
+            groupBatchDownload(units);
         }
     }
     
@@ -555,8 +560,6 @@ void Downloader::batchDownloadSync(const DownloadUnits& units, const std::string
 
 void Downloader::groupBatchDownload(const DownloadUnits& units)
 {
-    // void Downloader::notifyError(ErrorCode code, const std::string& msg, const std::string& customId, int curle_code, int curlm_code)
-
     // static_cast needed since notifyError is overloaded
     auto errorCallback = std::bind( static_cast<void(Downloader::*)(const std::string&, int, const std::string&)>
                           (&Downloader::notifyError), this,

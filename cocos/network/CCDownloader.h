@@ -97,10 +97,10 @@ public:
     };
 
 
-    typedef std::function<void(const Downloader::Error &)> ErrorCallback;
-    typedef std::function<void(double, double, const std::string& , const std::string& )> ProgressCallback;
-    typedef std::function<void(const std::string& , const std::string& , const std::string& )> SuccessCallback;
-    typedef std::function<void(const std::string& , const HeaderInfo &)> HeaderCallback;
+    typedef std::function<void(const Downloader::Error&)> ErrorCallback;
+    typedef std::function<void(double, double, const std::string&, const std::string&)> ProgressCallback;
+    typedef std::function<void(const std::string&, const std::string&, const std::string&)> SuccessCallback;
+    typedef std::function<void(const std::string&, const HeaderInfo&)> HeaderCallback;
 
     int getConnectionTimeout();
 
@@ -159,9 +159,9 @@ protected:
     
     HeaderInfo prepareHeader(const std::string& srcUrl);
     
-    void downloadToBuffer(const std::string& srcUrl, const std::string& customId, const StreamData& buffer, const ProgressData& data);
+    void downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data);
 
-    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, const ProgressData& data);
+    void download(const std::string& srcUrl, const std::string& customId, const FileDescriptor &fDesc, ProgressData* data);
     
     void groupBatchDownload(const DownloadUnits& units);
 
@@ -186,7 +186,6 @@ private:
     void clearBatchDownloadData();
     
     std::vector<FileDescriptor *> _files;
-    
     std::vector<ProgressData *> _progDatas;
     
     FileUtils* _fileUtils;

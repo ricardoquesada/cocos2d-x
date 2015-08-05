@@ -55,8 +55,6 @@ namespace network
         std::string customId;
         bool resumeDownload;
         void* fp;
-
-        void* _reserved;
     };
 
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
