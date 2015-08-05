@@ -76,7 +76,7 @@ static size_t bufferWriteFunc(void *ptr, size_t size, size_t nmemb, void *userda
 }
 
 // This is only for batchDownload process, will notify file succeed event in progress function
-static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded)
+static int batchDownloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded)
 {
     if (ptr->totalToDownload == 0)
     {
@@ -87,7 +87,7 @@ static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double total
     {
         ptr->downloaded = nowDownloaded;
         
-        Downloader::ProgressData data = *ptr;
+        ProgressData data = *ptr;
         
         if (nowDownloaded == totalToDownload)
         {
@@ -130,7 +130,7 @@ static int batchDownloadProgressFunc(Downloader::ProgressData *ptr, double total
 }
 
 // Compare to batchDownloadProgressFunc, this only handles progress information notification
-int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded)
+int downloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded)
 {
     if (ptr->totalToDownload == 0)
     {
@@ -140,7 +140,7 @@ int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, 
     if (ptr->downloaded != nowDownloaded)
     {
         ptr->downloaded = nowDownloaded;
-        Downloader::ProgressData data = *ptr;
+        ProgressData data = *ptr;
         
         Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
             if (!data.downloader.expired())
@@ -166,6 +166,7 @@ Downloader::Downloader()
 , _onSuccess(nullptr)
 , _supportResuming(false)
 , _downloaderImpl(nullptr)
+, _progDatas({})
 {
     _fileUtils = FileUtils::getInstance();
 }
@@ -229,11 +230,8 @@ std::string Downloader::getFileNameFromUrl(const std::string& srcUrl)
 
 void Downloader::clearBatchDownloadData()
 {
-    while (_progDatas.size() != 0) {
-        delete _progDatas.back();
-        _progDatas.pop_back();
-    }
-    
+    _progDatas.clear();
+
     while (_files.size() != 0) {
         delete _files.back();
         _files.pop_back();
@@ -564,22 +562,31 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
     auto errorCallback = std::bind( static_cast<void(Downloader::*)(const std::string&, int, const std::string&)>
                           (&Downloader::notifyError), this,
                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+    _progDatas.clear();
+    _progDatas.reserve(units.size());
+    int i=0;
+    for (const auto& entry: units)
+    {
+        auto&& unit = entry.second;
+        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, nullptr, &_progDatas[i++]);
+    }
     _downloaderImpl->performBatchDownload(units,
+                                          _progDatas,
                                           std::bind(&fileWriteFunc, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                           std::bind(&batchDownloadProgressFunc, nullptr, std::placeholders::_1, std::placeholders::_2),
                                           errorCallback
                                           );
 
     // Check unfinished files and notify errors, succeed files will be renamed from temporary file name to real name
-    for (auto it = _progDatas.begin(); it != _progDatas.end(); ++it) {
-        ProgressData *data = *it;
-        if (data->downloaded < data->totalToDownload || data->totalToDownload == 0)
+    for (const auto& data: _progDatas) {
+        if (data.downloaded < data.totalToDownload || data.totalToDownload == 0)
         {
-            this->notifyError(ErrorCode::NETWORK, "Unable to download file", data->customId);
+            this->notifyError(ErrorCode::NETWORK, "Unable to download file", data.customId);
         }
         else
         {
-            _fileUtils->renameFile(data->path, data->name + TEMP_EXT, data->name);
+            _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
         }
     }
     

@@ -57,7 +57,20 @@ namespace network
         void* fp;
     };
 
+    class Downloader;
+    struct ProgressData
+    {
+        std::weak_ptr<Downloader> downloader;
+        std::string customId;
+        std::string url;
+        std::string path;
+        std::string name;
+        double downloaded;
+        double totalToDownload;
+    };
+
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
+    typedef std::vector<ProgressData> ProgressDatas;
 
     class IDownloaderImpl
     {
@@ -80,6 +93,7 @@ namespace network
                                     ) = 0;
 
         virtual int performBatchDownload(const DownloadUnits& units,
+                                         const ProgressDatas& data,
                                          const WriterCallback& writerCallback,
                                          const ProgressCallback& progressCallback,
                                          const ErrorCallback& errorCallback

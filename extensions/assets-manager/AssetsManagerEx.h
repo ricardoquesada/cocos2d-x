@@ -50,7 +50,7 @@ class CC_EX_DLL AssetsManagerEx : public Ref
 {
 public:
     
-    friend int downloadProgressFunc(network::Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
+    friend int downloadProgressFunc(network::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
     
     //! Update states
     enum class State

@@ -53,6 +53,7 @@ namespace network
                             const ProgressCallback& progressCallback
                             ) override;
         int performBatchDownload(const DownloadUnits& units,
+                                 const ProgressDatas& data,
                                  const WriterCallback& writerCallback,
                                  const ProgressCallback& progressCallback,
                                  const ErrorCallback& errorCallback                                         

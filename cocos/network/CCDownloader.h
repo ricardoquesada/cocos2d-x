@@ -25,17 +25,15 @@
 #ifndef __Downloader__
 #define __Downloader__
 
-#include "network/CCDownloaderImpl.h"
-
-#include "platform/CCFileUtils.h"
-#include "extensions/ExtensionMacros.h"
-#include "extensions/ExtensionExport.h"
-
 #include <unordered_map>
 #include <string>
 #include <functional>
 #include <memory>
 
+#include "network/CCDownloaderImpl.h"
+#include "platform/CCFileUtils.h"
+#include "extensions/ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
 
 namespace cocos2d {
 namespace network {
@@ -76,17 +74,6 @@ public:
         std::string message;
         std::string customId;
         std::string url;
-    };
-
-    struct ProgressData
-    {
-        std::weak_ptr<Downloader> downloader;
-        std::string customId;
-        std::string url;
-        std::string path;
-        std::string name;
-        double downloaded;
-        double totalToDownload;
     };
 
     struct StreamData
@@ -186,7 +173,7 @@ private:
     void clearBatchDownloadData();
     
     std::vector<FileDescriptor *> _files;
-    std::vector<ProgressData *> _progDatas;
+    ProgressDatas _progDatas;
     
     FileUtils* _fileUtils;
 
@@ -195,7 +182,7 @@ private:
     DownloaderImpl* _downloaderImpl;
 };
 
-int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded);
+int downloadProgressFunc(ProgressData *ptr, double totalToDownload, double nowDownloaded);
 
 } // namespace cocos2d
 } // namespace network

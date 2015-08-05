@@ -100,10 +100,13 @@ int DownloaderImpl::performDownload(const DownloadUnit& unit,
 }
 
 int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
+                                         const ProgressDatas& data,
                                          const WriterCallback& batchWriterCallback,
                                          const ProgressCallback& batchProgressCallback,
                                          const ErrorCallback& errorCallback)
 {
+    CC_ASSERT(units.size() == data.size() && "Invalid size in units and data");
+
     CURLM* multi_handle = curl_multi_init();
     int still_running = 0;
 
@@ -116,9 +119,9 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
     std::vector<CURL*> curls;
     curls.reserve(units.size());
 
-    for (auto it = units.cbegin(); it != units.cend(); ++it)
+    for (const auto& unitEntry: units)
     {
-        auto& unit = it->second;
+        const auto& unit = unitEntry.second;
 
         if (unit.fp != NULL)
         {
@@ -128,7 +131,7 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &unit);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, _downloadProgressFunc);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, this);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
             if (_connectionTimeout)
                 curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
