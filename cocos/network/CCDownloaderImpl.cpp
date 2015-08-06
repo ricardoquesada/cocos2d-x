@@ -102,6 +102,9 @@ int DownloaderImpl::performDownload(DownloadUnit* unit,
     unit->__reserved = this;
     progressData->__reserved = this;
 
+    // re-init ?
+    curl_easy_setopt(_curlHandle, CURLOPT_URL, unit->srcUrl.c_str());
+
     // Download pacakge
     curl_easy_setopt(_curlHandle, CURLOPT_WRITEFUNCTION, _fileWriteFunc);
     curl_easy_setopt(_curlHandle, CURLOPT_WRITEDATA, unit);
