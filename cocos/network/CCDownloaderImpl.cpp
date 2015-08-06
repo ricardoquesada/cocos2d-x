@@ -73,13 +73,14 @@ DownloaderImpl::~DownloaderImpl()
 
 bool DownloaderImpl::init(const std::string& url)
 {
-    CC_ASSERT(!_initialized && "already initialized");
+    if (!_initialized) {
+        _curlHandle = curl_easy_init();
+        _initialized = true;
+    }
 
-    _curlHandle = curl_easy_init();
     if (_curlHandle)
     {
         curl_easy_setopt(_curlHandle, CURLOPT_URL, _url.c_str());
-        _initialized = true;
     }
     return _initialized;
 }

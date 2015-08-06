@@ -173,49 +173,26 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     }
 }
 
-void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId/* = ""*/)
+void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, long size, const std::string& customId/* = ""*/)
 {
     if (buffer != nullptr)
     {
-        ProgressData data;
-        data.customId = customId;
-        data.url = srcUrl;
-        data.downloaded = 0;
-        data.totalToDownload = 0;
-        
-        StreamData streamBuffer;
-        streamBuffer.buffer = buffer;
-        streamBuffer.total = size;
-        streamBuffer.offset = 0;
-        
-        auto t = std::thread(&Downloader::downloadToBuffer, this, srcUrl, customId, &streamBuffer, &data);
+        auto t = std::thread(&Downloader::downloadToBuffer, this, srcUrl, customId, buffer, size);
         t.detach();
     }
 }
 
-void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *buffer, const long &size, const std::string& customId/* = ""*/)
+void Downloader::downloadToBufferSync(const std::string& srcUrl, unsigned char *buffer, long size, const std::string& customId/* = ""*/)
 {
     if (buffer != nullptr)
     {
-        ProgressData data;
-        data.customId = customId;
-        data.url = srcUrl;
-        data.downloaded = 0;
-        data.totalToDownload = 0;
-        
-        StreamData streamBuffer;
-        streamBuffer.buffer = buffer;
-        streamBuffer.total = size;
-        streamBuffer.offset = 0;
-        
-        downloadToBuffer(srcUrl, customId, &streamBuffer, &data);
+        downloadToBuffer(srcUrl, customId, buffer, size);
     }
 }
 
-void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, StreamData* buffer, ProgressData* data)
+void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& customId, unsigned char* buffer, long size)
 {
     CC_ASSERT(buffer && "must not be nill");
-    CC_ASSERT(data && "must not be nill");
 
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
@@ -224,9 +201,20 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     unit.customId = customId;
     unit.fp = buffer;
 
+    ProgressData data;
+    data.customId = customId;
+    data.url = srcUrl;
+    data.downloaded = 0;
+    data.totalToDownload = 0;
+
+    StreamData streamBuffer;
+    streamBuffer.buffer = buffer;
+    streamBuffer.total = size;
+    streamBuffer.offset = 0;
+
     _downloaderImpl->init(srcUrl);
     int res = _downloaderImpl->performDownload(&unit,
-                                               data,
+                                               &data,
                                                std::bind(&Downloader::bufferWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                       );
@@ -247,44 +235,35 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
                 if (!ptr.expired())
                 {
                     std::shared_ptr<Downloader> downloader = ptr.lock();
-                    reportDownloadFinished(data->url, "", data->customId);
+                    reportDownloadFinished(data.url, "", data.customId);
                 }
             });
         }
         else
         {
-            reportDownloadFinished(data->url, "", data->customId);
+            reportDownloadFinished(data.url, "", data.customId);
         }
     }
 }
 
 void Downloader::downloadAsync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
-    FILE* fp;
-    ProgressData data;
-    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
-    if (fp != NULL)
-    {
-        auto t = std::thread(&Downloader::download, this, srcUrl, customId, fp, &data);
-        t.detach();
-    }
+    auto t = std::thread(&Downloader::downloadToFP, this, srcUrl, customId, storagePath);
+    t.detach();
 }
 
 void Downloader::downloadSync(const std::string& srcUrl, const std::string& storagePath, const std::string& customId/* = ""*/)
 {
-    FILE* fp;
-    ProgressData data;
-    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
-    if (fp != NULL)
-    {
-        download(srcUrl, customId, fp, &data);
-    }
+    downloadToFP(srcUrl, customId, storagePath);
 }
 
-void Downloader::download(const std::string& srcUrl, const std::string& customId, FILE* fp, ProgressData* data)
+void Downloader::downloadToFP(const std::string& srcUrl, const std::string& customId, const std::string& storagePath)
 {
-    CC_ASSERT(data && "data must not be nill");
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
+
+    FILE *fp;
+    ProgressData data;
+    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
 
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
@@ -293,7 +272,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
 
     _downloaderImpl->init(srcUrl);
     int res = _downloaderImpl->performDownload(&unit,
-                                               data,
+                                               &data,
                                                std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                                );
@@ -301,7 +280,9 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     if (res != 0)
     {
         // XXX: If this is called from a different thread, will it crash?
-        _fileUtils->removeFile(data->path + data->name + TEMP_EXT);
+        // XXX: Can fileUtils run on a different thread ?
+        // XXX: can notifyError run on a different thread ?
+        _fileUtils->removeFile(data.path + data.name + TEMP_EXT);
         std::string msg = StringUtils::format("Unable to download file: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
@@ -311,7 +292,7 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
     // This can only be done after fclose
     if (res == 0)
     {
-        _fileUtils->renameFile(data->path, data->name + TEMP_EXT, data->name);
+        _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
 
         if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
         {
@@ -322,13 +303,13 @@ void Downloader::download(const std::string& srcUrl, const std::string& customId
                 if (!ptr.expired())
                 {
                     std::shared_ptr<Downloader> downloader = ptr.lock();
-                    reportDownloadFinished(data->url, data->path + data->name, data->customId);
+                    reportDownloadFinished(data.url, data.path + data.name, data.customId);
                 }
             });
         }
         else
         {
-            reportDownloadFinished(data->url, data->path + data->name, data->customId);
+            reportDownloadFinished(data.url, data.path + data.name, data.customId);
         }
     }
 }
