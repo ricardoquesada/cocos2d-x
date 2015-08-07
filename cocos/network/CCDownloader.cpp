@@ -133,9 +133,9 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     pData->url = srcUrl;
     pData->downloaded = 0;
     pData->totalToDownload = 0;
-    
-    *fp = nullptr;
-    
+
+    FILE *localFP = nullptr;
+
     Error err;
     err.customId = customId;
     
@@ -151,7 +151,9 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     {
         err.code = ErrorCode::INVALID_URL;
         err.message = "Invalid url or filename not exist error: " + srcUrl;
-        if (this->_onError) this->_onError(err);
+        if (this->_onError)
+            this->_onError(err);
+        *fp = nullptr;
         return;
     }
     
@@ -159,18 +161,21 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
     const std::string outFileName = storagePath + TEMP_EXT;
     if (_supportResuming && resumeDownload && _fileUtils->isFileExist(outFileName))
     {
-        *fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "ab");
+        localFP = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "ab");
     }
     else
     {
-        *fp = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "wb");
+        localFP = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "wb");
     }
-    if (! *fp)
+    if (!localFP)
     {
         err.code = ErrorCode::CREATE_FILE;
         err.message = StringUtils::format("Can not create file %s: errno %d", outFileName.c_str(), errno);
-        if (this->_onError) this->_onError(err);
+        if (this->_onError)
+            this->_onError(err);
     }
+
+    *fp = localFP;
 }
 
 void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, long size, const std::string& customId/* = ""*/)
@@ -472,6 +477,8 @@ void Downloader::reportProgressInProgress(double totalToDownload, double nowDown
 // This is only for batchDownload process, will notify file succeed event in progress function
 int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
+    CCLOG("batchDownloadProgressFunc: %d", (int)((nowDownloaded/totalToDownload)*100));
+
     CC_ASSERT(userdata && "Invalid userdata");
 
     ProgressData* ptr = (ProgressData*) userdata;
@@ -529,6 +536,8 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
 int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
     CC_ASSERT(userdata && "Invalid userdata");
+
+    CCLOG("downloadProgressFunc: %d", (int)((nowDownloaded/totalToDownload)*100));
 
     ProgressData* ptr = (ProgressData*)userdata;
     if (ptr->totalToDownload == 0)

@@ -60,7 +60,7 @@ void DownloaderBaseTest::errorCallback(const cocos2d::network::Downloader::Error
 
 void DownloaderBaseTest::progressCallback(double totalToDownload, double nowDownloaded, const std::string& url, const std::string& customId)
 {
-    cocos2d::log("download progress: %d%% - %s", (int)(nowDownloaded/totalToDownload)*100, url.c_str());
+    cocos2d::log("download progress: %d%% - %s", (int)((nowDownloaded/totalToDownload)*100), url.c_str());
 }
 
 void DownloaderBaseTest::successCallback(const std::string& url, const std::string& path, const std::string& customId)
