@@ -45,7 +45,8 @@ static size_t _fileWriteFunc(void *ptr, size_t size, size_t nmemb, void* userdat
 {
     DownloadUnit *unit = (DownloadUnit*)userdata;
     DownloaderImpl* this_ = (DownloaderImpl*)unit->__reserved;
-    return this_->getWriterCallback()(ptr, size, nmemb, unit);
+    int ret = this_->getWriterCallback()(ptr, size, nmemb, unit);
+    return ret;
 }
 
 static int _downloadProgressFunc(void* userdata, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
@@ -54,6 +55,8 @@ static int _downloadProgressFunc(void* userdata, double totalToDownload, double 
     DownloaderImpl* this_ = (DownloaderImpl*)progressData->__reserved;
 
     this_->getProgressCallback()(progressData, totalToDownload, nowDownloaded);
+
+    // must return 0, otherwise download will get cancelled
     return 0;
 }
 
@@ -150,12 +153,12 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
     int i=0;
     for (const auto& unitEntry: units)
     {
-        // HACK: Needed for callbacks. "this" + "unit" + "data" are needed
-        unitEntry.second.__reserved = this;
-        datas[i].__reserved = this;
-
         const auto& unit = unitEntry.second;
-        const auto& data = datas[i];
+        const ProgressData* data = &datas[i++];
+
+        // HACK: Needed for callbacks. "this" + "unit" + "data" are needed
+        unit.__reserved = this;
+        data->__reserved = this;
 
         if (unit.fp != NULL)
         {
@@ -165,7 +168,7 @@ int DownloaderImpl::performBatchDownload(const DownloadUnits& units,
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, &unit);
             curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
             curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, _downloadProgressFunc);
-            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
+            curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, data);
             curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
             if (_connectionTimeout)
                 curl_easy_setopt(_curlHandle, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);

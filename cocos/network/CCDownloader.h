@@ -140,23 +140,17 @@ protected:
 
 
 private:
-    int _connectionTimeout;
+    std::string getFileNameFromUrl(const std::string& srcUrl);
+    void clearBatchDownloadData();
 
     ErrorCallback _onError;
     ProgressCallback _onProgress;
     SuccessCallback _onSuccess;
 
-    std::string getFileNameFromUrl(const std::string& srcUrl);
-    
-    void clearBatchDownloadData();
-    
-    std::vector<FILE*> _files;
+    int _connectionTimeout;
     ProgressDatas _progDatas;
-    
     FileUtils* _fileUtils;
-
     bool _supportResuming;
-
     DownloaderImpl* _downloaderImpl;
 };
 

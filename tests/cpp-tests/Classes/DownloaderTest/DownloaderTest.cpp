@@ -35,6 +35,8 @@ DownloaderTests::DownloaderTests()
 {
     ADD_TEST_CASE(DownloaderSyncTest);
 	ADD_TEST_CASE(DownloaderAsyncTest);
+    ADD_TEST_CASE(DownloaderBatchSyncTest);
+    ADD_TEST_CASE(DownloaderBatchAsyncTest);
 };
 
 //
@@ -138,6 +140,115 @@ std::string DownloaderAsyncTest::title() const
 std::string DownloaderAsyncTest::subtitle() const
 {
     return "Async test";
+}
+
+//------------------------------------------------------------------
+//
+// DownloaderBatchSyncTest
+//
+//------------------------------------------------------------------
+void DownloaderBatchSyncTest::onEnter()
+{
+    DownloaderBaseTest::onEnter();
+
+    auto menuItem = MenuItemFont::create("start download", [=](Ref* sender){
+
+        if (_downloader)
+        {
+            std::vector<std::string> images = {
+                "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png",
+                "http://www.cocos2d-x.org/docs/manual/framework/native/wiki/logo-resources-of-cocos2d-x/res/2dx_icon_512_rounded.png",
+                "http://www.cocos2d-x.org/attachments/1503/Cocos2CoordinateRelease.png"
+            };
+
+            std::vector<std::string> names = {
+                "cocos2dx_landscape.png",
+                "2dx_icon_512_rounded.png",
+                "Cocos2CoordinateRelease.png"
+            };
+
+            network::DownloadUnits units;
+
+            int i=0;
+            for(const auto& image: images)
+            {
+                network::DownloadUnit unit;
+                unit.storagePath = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/" + names[i];
+                unit.srcUrl = image;
+                unit.customId = image;
+                i++;
+                units[image] = unit;
+            }
+
+            _downloader->batchDownloadSync(units, "sync_download");
+            cocos2d::log("Downloading...");
+        }
+    });
+    auto menu = Menu::create(menuItem, nullptr);
+    addChild(menu);
+    menu->setNormalizedPosition(Vec2(0.5, 0.5));
+}
+
+std::string DownloaderBatchSyncTest::title() const
+{
+    return "Downloader";
+}
+
+std::string DownloaderBatchSyncTest::subtitle() const
+{
+    return "Batch Sync test";
+}
+
+
+//------------------------------------------------------------------
+//
+// DownloaderBatchAsyncTest
+//
+//------------------------------------------------------------------
+void DownloaderBatchAsyncTest::onEnter()
+{
+    DownloaderBaseTest::onEnter();
+
+    auto menuItem = MenuItemFont::create("start download", [=](Ref* sender){
+
+        if (_downloader)
+        {
+            std::vector<std::string> images = {
+                "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png",
+                "http://www.cocos2d-x.org/docs/manual/framework/native/wiki/logo-resources-of-cocos2d-x/res/2dx_icon_512_rounded.png",
+                "http://www.cocos2d-x.org/attachments/1503/Cocos2CoordinateRelease.png"
+            };
+
+            network::DownloadUnits units;
+
+            int i=0;
+            for(const auto& image: images)
+            {
+                network::DownloadUnit unit;
+                unit.storagePath = FileUtils::getInstance()->getWritablePath();
+                unit.srcUrl = image;
+                unit.customId = image;
+                i++;
+                units[image] = unit;
+            }
+
+            _downloader->batchDownloadAsync(units, "sync_download");
+            cocos2d::log("Downloading...");
+        }
+    });
+    auto menu = Menu::create(menuItem, nullptr);
+    addChild(menu);
+    menu->setNormalizedPosition(Vec2(0.5, 0.5));
+}
+
+std::string DownloaderBatchAsyncTest::title() const
+{
+    return "Downloader";
+}
+
+std::string DownloaderBatchAsyncTest::subtitle() const
+{
+    return "Batch Async test";
 }
 
 

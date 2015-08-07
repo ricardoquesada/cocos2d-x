@@ -121,10 +121,6 @@ std::string Downloader::getFileNameFromUrl(const std::string& srcUrl)
 void Downloader::clearBatchDownloadData()
 {
     _progDatas.clear();
-
-    for(const auto& fp: _files)
-        fclose(fp);
-    _files.clear();
 }
 
 void Downloader::prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE **fp, ProgressData *pData)
@@ -156,6 +152,10 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
         *fp = nullptr;
         return;
     }
+
+    // create possible subdirectories
+    if (!FileUtils::getInstance()->isDirectoryExist(pData->path))
+        FileUtils::getInstance()->createDirectory(pData->path);
     
     // Create a file to save file.
     const std::string outFileName = storagePath + TEMP_EXT;
@@ -273,6 +273,7 @@ void Downloader::downloadToFP(const std::string& srcUrl, const std::string& cust
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
+    unit.storagePath = storagePath;
     unit.fp = fp;
 
     _downloaderImpl->init(srcUrl);
@@ -387,16 +388,13 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
     CC_ASSERT(_progDatas.size() ==0 && "_progsData must be 0");
-    CC_ASSERT(_files.size() ==0 && "_files must be 0");
-
     _progDatas.resize(units.size());
-    _files.resize(units.size());
 
     int i=0;
     for (const auto& entry: units)
     {
         auto&& unit = entry.second;
-        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, &_files[i], &_progDatas[i]);
+        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, (FILE**)&unit.fp, &_progDatas[i]);
         i++;
     }
     _downloaderImpl->performBatchDownload(units,
@@ -417,6 +415,14 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
             _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
         }
     }
+
+    // close opened FPs
+    for(const auto& entry: units)
+    {
+        const auto& unit = entry.second;
+        if (unit.fp)
+            fclose((FILE*)unit.fp);
+    }
     
     clearBatchDownloadData();
 }
@@ -425,8 +431,9 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
 size_t Downloader::fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
     CC_ASSERT(userdata && "Invalid userdata");
-    FILE *fp = (FILE*)((DownloadUnit*)userdata)->fp;
-
+    DownloadUnit* unit = (DownloadUnit*)userdata;
+    FILE *fp = (FILE*)(unit->fp);
+    
     CC_ASSERT(fp && "Invalid FP");
     size_t written = fwrite(ptr, size, nmemb, fp);
     return written;
@@ -477,8 +484,6 @@ void Downloader::reportProgressInProgress(double totalToDownload, double nowDown
 // This is only for batchDownload process, will notify file succeed event in progress function
 int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
-    CCLOG("batchDownloadProgressFunc: %d", (int)((nowDownloaded/totalToDownload)*100));
-
     CC_ASSERT(userdata && "Invalid userdata");
 
     ProgressData* ptr = (ProgressData*) userdata;
@@ -536,8 +541,6 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
 int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, double nowDownloaded)
 {
     CC_ASSERT(userdata && "Invalid userdata");
-
-    CCLOG("downloadProgressFunc: %d", (int)((nowDownloaded/totalToDownload)*100));
 
     ProgressData* ptr = (ProgressData*)userdata;
     if (ptr->totalToDownload == 0)

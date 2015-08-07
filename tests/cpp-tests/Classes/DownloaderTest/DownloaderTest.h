@@ -69,3 +69,23 @@ public:
     virtual std::string subtitle() const override;
 };
 
+class DownloaderBatchSyncTest : public DownloaderBaseTest
+{
+public:
+    CREATE_FUNC(DownloaderBatchSyncTest);
+
+    virtual void onEnter() override;
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
+class DownloaderBatchAsyncTest : public DownloaderBaseTest
+{
+public:
+    CREATE_FUNC(DownloaderBatchAsyncTest);
+
+    virtual void onEnter() override;
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
