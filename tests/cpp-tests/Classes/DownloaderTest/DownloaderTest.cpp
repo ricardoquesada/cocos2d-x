@@ -82,8 +82,8 @@ void DownloaderSyncTest::onEnter()
         if (_downloader)
         {
 
-            std::string path = FileUtils::getInstance()->getWritablePath() + "/image.jpg";
-            std::string remote = "https://lh3.googleusercontent.com/-T12hOwH7K-8/VXUHH0kFBqI/AAAAAAABSPo/N0aLEzrJcWI/s800-Ic42/IMG_3234.JPG";
+            std::string path = FileUtils::getInstance()->getWritablePath() + "cocos2d_logo_sync.jpg";
+            std::string remote = "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png";
             cocos2d::log("Downloading '%s' into '%s'", remote.c_str(), path.c_str());
 
             _downloader->downloadSync(remote, path, "download_async_test");
@@ -114,14 +114,13 @@ void DownloaderAsyncTest::onEnter()
 {
     DownloaderBaseTest::onEnter();
 
-    auto menuItem = MenuItemFont::create("start download", [](Ref* sender){
+    auto menuItem = MenuItemFont::create("start download", [=](Ref* sender){
 
-        std::unique_ptr<cocos2d::network::Downloader> downloader(new cocos2d::network::Downloader);
-        if (downloader)
+        if (_downloader)
         {
-            std::string path = FileUtils::getInstance()->getWritablePath() + "/image.jpg";
-            std::string remote = "https://lh3.googleusercontent.com/-T12hOwH7K-8/VXUHH0kFBqI/AAAAAAABSPo/N0aLEzrJcWI/s800-Ic42/IMG_3234.JPG";
-            downloader->downloadAsync(remote, path, "download_async_test");
+            std::string path = FileUtils::getInstance()->getWritablePath() + "cocos2d_logo_async.jpg";
+            std::string remote = "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png";
+            _downloader->downloadAsync(remote, path, "download_async_test");
 
             cocos2d::log("Downloading '%s' into '%s'", remote.c_str(), path.c_str());
         }
