@@ -84,7 +84,7 @@ void DownloaderSyncTest::onEnter()
         if (_downloader)
         {
 
-            std::string path = FileUtils::getInstance()->getWritablePath() + "cocos2d_logo_sync.jpg";
+            std::string path = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/cocos2d_logo_sync.jpg";
             std::string remote = "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png";
             cocos2d::log("Downloading '%s' into '%s'", remote.c_str(), path.c_str());
 
@@ -120,7 +120,7 @@ void DownloaderAsyncTest::onEnter()
 
         if (_downloader)
         {
-            std::string path = FileUtils::getInstance()->getWritablePath() + "cocos2d_logo_async.jpg";
+            std::string path = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/cocos2d_logo_async.jpg";
             std::string remote = "http://www.cocos2d-x.org/attachments/802/cocos2dx_landscape.png";
             _downloader->downloadAsync(remote, path, "download_async_test");
 
@@ -173,7 +173,7 @@ void DownloaderBatchSyncTest::onEnter()
             for(const auto& image: images)
             {
                 network::DownloadUnit unit;
-                unit.storagePath = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/" + names[i];
+                unit.storagePath = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/Sync/" + names[i];
                 unit.srcUrl = image;
                 unit.customId = image;
                 i++;
@@ -219,13 +219,19 @@ void DownloaderBatchAsyncTest::onEnter()
                 "http://www.cocos2d-x.org/attachments/1503/Cocos2CoordinateRelease.png"
             };
 
+            std::vector<std::string> names = {
+                "cocos2dx_landscape.png",
+                "2dx_icon_512_rounded.png",
+                "Cocos2CoordinateRelease.png"
+            };
+
             network::DownloadUnits units;
 
             int i=0;
             for(const auto& image: images)
             {
                 network::DownloadUnit unit;
-                unit.storagePath = FileUtils::getInstance()->getWritablePath();
+                unit.storagePath = FileUtils::getInstance()->getWritablePath() + "CppTests/DownloaderTest/Async/" + names[i];
                 unit.srcUrl = image;
                 unit.customId = image;
                 i++;

@@ -117,7 +117,7 @@ public:
 protected:
 
 
-    void prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE** fp, ProgressData* pData);
+    void prepareDownload(const DownloadUnit& downloadUnit);
 
     void downloadToBuffer(const std::string& srcUrl, const std::string& customId, unsigned char* buffer, long size);
     void downloadToFP(const std::string& srcUrl, const std::string& customId, const std::string& storagePath);
@@ -134,21 +134,19 @@ protected:
     size_t fileWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata);
 
     // callback helpers
-    void reportProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data);
-    void reportProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data);
+    void reportProgressFinished(double totalToDownload, double nowDownloaded, const DownloadUnit* downloadUnit);
+    void reportProgressInProgress(double totalToDownload, double nowDownloaded, const DownloadUnit* downloadUnit);
     void reportDownloadFinished(const std::string& url, const std::string&, const std::string& customid);
 
 
 private:
     std::string getFileNameFromUrl(const std::string& srcUrl);
-    void clearBatchDownloadData();
 
     ErrorCallback _onError;
     ProgressCallback _onProgress;
     SuccessCallback _onSuccess;
 
     int _connectionTimeout;
-    ProgressDatas _progDatas;
     FileUtils* _fileUtils;
     bool _supportResuming;
     DownloaderImpl* _downloaderImpl;

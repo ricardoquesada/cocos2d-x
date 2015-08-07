@@ -50,30 +50,21 @@ namespace network
 
     struct DownloadUnit
     {
+        // info provided by the user
         std::string srcUrl;
         std::string storagePath;
         std::string customId;
-        bool resumeDownload;
-        void* fp;
 
+        // additional info created by CCDownloader
+        mutable void* fp;
+        mutable bool resumeDownload;
+        mutable double downloaded;
+        mutable double totalToDownload;
         mutable void *__reserved;
     };
 
     class Downloader;
-    struct ProgressData
-    {
-        std::string customId;
-        std::string url;
-        std::string path;
-        std::string name;
-        double downloaded;
-        double totalToDownload;
-
-        mutable void *__reserved;
-    };
-
     typedef std::unordered_map<std::string, DownloadUnit> DownloadUnits;
-    typedef std::vector<ProgressData> ProgressDatas;
 
     class IDownloaderImpl
     {
@@ -93,13 +84,11 @@ namespace network
 
         // methods that must be overriden
         virtual int performDownload(DownloadUnit* unit,
-                                    ProgressData* progressData,
                                     const WriterCallback& writerCallback,
                                     const ProgressCallback& progressCallback
                                     ) = 0;
 
         virtual int performBatchDownload(const DownloadUnits& units,
-                                         const ProgressDatas& data,
                                          const WriterCallback& writerCallback,
                                          const ProgressCallback& progressCallback,
                                          const ErrorCallback& errorCallback

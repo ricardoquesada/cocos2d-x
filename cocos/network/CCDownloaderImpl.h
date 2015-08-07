@@ -51,12 +51,10 @@ namespace network
 
         // Overrides
         int performDownload(DownloadUnit* unit,
-                            ProgressData* progressData,
                             const WriterCallback& writerCallback,
                             const ProgressCallback& progressCallback
                             ) override;
         int performBatchDownload(const DownloadUnits& units,
-                                 const ProgressDatas& data,
                                  const WriterCallback& writerCallback,
                                  const ProgressCallback& progressCallback,
                                  const ErrorCallback& errorCallback                                         

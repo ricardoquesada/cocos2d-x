@@ -55,7 +55,6 @@ Downloader::Downloader()
 , _onSuccess(nullptr)
 , _supportResuming(false)
 , _downloaderImpl(nullptr)
-, _progDatas({})
 {
     _fileUtils = FileUtils::getInstance();
     _downloaderImpl = new DownloaderImpl();
@@ -118,48 +117,44 @@ std::string Downloader::getFileNameFromUrl(const std::string& srcUrl)
     return filename;
 }
 
-void Downloader::clearBatchDownloadData()
+void Downloader::prepareDownload(const DownloadUnit& downloadUnit)
 {
-    _progDatas.clear();
-}
-
-void Downloader::prepareDownload(const std::string& srcUrl, const std::string& storagePath, const std::string& customId, bool resumeDownload, FILE **fp, ProgressData *pData)
-{
-    pData->customId = customId;
-    pData->url = srcUrl;
-    pData->downloaded = 0;
-    pData->totalToDownload = 0;
+    std::string name = "";
+    std::string path = "";
 
     FILE *localFP = nullptr;
 
+    downloadUnit.downloaded = 0;
+    downloadUnit.totalToDownload = 0;
+
     Error err;
-    err.customId = customId;
+    err.customId = downloadUnit.customId;
     
     // Asserts
     // Find file name and file extension
-    unsigned long found = storagePath.find_last_of("/\\");
+    unsigned long found = downloadUnit.storagePath.find_last_of("/\\");
     if (found != std::string::npos)
     {
-        pData->name = storagePath.substr(found+1);
-        pData->path = storagePath.substr(0, found+1);
+        name = downloadUnit.storagePath.substr(found+1);
+        path = downloadUnit.storagePath.substr(0, found+1);
     }
     else
     {
         err.code = ErrorCode::INVALID_URL;
-        err.message = "Invalid url or filename not exist error: " + srcUrl;
+        err.message = "Invalid url or filename not exist error: " + downloadUnit.srcUrl;
         if (this->_onError)
             this->_onError(err);
-        *fp = nullptr;
+        downloadUnit.fp = nullptr;
         return;
     }
 
     // create possible subdirectories
-    if (!FileUtils::getInstance()->isDirectoryExist(pData->path))
-        FileUtils::getInstance()->createDirectory(pData->path);
+    if (!FileUtils::getInstance()->isDirectoryExist(path))
+        FileUtils::getInstance()->createDirectory(path);
     
     // Create a file to save file.
-    const std::string outFileName = storagePath + TEMP_EXT;
-    if (_supportResuming && resumeDownload && _fileUtils->isFileExist(outFileName))
+    const std::string outFileName = downloadUnit.storagePath + TEMP_EXT;
+    if (_supportResuming && downloadUnit.resumeDownload && _fileUtils->isFileExist(outFileName))
     {
         localFP = fopen(FileUtils::getInstance()->getSuitableFOpen(outFileName).c_str(), "ab");
     }
@@ -175,7 +170,7 @@ void Downloader::prepareDownload(const std::string& srcUrl, const std::string& s
             this->_onError(err);
     }
 
-    *fp = localFP;
+    downloadUnit.fp = localFP;
 }
 
 void Downloader::downloadToBufferAsync(const std::string& srcUrl, unsigned char *buffer, long size, const std::string& customId/* = ""*/)
@@ -205,12 +200,8 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
     unit.srcUrl = srcUrl;
     unit.customId = customId;
     unit.fp = buffer;
-
-    ProgressData data;
-    data.customId = customId;
-    data.url = srcUrl;
-    data.downloaded = 0;
-    data.totalToDownload = 0;
+    unit.downloaded = 0;
+    unit.totalToDownload = 0;
 
     StreamData streamBuffer;
     streamBuffer.buffer = buffer;
@@ -219,7 +210,6 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
 
     _downloaderImpl->init(srcUrl);
     int res = _downloaderImpl->performDownload(&unit,
-                                               &data,
                                                std::bind(&Downloader::bufferWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                       );
@@ -240,13 +230,13 @@ void Downloader::downloadToBuffer(const std::string& srcUrl, const std::string& 
                 if (!ptr.expired())
                 {
                     std::shared_ptr<Downloader> downloader = ptr.lock();
-                    reportDownloadFinished(data.url, "", data.customId);
+                    reportDownloadFinished(unit.srcUrl, "", unit.customId);
                 }
             });
         }
         else
         {
-            reportDownloadFinished(data.url, "", data.customId);
+            reportDownloadFinished(unit.srcUrl, "", unit.customId);
         }
     }
 }
@@ -266,19 +256,16 @@ void Downloader::downloadToFP(const std::string& srcUrl, const std::string& cust
 {
     CC_ASSERT(_downloaderImpl && "Cannot instanciate more than one instance of DownloaderImpl");
 
-    FILE *fp;
-    ProgressData data;
-    prepareDownload(srcUrl, storagePath, customId, false, &fp, &data);
-
     DownloadUnit unit;
     unit.srcUrl = srcUrl;
     unit.customId = customId;
     unit.storagePath = storagePath;
-    unit.fp = fp;
+    unit.fp = nullptr;
+
+    prepareDownload(unit);
 
     _downloaderImpl->init(srcUrl);
     int res = _downloaderImpl->performDownload(&unit,
-                                               &data,
                                                std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                                std::bind(&Downloader::downloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
                                                );
@@ -288,17 +275,17 @@ void Downloader::downloadToFP(const std::string& srcUrl, const std::string& cust
         // XXX: If this is called from a different thread, will it crash?
         // XXX: Can fileUtils run on a different thread ?
         // XXX: can notifyError run on a different thread ?
-        _fileUtils->removeFile(data.path + data.name + TEMP_EXT);
+        _fileUtils->removeFile(unit.storagePath + TEMP_EXT);
         std::string msg = StringUtils::format("Unable to download file: [curl error]%s", _downloaderImpl->getStrError().c_str());
         this->notifyError(msg, customId, res);
     }
     
-    fclose(fp);
+    fclose((FILE*)unit.fp);
 
     // This can only be done after fclose
     if (res == 0)
     {
-        _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
+        _fileUtils->renameFile(unit.storagePath + TEMP_EXT, unit.storagePath);
 
         if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
         {
@@ -309,13 +296,13 @@ void Downloader::downloadToFP(const std::string& srcUrl, const std::string& cust
                 if (!ptr.expired())
                 {
                     std::shared_ptr<Downloader> downloader = ptr.lock();
-                    reportDownloadFinished(data.url, data.path + data.name, data.customId);
+                    reportDownloadFinished(unit.srcUrl, unit.storagePath, unit.customId);
                 }
             });
         }
         else
         {
-            reportDownloadFinished(data.url, data.path + data.name, data.customId);
+            reportDownloadFinished(unit.srcUrl, unit.storagePath, unit.customId);
         }
     }
 }
@@ -387,44 +374,33 @@ void Downloader::groupBatchDownload(const DownloadUnits& units)
                           (&Downloader::notifyError), this,
                           std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
-    CC_ASSERT(_progDatas.size() ==0 && "_progsData must be 0");
-    _progDatas.resize(units.size());
-
-    int i=0;
     for (const auto& entry: units)
     {
         auto&& unit = entry.second;
-        prepareDownload(unit.srcUrl, unit.storagePath, unit.customId, unit.resumeDownload, (FILE**)&unit.fp, &_progDatas[i]);
-        i++;
+        prepareDownload(unit);
     }
     _downloaderImpl->performBatchDownload(units,
-                                          _progDatas,
                                           std::bind(&Downloader::fileWriteFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4),
                                           std::bind(&Downloader::batchDownloadProgressFunc, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
                                           errorCallback
                                           );
 
     // Check unfinished files and notify errors, succeed files will be renamed from temporary file name to real name
-    for (const auto& data: _progDatas) {
-        if (data.downloaded < data.totalToDownload || data.totalToDownload == 0)
-        {
-            this->notifyError(ErrorCode::NETWORK, "Unable to download file", data.customId);
-        }
-        else
-        {
-            _fileUtils->renameFile(data.path, data.name + TEMP_EXT, data.name);
-        }
-    }
-
-    // close opened FPs
     for(const auto& entry: units)
     {
         const auto& unit = entry.second;
+
+        if (unit.downloaded < unit.totalToDownload || unit.totalToDownload == 0)
+        {
+            this->notifyError(ErrorCode::NETWORK, "Unable to download file", unit.customId);
+        }
+        else
+        {
+            _fileUtils->renameFile(unit.storagePath + TEMP_EXT, unit.storagePath);
+        }
         if (unit.fp)
             fclose((FILE*)unit.fp);
     }
-    
-    clearBatchDownloadData();
 }
 
 // callbacks
@@ -464,20 +440,20 @@ void Downloader::reportDownloadFinished(const std::string& url, const std::strin
         _onSuccess(url, path, customid);
     }
 }
-void Downloader::reportProgressFinished(double totalToDownload, double nowDownloaded, const ProgressData* data)
+void Downloader::reportProgressFinished(double totalToDownload, double nowDownloaded, const DownloadUnit* unit)
 {
     if (_onProgress != nullptr)
     {
-        _onProgress(totalToDownload, nowDownloaded, data->url, data->customId);
+        _onProgress(totalToDownload, nowDownloaded, unit->srcUrl, unit->customId);
     }
-    reportDownloadFinished(data->url, data->path + data->name, data->customId);
+    reportDownloadFinished(unit->srcUrl, unit->storagePath, unit->customId);
 }
 
-void Downloader::reportProgressInProgress(double totalToDownload, double nowDownloaded, const ProgressData* data)
+void Downloader::reportProgressInProgress(double totalToDownload, double nowDownloaded, const DownloadUnit* unit)
 {
     if (_onProgress != nullptr)
     {
-        _onProgress(totalToDownload, nowDownloaded, data->url, data->customId);
+        _onProgress(totalToDownload, nowDownloaded, unit->srcUrl, unit->customId);
     }
 }
 
@@ -486,7 +462,7 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
 {
     CC_ASSERT(userdata && "Invalid userdata");
 
-    ProgressData* ptr = (ProgressData*) userdata;
+    DownloadUnit* ptr = (DownloadUnit*) userdata;
     if (ptr->totalToDownload == 0)
     {
         ptr->totalToDownload = totalToDownload;
@@ -501,11 +477,11 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
             if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
             {
                 std::weak_ptr<Downloader> _this = shared_from_this();
-                ProgressData copyData = *ptr;
+                DownloadUnit copyUnit = *ptr;
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
                     if (!_this.expired())
                     {
-                        this->reportProgressFinished(totalToDownload, nowDownloaded, &copyData);
+                        this->reportProgressFinished(totalToDownload, nowDownloaded, &copyUnit);
                     }
                 });
             }
@@ -519,11 +495,11 @@ int Downloader::batchDownloadProgressFunc(void *userdata, double totalToDownload
             if (std::this_thread::get_id() != Director::getInstance()->getCocos2dThreadId())
             {
                 std::weak_ptr<Downloader> _this = shared_from_this();
-                ProgressData copyData = *ptr;
+                DownloadUnit copyUnit = *ptr;
                 Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
                     if (!_this.expired())
                     {
-                        reportProgressInProgress(totalToDownload, nowDownloaded, &copyData);
+                        reportProgressInProgress(totalToDownload, nowDownloaded, &copyUnit);
                     }
                 });
             }
@@ -542,7 +518,7 @@ int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, dou
 {
     CC_ASSERT(userdata && "Invalid userdata");
 
-    ProgressData* ptr = (ProgressData*)userdata;
+    DownloadUnit* ptr = (DownloadUnit*)userdata;
     if (ptr->totalToDownload == 0)
     {
         ptr->totalToDownload = totalToDownload;
@@ -551,7 +527,7 @@ int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, dou
     if (ptr->downloaded != nowDownloaded)
     {
         ptr->downloaded = nowDownloaded;
-        ProgressData data = *ptr;
+        DownloadUnit copyUnit = *ptr;
         std::weak_ptr<Downloader> _this = shared_from_this();
 
         Director::getInstance()->getScheduler()->performFunctionInCocosThread([=]{
@@ -562,7 +538,7 @@ int Downloader::downloadProgressFunc(void *userdata, double totalToDownload, dou
                 auto callback = downloader->getProgressCallback();
                 if (callback != nullptr)
                 {
-                    callback(totalToDownload, nowDownloaded, data.url, data.customId);
+                    callback(totalToDownload, nowDownloaded, copyUnit.srcUrl, copyUnit.customId);
                 }
             }
         });
