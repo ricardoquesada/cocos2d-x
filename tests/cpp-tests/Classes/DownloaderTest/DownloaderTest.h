@@ -28,20 +28,41 @@
 #include "../BaseTest.h"
 #include <string>
 
+#include "network/CCDownloader.h"
 DEFINE_TEST_SUITE(DownloaderTests);
 
 
 class DownloaderBaseTest : public TestCase
 {
 public:
+    DownloaderBaseTest();
     virtual std::string title() const override;
+
+    void errorCallback(const cocos2d::network::Downloader::Error& error);
+    void progressCallback(double totalToDownload, double nowDownloaded, const std::string& url, const std::string& customId);
+    void successCallback(const std::string& url, const std::string& path, const std::string& customId);
+
+protected:
+    std::shared_ptr<cocos2d::network::Downloader> _downloader;
+};
+
+//
+// ---
+//
+class DownloaderSyncTest : public DownloaderBaseTest
+{
+public:
+    CREATE_FUNC(DownloaderSyncTest);
+
+    virtual void onEnter() override;
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
 };
 
 class DownloaderAsyncTest : public DownloaderBaseTest
 {
 public:
     CREATE_FUNC(DownloaderAsyncTest);
-    DownloaderAsyncTest();
 
     virtual void onEnter() override;
     virtual std::string title() const override;
