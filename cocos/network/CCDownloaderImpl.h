@@ -47,7 +47,7 @@ namespace network
         DownloaderImpl();
         virtual ~DownloaderImpl();
 
-        bool init(const std::string& url);
+        bool init(const std::string& url) override;
 
         // Overrides
         int performDownload(DownloadUnit* unit,
