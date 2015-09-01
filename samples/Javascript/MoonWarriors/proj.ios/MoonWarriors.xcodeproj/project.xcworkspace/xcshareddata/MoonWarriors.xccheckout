@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>B04FBD90-D2E2-4708-8081-52A45C0D3CB1</string>
+	<key>IDESourceControlProjectName</key>
+	<string>MoonWarriors</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>3F8012DB8278C2C550CD56F92548D5049BC62F09</key>
+		<string>https://github.com/cocos2d/cocos2d-js-tests.git</string>
+		<key>852ED3691A47A99B0D19C820A500AE9772B2A44E</key>
+		<string>github.com:ricardoquesada/cocos2d-x.git</string>
+		<key>EAC89C73C1B9BEDC6FD2EA30DC08414584E95B98</key>
+		<string>git://github.com/folecr/cocos2dx-autogen-bindings.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>samples/Javascript/MoonWarriors/proj.ios/MoonWarriors.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>3F8012DB8278C2C550CD56F92548D5049BC62F09</key>
+		<string>../../../../../..samples/Javascript/Shared/</string>
+		<key>852ED3691A47A99B0D19C820A500AE9772B2A44E</key>
+		<string>../../../../../..</string>
+		<key>EAC89C73C1B9BEDC6FD2EA30DC08414584E95B98</key>
+		<string>../../../../../..scripting/javascript/bindings/generated/</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:ricardoquesada/cocos2d-x.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>852ED3691A47A99B0D19C820A500AE9772B2A44E</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>852ED3691A47A99B0D19C820A500AE9772B2A44E</string>
+			<key>IDESourceControlWCCName</key>
+			<string>cocos2d-x</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>EAC89C73C1B9BEDC6FD2EA30DC08414584E95B98</string>
+			<key>IDESourceControlWCCName</key>
+			<string>generated</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>3F8012DB8278C2C550CD56F92548D5049BC62F09</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Shared</string>
+		</dict>
+	</array>
+</dict>
+</plist>
