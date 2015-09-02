@@ -529,6 +529,13 @@ JSBool js_cocos2dx_setCallback(JSContext *cx, uint32_t argc, jsval *vp) {
         JSObject *obj = JS_THIS_OBJECT(cx, vp);
         jsval jsThis = JSVAL_VOID;
         jsval jsFunc = argv[0];
+
+        if (jsFunc.isUndefined())
+        {
+            JS_ReportError(cx, "The callback function is undefined.");
+            return JS_FALSE;
+        }
+
         if (argc == 2) {
             jsThis = argv[1];
         }
@@ -3127,6 +3134,8 @@ JSBool js_cocos2dx_CCFileUtils_getStringFromFile(JSContext *cx, uint32_t argc, j
         unsigned char* data = cobj->getFileData(arg0, "rb", &size);
         if (data && size > 0) {
             jsval jsret = c_string_to_jsval(cx, (char*)data, size);
+            CC_SAFE_DELETE_ARRAY(data);
+            
             JS_SET_RVAL(cx, vp, jsret);
             return JS_TRUE;
         }
@@ -3161,6 +3170,8 @@ JSBool js_cocos2dx_CCFileUtils_getByteArrayFromFile(JSContext *cx, uint32_t argc
                 }
                 uint8_t* bufdata = (uint8_t*)JS_GetArrayBufferViewData(array);
                 memcpy(bufdata, data, size*sizeof(uint8_t));
+                CC_SAFE_DELETE_ARRAY(data);
+                
                 JS_SET_RVAL(cx, vp, OBJECT_TO_JSVAL(array));
                 return JS_TRUE;
             }
