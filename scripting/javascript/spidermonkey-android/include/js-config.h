@@ -56,10 +56,16 @@
 /* #undef JS_INT32_TYPE */
 /* #undef JS_INT64_TYPE */
 /* #undef JS_INTPTR_TYPE */
+#ifdef __aarch64__
+#define JS_BYTES_PER_WORD 8
+#elif defined(__arm__)
 #define JS_BYTES_PER_WORD 4
+#else
+#error "not supported"
+#endif
 
 /* Some mozilla code uses JS-friend APIs that depend on JS_METHODJIT being
    correct. */
-#define JS_METHODJIT 1
+/* #undef JS_METHODJIT */
 
 #endif /* js_config_h___ */
