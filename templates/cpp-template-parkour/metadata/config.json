@@ -1,0 +1,6 @@
+{
+	"key":"parkour",
+	"name":"Parkour 2D game",
+	"language":"cpp",
+	"description_file": "description.html"
+}

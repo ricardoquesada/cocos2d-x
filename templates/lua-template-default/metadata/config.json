@@ -1,0 +1,11 @@
+{
+	"key":"lua-empty",
+	"name":"Blank Lua Game",
+	"language":"lua",
+	"description_file": "description.html",
+        "libraries": {
+                "facebook" : "SDKBOX Facebook",
+                "kochava" : "SDKBOX Kochava",
+                "vungle" : "SDKBOX Vungle"
+        }
+}

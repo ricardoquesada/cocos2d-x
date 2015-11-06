@@ -1,0 +1,11 @@
+{
+	"key":"cpp-empty",
+	"name":"Blank C++ Game",
+	"language":"cpp",
+	"description_file": "description.html",
+        "libraries": {
+                "facebook" : "SDKBOX Facebook",
+                "kochava" : "SDKBOX Kochava",
+                "vungle" : "SDKBOX Vungle"
+        }
+}

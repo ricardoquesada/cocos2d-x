@@ -1,0 +1,12 @@
+{
+	"key":"js-empty",
+	"name":"Blank JavaScript Game",
+	"language":"js",
+	"description_file": "description.html",
+        "libraries": {
+                "facebook" : "SDKBOX Facebook",
+                "kochava" : "SDKBOX Kochava",
+                "vungle" : "SDKBOX Vungle",
+                "iap" : "SDKBOX IAP"
+        }
+}
