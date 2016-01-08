@@ -23,6 +23,10 @@
  ****************************************************************************/
 
 #include "UIRichText.h"
+
+#include <queue>
+
+#include "tinyxml2/tinyxml2.h"
 #include "platform/CCFileUtils.h"
 #include "2d/CCLabel.h"
 #include "2d/CCSprite.h"
@@ -148,12 +152,168 @@ RichText* RichText::create()
     CC_SAFE_DELETE(widget);
     return nullptr;
 }
+
+RichText* RichText::createWithXML(const std::string& xml)
+{
+    RichText* widget = new (std::nothrow) RichText();
+    if (widget && widget->initWithXML(xml))
+    {
+        widget->autorelease();
+        return widget;
+    }
+    CC_SAFE_DELETE(widget);
+    return nullptr;
+}
     
 bool RichText::init()
 {
     if (Widget::init())
     {
         return true;
+    }
+    return false;
+}
+
+class MyXMLVisitor: public tinyxml2::XMLVisitor
+{
+    typedef std::unordered_map<std::string, std::string> attributes_t;
+    std::queue<attributes_t> _fontElements;
+
+    RichText* _richText;
+
+public:
+    explicit MyXMLVisitor(RichText* richText)
+    : _richText(richText)
+    {}
+    virtual ~MyXMLVisitor() {}
+
+    /// Visit a document.
+//    virtual bool VisitEnter( const tinyxml2::XMLDocument& doc )
+//    {
+//        CCLOG("VisitEnter XMLDocument: %s", doc.Value());
+//        return true;
+//    }
+    /// Visit a document.
+//    virtual bool VisitExit( const tinyxml2::XMLDocument& doc )
+//    {
+//        CCLOG("VisitExit XMLDocument: %s", doc.Value());
+//        return true;
+//    }
+
+    /// Visit an element.
+    virtual bool VisitEnter( const tinyxml2::XMLElement& element, const tinyxml2::XMLAttribute* firstAttribute )
+    {
+        auto elementName = element.Value();
+
+        if (strcmp(elementName, "font") == 0)
+        {
+            // supported attributes:
+            // size, color, align, face
+            auto size = element.Attribute("size");
+            auto color = element.Attribute("color");
+            auto align = element.Attribute("align");
+            auto face = element.Attribute("face");
+
+            attributes_t attribs;
+            if (size)
+                attribs["size"] = size;
+            if (color)
+                attribs["color"] = color;
+            if (align)
+                attribs["align"] = color;
+            if (face)
+                attribs["face"] = face;
+
+            _fontElements.push(attribs);
+        }
+        else if (strcmp(elementName, "b") == 0)
+        {
+            // no supported attributes
+            attributes_t attribs;
+            attribs["bold"] = "true";
+            _fontElements.push(attribs);
+        }
+        else if (strcmp(elementName, "i") == 0)
+        {
+            // no supported attributes
+            attributes_t attribs;
+            attribs["italics"] = "true";
+            _fontElements.push(attribs);
+        }
+
+        else if (strcmp(elementName, "img") == 0)
+        {
+            // supported attributes:
+            // src, height, width
+            auto src = element.Attribute("src");
+            auto height = element.Attribute("height");
+            auto width = element.Attribute("width");
+
+        }
+        else if (strcmp(elementName, "a") ==  0)
+        {
+            // supported attributes:
+            // href
+            auto href = element.Attribute("href");
+        }
+        else if (strcmp(elementName, "br") == 0)
+        {
+            // no supported attributes
+        }
+
+        CCLOG("VisitEnter XMLElement: %s, %s", element.Value(), firstAttribute? firstAttribute->Value() : "");
+        return true;
+    }
+    /// Visit an element.
+    virtual bool VisitExit( const tinyxml2::XMLElement& element )
+    {
+        CCLOG("VisitExit XMLElement: %s", element.Value());
+        return true;
+    }
+
+    /// Visit a declaration.
+    virtual bool Visit( const tinyxml2::XMLDeclaration& declaration )
+    {
+        CCLOG("Visit XMLDeclaration: %s", declaration.Value());
+        return true;
+    }
+    /// Visit a text node.
+    virtual bool Visit( const tinyxml2::XMLText& text)
+    {
+        CCLOG("Visit XMLText: %s", text.Value());
+        return true;
+    }
+    /// Visit a comment node.
+    virtual bool Visit( const tinyxml2::XMLComment& comment)
+    {
+        CCLOG("Visit XMLComment: %s", comment.Value());
+        return true;
+    }
+    /// Visit an unknown node.
+    virtual bool Visit( const tinyxml2::XMLUnknown& unknown)
+    {
+        CCLOG("Visit XMLUnknown: %s", unknown.Value());
+        return true;
+    }
+};
+
+bool RichText::initWithXML(const std::string& origxml)
+{
+    if (Widget::init())
+    {
+        tinyxml2::XMLDocument document;
+
+        // solves to issues:
+        //  - creates defaults values
+        //  - makes sure that the xml well formed and starts with an element
+        auto xml = "<font face=\"verdana\" size=\"12\" color=\"black\" align=\"left\">" + origxml + "</font>";
+
+        if (document.Parse(xml.c_str(), xml.length()) == tinyxml2::XML_SUCCESS)
+        {
+            MyXMLVisitor visitor(this);
+            document.Accept(&visitor);
+            return true;
+        }
     }
     return false;
 }

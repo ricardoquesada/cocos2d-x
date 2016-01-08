@@ -307,7 +307,14 @@ public:
      * @return RichText instance.
      */
     static RichText* create();
-    
+
+    /**
+     * @brief Create a RichText from an XML
+     *
+     * @return RichText instance.
+     */
+    static RichText* createWithXML(const std::string& xml);
+
     /**
      * @brief Insert a RichElement at a given index.
      *
@@ -356,7 +363,9 @@ public:
     
 CC_CONSTRUCTOR_ACCESS:
     virtual bool init() override;
-    
+
+    bool initWithXML(const std::string& xml);
+
 protected:
     virtual void adaptRenderers() override;
 

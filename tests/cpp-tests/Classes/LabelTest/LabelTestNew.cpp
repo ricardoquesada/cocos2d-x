@@ -35,6 +35,8 @@ enum {
 
 NewLabelTests::NewLabelTests()
 {
+    ADD_TEST_CASE(LabelRichText);
+
     ADD_TEST_CASE(LabelFNTGlyphDesigner);
     ADD_TEST_CASE(LabelFNTColor);
     ADD_TEST_CASE(LabelFNTOpacity);
@@ -2781,3 +2783,43 @@ std::string LabelIssue13846Test::subtitle() const
 {
     return "Test hide label's letter,the label should display ‘12 45’ as expected";
 }
+
+//
+//
+
+LabelRichText::LabelRichText()
+{
+    auto center = VisibleRect::center();
+
+    // label 1
+    auto richText = RichText::create();
+    richText->ignoreContentAdaptWithSize(false);
+    richText->setContentSize(Size(100, 100));
+
+    auto elem = RichElementText::create(2, Color3B::YELLOW, 255, "And this is yellow. ", "Helvetica", 10);
+    richText->pushBackElement(elem);
+    richText->setPosition(center);
+    addChild(richText);
+
+
+    // label 2
+    auto richText2 = RichText::createWithXML("no element begin <font size=\"2\" color=\"blue\"> \
+                                                This is some text! <b>and this is bold <i>and this is bold and italics</i></b>\
+                                             </font> no element end");
+    richText2->ignoreContentAdaptWithSize(false);
+    richText2->setContentSize(Size(100, 100));
+
+    addChild(richText2);
+    richText2->setPosition(center - Vec2(0,40));
+}
+
+std::string LabelRichText::title() const
+{
+    return "RichText";
+}
+
+std::string LabelRichText::subtitle() const
+{
+    return "Testing RichText";
+}
+
