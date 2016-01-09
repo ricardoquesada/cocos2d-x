@@ -24,7 +24,7 @@
 
 #include "UIRichText.h"
 
-#include <queue>
+#include <vector>
 
 #include "tinyxml2/tinyxml2.h"
 #include "platform/CCFileUtils.h"
@@ -176,29 +176,70 @@ bool RichText::init()
 
 class MyXMLVisitor: public tinyxml2::XMLVisitor
 {
-    typedef std::unordered_map<std::string, std::string> attributes_t;
-    std::queue<attributes_t> _fontElements;
+    struct Attributes
+    {
+        std::string face;
+        float fontSize;
+        Color3B color;
+        bool hasColor;
+        int bold;
+        int italics;
+
+        void setColor(const Color3B& acolor)
+        {
+            color = acolor;
+            hasColor = true;
+        }
+        Attributes()
+        : bold(-1)
+        , italics(-1)
+        , hasColor(false)
+        , fontSize(-1)
+        , face()
+        {
+        }
+    };
+
+    std::vector<Attributes> _fontElements;
 
     RichText* _richText;
+
+    Color3B getColor() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->hasColor)
+                return i->color;
+        }
+        return Color3B::WHITE;
+    }
+
+    float getFontSize() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->fontSize != -1)
+                return i->fontSize;
+        }
+        return 12;
+    }
+
+    std::string getFace() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->face.size() != 0)
+                return i->face;
+        }
+        return "fonts/Marker Felt.ttf";
+    }
 
 public:
     explicit MyXMLVisitor(RichText* richText)
     : _richText(richText)
+    , _fontElements(20)
     {}
     virtual ~MyXMLVisitor() {}
-
-    /// Visit a document.
-//    virtual bool VisitEnter( const tinyxml2::XMLDocument& doc )
-//    {
-//        CCLOG("VisitEnter XMLDocument: %s", doc.Value());
-//        return true;
-//    }
-    /// Visit a document.
-//    virtual bool VisitExit( const tinyxml2::XMLDocument& doc )
-//    {
-//        CCLOG("VisitExit XMLDocument: %s", doc.Value());
-//        return true;
-//    }
 
     /// Visit an element.
     virtual bool VisitEnter( const tinyxml2::XMLElement& element, const tinyxml2::XMLAttribute* firstAttribute )
@@ -211,34 +252,40 @@ public:
             // size, color, align, face
             auto size = element.Attribute("size");
             auto color = element.Attribute("color");
-            auto align = element.Attribute("align");
             auto face = element.Attribute("face");
 
-            attributes_t attribs;
+            Attributes attribs;
             if (size)
-                attribs["size"] = size;
+                attribs.fontSize = atof(size);
             if (color)
-                attribs["color"] = color;
-            if (align)
-                attribs["align"] = color;
+            {
+                if (strlen(color) == 7)
+                {
+                    int r,g,b;
+                    sscanf(color, "%*c%2x%2x%2x", &r, &g, &b);
+                    attribs.setColor(Color3B(r,g,b));
+                }
+                else
+                    attribs.setColor(Color3B::WHITE);
+            }
             if (face)
-                attribs["face"] = face;
+                attribs.face = face;
 
-            _fontElements.push(attribs);
+            _fontElements.push_back(attribs);
         }
         else if (strcmp(elementName, "b") == 0)
         {
             // no supported attributes
-            attributes_t attribs;
-            attribs["bold"] = "true";
-            _fontElements.push(attribs);
+            Attributes attribs;
+            attribs.bold = 1;
+            _fontElements.push_back(attribs);
         }
         else if (strcmp(elementName, "i") == 0)
         {
             // no supported attributes
-            attributes_t attribs;
-            attribs["italics"] = "true";
-            _fontElements.push(attribs);
+            Attributes attribs;
+            attribs.italics = 1;
+            _fontElements.push_back(attribs);
         }
 
         else if (strcmp(elementName, "img") == 0)
@@ -258,7 +305,9 @@ public:
         }
         else if (strcmp(elementName, "br") == 0)
         {
-            // no supported attributes
+            auto color = getColor();
+            auto elementNL = RichElementNewLine::create(0, color, 255);
+            _richText->pushBackElement(elementNL);
         }
 
         CCLOG("VisitEnter XMLElement: %s, %s", element.Value(), firstAttribute? firstAttribute->Value() : "");
@@ -267,32 +316,25 @@ public:
     /// Visit an element.
     virtual bool VisitExit( const tinyxml2::XMLElement& element )
     {
-        CCLOG("VisitExit XMLElement: %s", element.Value());
+        auto elementName = element.Value();
+        if ((strcmp(elementName, "font") == 0) ||
+            (strcmp(elementName, "i") == 0) ||
+            (strcmp(elementName, "b") == 0))
+        {
+            _fontElements.pop_back();
+        }
         return true;
     }
 
-    /// Visit a declaration.
-    virtual bool Visit( const tinyxml2::XMLDeclaration& declaration )
-    {
-        CCLOG("Visit XMLDeclaration: %s", declaration.Value());
-        return true;
-    }
     /// Visit a text node.
     virtual bool Visit( const tinyxml2::XMLText& text)
     {
-        CCLOG("Visit XMLText: %s", text.Value());
-        return true;
-    }
-    /// Visit a comment node.
-    virtual bool Visit( const tinyxml2::XMLComment& comment)
-    {
-        CCLOG("Visit XMLComment: %s", comment.Value());
-        return true;
-    }
-    /// Visit an unknown node.
-    virtual bool Visit( const tinyxml2::XMLUnknown& unknown)
-    {
-        CCLOG("Visit XMLUnknown: %s", unknown.Value());
+        auto color = getColor();
+        auto face = getFace();
+        auto fontSize = getFontSize();
+
+        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize);
+        _richText->pushBackElement(element);
         return true;
     }
 };
@@ -366,18 +408,18 @@ void RichText::formatText()
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
                         if (FileUtils::getInstance()->isFileExist(elmtText->_fontName))
                         {
-                            elementRenderer = Label::createWithTTF(elmtText->_text.c_str(), elmtText->_fontName, elmtText->_fontSize);
+                            elementRenderer = Label::createWithTTF(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
                         }
                         else
                         {
-                            elementRenderer = Label::createWithSystemFont(elmtText->_text.c_str(), elmtText->_fontName, elmtText->_fontSize);
+                            elementRenderer = Label::createWithSystemFont(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
                         }
                         break;
                     }
                     case RichElement::Type::IMAGE:
                     {
                         RichElementImage* elmtImage = static_cast<RichElementImage*>(element);
-                        elementRenderer = Sprite::create(elmtImage->_filePath.c_str());
+                        elementRenderer = Sprite::create(elmtImage->_filePath);
                         break;
                     }
                     case RichElement::Type::CUSTOM:
@@ -394,9 +436,13 @@ void RichText::formatText()
                     default:
                         break;
                 }
-                elementRenderer->setColor(element->_color);
-                elementRenderer->setOpacity(element->_opacity);
-                pushToContainer(elementRenderer);
+
+                if (elementRenderer)
+                {
+                    elementRenderer->setColor(element->_color);
+                    elementRenderer->setOpacity(element->_opacity);
+                    pushToContainer(elementRenderer);
+                }
             }
         }
         else
@@ -404,20 +450,19 @@ void RichText::formatText()
             addNewLine();
             for (ssize_t i=0; i<_richElements.size(); i++)
             {
-                
                 RichElement* element = static_cast<RichElement*>(_richElements.at(i));
                 switch (element->_type)
                 {
                     case RichElement::Type::TEXT:
                     {
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
-                        handleTextRenderer(elmtText->_text.c_str(), elmtText->_fontName.c_str(), elmtText->_fontSize, elmtText->_color, elmtText->_opacity);
+                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity);
                         break;
                     }
                     case RichElement::Type::IMAGE:
                     {
                         RichElementImage* elmtImage = static_cast<RichElementImage*>(element);
-                        handleImageRenderer(elmtImage->_filePath.c_str(), elmtImage->_color, elmtImage->_opacity);
+                        handleImageRenderer(elmtImage->_filePath, elmtImage->_color, elmtImage->_opacity);
                         break;
                     }
                     case RichElement::Type::CUSTOM:
@@ -440,7 +485,7 @@ void RichText::formatText()
         _formatTextDirty = false;
     }
 }
-    
+
 void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity)
 {
     auto fileExist = FileUtils::getInstance()->isFileExist(fontName);
@@ -523,7 +568,7 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
         }
 
         addNewLine();
-        handleTextRenderer(cutWords.c_str(), fontName, fontSize, color, opacity);
+        handleTextRenderer(cutWords, fontName, fontSize, color, opacity);
     }
     else
     {
@@ -566,22 +611,26 @@ void RichText::formarRenderers()
     if (_ignoreSize)
     {
         float newContentSizeWidth = 0.0f;
-        float newContentSizeHeight = 0.0f;
-        
-        Vector<Node*>* row = (_elementRenders[0]);
-        float nextPosX = 0.0f;
-        for (ssize_t j=0; j<row->size(); j++)
+        float nextPosY = 0.0f;
+        for (auto& element: _elementRenders)
         {
-            Node* l = row->at(j);
-            l->setAnchorPoint(Vec2::ZERO);
-            l->setPosition(nextPosX, 0.0f);
-            this->addProtectedChild(l, 1);
-            Size iSize = l->getContentSize();
-            newContentSizeWidth += iSize.width;
-            newContentSizeHeight = MAX(newContentSizeHeight, iSize.height);
-            nextPosX += iSize.width;
+            Vector<Node*>* row = element;
+            float nextPosX = 0.0f;
+            float maxY = 0.0f;
+            for (ssize_t j=0; j<row->size(); j++)
+            {
+                Node* l = row->at(j);
+                l->setAnchorPoint(Vec2::ZERO);
+                l->setPosition(nextPosX, nextPosY);
+                this->addProtectedChild(l, 1);
+                Size iSize = l->getContentSize();
+                newContentSizeWidth += iSize.width;
+                nextPosX += iSize.width;
+                maxY = MAX(maxY, iSize.height);
+            }
+            nextPosY -= maxY;
         }
-        this->setContentSize(Size(newContentSizeWidth, newContentSizeHeight));
+        this->setContentSize(Size(newContentSizeWidth, -nextPosY));
     }
     else
     {
