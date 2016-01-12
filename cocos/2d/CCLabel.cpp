@@ -956,6 +956,10 @@ bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
         _currLabelEffect = LabelEffect::NORMAL;
         updateShaderProgram();
     }
+
+    if (_fontConfig.italics)
+        this->setRotationSkewX(12);
+
     return true;
 }
 
@@ -1094,6 +1098,18 @@ void Label::enableShadow(const Color4B& shadowColor /* = Color4B::BLACK */,const
             setGLProgramState(GLProgramState::getOrCreateWithGLProgramName(GLProgram::SHADER_NAME_POSITION_TEXTURE_COLOR_NO_MVP));
         }
     }
+}
+
+void Label::enableItalics()
+{
+    setRotationSkewX(12);
+}
+
+void Label::enableBold()
+{
+    // bold is implemented with outline
+    _boldEnabled = true;
+    enableOutline(_textColor);
 }
 
 void Label::disableEffect()

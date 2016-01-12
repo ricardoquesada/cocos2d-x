@@ -55,14 +55,19 @@ typedef struct _ttfConfig
     bool distanceFieldEnabled;
     int outlineSize;
 
+    bool italics;
+    bool bold;
+
     _ttfConfig(const std::string& filePath = "",float size = 12, const GlyphCollection& glyphCollection = GlyphCollection::DYNAMIC,
-        const char *customGlyphCollection = nullptr, bool useDistanceField = false, int outline = 0)
+        const char *customGlyphCollection = nullptr, bool useDistanceField = false, int outline = 0, bool useItalics = false, bool useBold = false)
         : fontFilePath(filePath)
         , fontSize(size)
         , glyphs(glyphCollection)
         , customGlyphs(customGlyphCollection)
         , distanceFieldEnabled(useDistanceField)
         , outlineSize(outline)
+        , italics(useItalics)
+        , bold(useBold)
     {
         if(outline > 0)
         {
@@ -335,6 +340,16 @@ public:
     * @warning Limiting use to only when the Label created with true type font.
     */
     virtual void enableGlow(const Color4B& glowColor);
+
+    /**
+     * Enable italics rendering
+     */
+    void enableItalics();
+
+    /**
+     * Enable bold rendering
+     */
+    void enableBold();
 
     /**
      * Disable all effect to Label.
@@ -735,6 +750,8 @@ protected:
     float _bmfontScale;
     Overflow _overflow;
     float _originalFontSize;
+
+    bool _boldEnabled;
 private:
     CC_DISALLOW_COPY_AND_ASSIGN(Label);
 };

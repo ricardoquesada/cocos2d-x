@@ -47,10 +47,10 @@ bool RichElement::init(int tag, const Color3B &color, GLubyte opacity)
 }
     
     
-RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize)
+RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold)
 {
     RichElementText* element = new (std::nothrow) RichElementText();
-    if (element && element->init(tag, color, opacity, text, fontName, fontSize))
+    if (element && element->init(tag, color, opacity, text, fontName, fontSize, italics, bold))
     {
         element->autorelease();
         return element;
@@ -59,13 +59,15 @@ RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte 
     return nullptr;
 }
     
-bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize)
+bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold)
 {
     if (RichElement::init(tag, color, opacity))
     {
         _text = text;
         _fontName = fontName;
         _fontSize = fontSize;
+        _italics = italics;
+        _bold = bold;
         return true;
     }
     return false;
@@ -234,6 +236,26 @@ class MyXMLVisitor: public tinyxml2::XMLVisitor
         return "fonts/Marker Felt.ttf";
     }
 
+    bool getBold() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->bold == 1)
+                return true;
+        }
+        return false;
+    }
+
+    bool getItalics() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->italics == 1)
+                return true;
+        }
+        return false;
+    }
+
 public:
     explicit MyXMLVisitor(RichText* richText)
     : _richText(richText)
@@ -309,8 +331,6 @@ public:
             auto elementNL = RichElementNewLine::create(0, color, 255);
             _richText->pushBackElement(elementNL);
         }
-
-        CCLOG("VisitEnter XMLElement: %s, %s", element.Value(), firstAttribute? firstAttribute->Value() : "");
         return true;
     }
     /// Visit an element.
@@ -327,13 +347,15 @@ public:
     }
 
     /// Visit a text node.
-    virtual bool Visit( const tinyxml2::XMLText& text)
+    virtual bool Visit(const tinyxml2::XMLText& text)
     {
         auto color = getColor();
         auto face = getFace();
         auto fontSize = getFontSize();
+        auto italics = getItalics();
+        auto bold = getBold();
 
-        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize);
+        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize, italics, bold);
         _richText->pushBackElement(element);
         return true;
     }
@@ -348,7 +370,7 @@ bool RichText::initWithXML(const std::string& origxml)
         // solves to issues:
         //  - creates defaults values
         //  - makes sure that the xml well formed and starts with an element
-        auto xml = "<font face=\"verdana\" size=\"12\" color=\"black\" align=\"left\">" + origxml + "</font>";
+        auto xml = "<font face=\"verdana\" size=\"12\" color=\"#ffffff\" align=\"left\">" + origxml + "</font>";
 
         if (document.Parse(xml.c_str(), xml.length()) == tinyxml2::XML_SUCCESS)
         {
@@ -406,14 +428,20 @@ void RichText::formatText()
                     case RichElement::Type::TEXT:
                     {
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
+                        Label* label;
                         if (FileUtils::getInstance()->isFileExist(elmtText->_fontName))
                         {
-                            elementRenderer = Label::createWithTTF(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
+                             label = Label::createWithTTF(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
                         }
                         else
                         {
-                            elementRenderer = Label::createWithSystemFont(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
+                            label = Label::createWithSystemFont(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
                         }
+                        if (elmtText->_italics)
+                            label->enableItalics();
+                        if (elmtText->_bold)
+                            label->enableBold();
+                        elementRenderer = label;
                         break;
                     }
                     case RichElement::Type::IMAGE:
@@ -456,7 +484,7 @@ void RichText::formatText()
                     case RichElement::Type::TEXT:
                     {
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
-                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity);
+                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity, elmtText->_italics, elmtText->_bold);
                         break;
                     }
                     case RichElement::Type::IMAGE:
@@ -486,7 +514,7 @@ void RichText::formatText()
     }
 }
 
-void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity)
+void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity, bool italics, bool bold)
 {
     auto fileExist = FileUtils::getInstance()->isFileExist(fontName);
     Label* textRenderer = nullptr;
@@ -498,6 +526,11 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
     {
         textRenderer = Label::createWithSystemFont(text, fontName, fontSize);
     }
+    if (italics)
+        textRenderer->enableItalics();
+    if (bold)
+        textRenderer->enableBold();
+
     float textRendererWidth = textRenderer->getContentSize().width;
     _leftSpaceWidth -= textRendererWidth;
     if (_leftSpaceWidth < 0.0f)
@@ -564,11 +597,16 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
                 leftRenderer->setColor(color);
                 leftRenderer->setOpacity(opacity);
                 pushToContainer(leftRenderer);
+
+                if (italics)
+                    leftRenderer->enableItalics();
+                if (bold)
+                    leftRenderer->enableBold();
             }
         }
 
         addNewLine();
-        handleTextRenderer(cutWords, fontName, fontSize, color, opacity);
+        handleTextRenderer(cutWords, fontName, fontSize, color, opacity, italics, bold);
     }
     else
     {

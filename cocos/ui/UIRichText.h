@@ -98,7 +98,8 @@ public:
      * @js ctor
      * @lua new
      */
-    RichElementText(){_type = Type::TEXT;};
+    RichElementText()
+    {_type = Type::TEXT;};
 
     
     /**
@@ -117,9 +118,11 @@ public:
      * @param text Content string.
      * @param fontName Content font name.
      * @param fontSize Content font size.
+     * @param italics whether or not the font will be in italics.
+     * @param bold whether or not the font will be bold.
      * @return True if initialize success, false otherwise.
      */
-    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize);
+    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold);
 
     
     /**
@@ -131,13 +134,19 @@ public:
      * @param text Content string.
      * @param fontName Content font name.
      * @param fontSize Content font size.
+     * @param italics whether or not the font will be in italics. `false` by default
+     * @param bold whether or not the font will be bold. `false` by default
      * @return RichElementText instance.
      */
-    static RichElementText* create(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize);
+    static RichElementText* create(int tag, const Color3B& color, GLubyte opacity, const std::string& text,
+                                   const std::string& fontName, float fontSize, bool italics=false, bool bold=false);
 protected:
     std::string _text;
     std::string _fontName;
     float _fontSize;
+    bool _italics;
+    bool _bold;
+
     friend class RichText;
     
 };
@@ -371,7 +380,7 @@ protected:
 
     virtual void initRenderer() override;
     void pushToContainer(Node* renderer);
-    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity);
+    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, bool italics, bool bold);
     void handleImageRenderer(const std::string& fileParh, const Color3B& color, GLubyte opacity);
     void handleCustomRenderer(Node* renderer);
     void formarRenderers();

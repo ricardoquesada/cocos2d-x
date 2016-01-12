@@ -2792,25 +2792,27 @@ LabelRichText::LabelRichText()
     auto center = VisibleRect::center();
 
     // label 2
-    auto richText2 = RichText::createWithXML("hello world!<br/>hello moon!");
-//    auto richText2 = RichText::createWithXML("this is the default size, color and face<br/>"
-//                                             "<font size=\"20\">"
-//                                                  "size 20<br/>"
-//                                                  "<font color=\"#0000ff\">"
-//                                                      "blue and 20<br/>"
-//                                                      "<font color=\"#ff0000\">red and 20<br/></font>"
-//                                                  "</font>"
-//                                                  "<font size=\"8\">blue and 8<br/></font>"
-//                                             "</font>"
-//                                             "default again"
-//                                             );
+//    auto richText2 = RichText::createWithXML("hello world<br/>");
+
+    //    auto richText2 = RichText::createWithXML("hello world!<br/>hello moon!");
+    auto richText2 = RichText::createWithXML("this is the default size, color and face<br/>"
+                                             "<font size=\"20\">"
+                                                  "size 20<br/>"
+                                                  "<font color=\"#0000ff\">"
+                                                      "<i>blue italics</i>collision<i>italics again</i> and <i><b>italics and bold</b></i><br/>"
+                                                      "<font color=\"#ff0000\">red and 20<br/></font>"
+                                                  "</font>"
+                                                  "<font size=\"8\">blue and 8<br/></font>"
+                                             "</font>"
+                                             "default again"
+                                             );
     if (richText2)
     {
-//        richText2->ignoreContentAdaptWithSize(false);
-//        richText2->setContentSize(Size(400, 400));
+        richText2->ignoreContentAdaptWithSize(false);
+        richText2->setContentSize(Size(400, 400));
 
         addChild(richText2);
-        richText2->setPosition(center);
+        richText2->setPosition(Vec2(200,0));
     }
 }
 
