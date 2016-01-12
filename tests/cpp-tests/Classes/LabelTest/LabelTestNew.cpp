@@ -35,6 +35,7 @@ enum {
 
 NewLabelTests::NewLabelTests()
 {
+    ADD_TEST_CASE(LabelItalics);
     ADD_TEST_CASE(LabelRichText);
 
     ADD_TEST_CASE(LabelFNTGlyphDesigner);
@@ -2826,3 +2827,42 @@ std::string LabelRichText::subtitle() const
     return "Testing RichText";
 }
 
+LabelItalics::LabelItalics()
+{
+    auto s = Director::getInstance()->getWinSize();
+
+    // LabelBMFont
+    auto label1 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello non-italics", TextHAlignment::CENTER, s.width);
+    addChild(label1, 0, kTagBitmapAtlas1);
+    label1->setPosition(Vec2(s.width/2, s.height*4/6));
+    // you can enable italics by calling this method
+
+    auto label1a = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello italics", TextHAlignment::CENTER, s.width);
+    addChild(label1a, 0, kTagBitmapAtlas1);
+    label1a->setPosition(Vec2(s.width/2, s.height*3/6));
+    // you can enable italics by calling this method
+    label1a->enableItalics();
+
+
+    // LabelTTF
+    TTFConfig ttfConfig("fonts/arial.ttf",24);
+    auto label2 = Label::createWithTTF(ttfConfig, "hello non-italics", TextHAlignment::CENTER,s.width);
+    addChild(label2, 0, kTagBitmapAtlas2);
+    label2->setPosition(Vec2(s.width/2, s.height*2/6));
+
+    // or by setting the italics parameter on TTFConfig
+    ttfConfig.italics = true;
+    auto label2a = Label::createWithTTF(ttfConfig, "hello italics", TextHAlignment::CENTER,s.width);
+    addChild(label2a, 0, kTagBitmapAtlas2);
+    label2a->setPosition(Vec2(s.width/2, s.height*1/6));
+}
+
+std::string LabelItalics::title() const
+{
+    return "Testing Italics";
+}
+
+std::string LabelItalics::subtitle() const
+{
+    return "italics on TTF and BMfont";
+}

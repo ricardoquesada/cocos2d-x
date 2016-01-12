@@ -777,4 +777,14 @@ public:
     virtual std::string subtitle() const override;
 };
 
+class LabelItalics : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelItalics);
+
+    LabelItalics();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+};
+
 #endif
