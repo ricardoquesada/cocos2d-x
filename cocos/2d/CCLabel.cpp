@@ -1116,7 +1116,7 @@ void Label::enableBold()
     if (!_boldEnabled)
     {
         // bold is implemented with outline
-        enableShadow(Color4B::WHITE, Size(1,0), 0);
+        enableShadow(Color4B::WHITE, Size(0.9,0), 0);
         // add one to kerning
         setAdditionalKerning(_additionalKerning+1);
         _boldEnabled = true;
@@ -1710,18 +1710,21 @@ float Label::getLineSpacing() const
 
 void Label::setAdditionalKerning(float space)
 {
-    CCASSERT(_currentLabelType != LabelType::STRING_TEXTURE, "Not supported system font!");
-    if (_additionalKerning != space)
+
+    if (_currentLabelType != LabelType::STRING_TEXTURE)
     {
-        _additionalKerning = space;
-        _contentDirty = true;
+        if (_additionalKerning != space)
+        {
+            _additionalKerning = space;
+            _contentDirty = true;
+        }
     }
+    else
+        CCLOG("Label::setAdditionalKerning not supported on LabelType::STRING_TEXTURE");
 }
 
 float Label::getAdditionalKerning() const
 {
-    CCASSERT(_currentLabelType != LabelType::STRING_TEXTURE, "Not supported system font!");
-
     return _additionalKerning;
 }
 
