@@ -24,6 +24,9 @@
  ****************************************************************************/
 
 #include "2d/CCLabel.h"
+
+#include <algorithm>
+
 #include "2d/CCFont.h"
 #include "2d/CCFontAtlasCache.h"
 #include "2d/CCFontAtlas.h"
@@ -381,6 +384,7 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
 , _fontAtlas(nullptr)
 , _reusedLetter(nullptr)
 , _horizontalKernings(nullptr)
+, _boldEnabled(false)
 {
     setAnchorPoint(Vec2::ANCHOR_MIDDLE);
     reset();
@@ -958,7 +962,9 @@ bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
     }
 
     if (_fontConfig.italics)
-        this->setRotationSkewX(12);
+        this->enableItalics();
+    if (_fontConfig.bold)
+        this->enableBold();
 
     return true;
 }
@@ -1107,60 +1113,73 @@ void Label::enableItalics()
 
 void Label::enableBold()
 {
-    // bold is implemented with outline
-    _boldEnabled = true;
-    enableOutline(_textColor);
+    if (!_boldEnabled)
+    {
+        // bold is implemented with outline
+        enableShadow(Color4B::WHITE, Size(1,0), 0);
+        // add one to kerning
+        setAdditionalKerning(_additionalKerning+1);
+        _boldEnabled = true;
+    }
 }
 
 void Label::disableEffect()
 {
-    disableEffect(LabelEffect::GLOW);
-    disableEffect(LabelEffect::OUTLINE);
-    disableEffect(LabelEffect::SHADOW);
+    disableEffect(LabelEffect::ALL);
 }
 
 void Label::disableEffect(LabelEffect effect)
 {
     switch (effect)
     {
-    case cocos2d::LabelEffect::NORMAL:
-        break;
-    case cocos2d::LabelEffect::OUTLINE:
-        if (_currLabelEffect == LabelEffect::OUTLINE)
-        {
-            if (_currentLabelType == LabelType::TTF)
+        case cocos2d::LabelEffect::NORMAL:
+            break;
+        case cocos2d::LabelEffect::OUTLINE:
+            if (_currLabelEffect == LabelEffect::OUTLINE)
             {
-                _fontConfig.outlineSize = 0;
-                setTTFConfig(_fontConfig);
+                if (_currentLabelType == LabelType::TTF)
+                {
+                    _fontConfig.outlineSize = 0;
+                    setTTFConfig(_fontConfig);
+                }
+                _currLabelEffect = LabelEffect::NORMAL;
+                _contentDirty = true;
             }
-            
-            _currLabelEffect = LabelEffect::NORMAL;
-            _contentDirty = true;
-        }
-        break;
-    case cocos2d::LabelEffect::SHADOW:
-        if (_shadowEnabled)
-        {
-            _shadowEnabled = false;
-            CC_SAFE_RELEASE_NULL(_shadowNode);
-        }
-        break;
-    case cocos2d::LabelEffect::GLOW:
-        if (_currLabelEffect == LabelEffect::GLOW)
-        {
-            _currLabelEffect = LabelEffect::NORMAL;
-            updateShaderProgram();
-        }
-        break;
-    case LabelEffect::ALL:
+            break;
+        case cocos2d::LabelEffect::SHADOW:
+            if (_shadowEnabled)
+            {
+                _shadowEnabled = false;
+                CC_SAFE_RELEASE_NULL(_shadowNode);
+            }
+            break;
+        case cocos2d::LabelEffect::GLOW:
+            if (_currLabelEffect == LabelEffect::GLOW)
+            {
+                _currLabelEffect = LabelEffect::NORMAL;
+                updateShaderProgram();
+            }
+            break;
+        case cocos2d::LabelEffect::ITALICS:
+            setRotationSkewX(0);
+            break;
+        case cocos2d::LabelEffect::BOLD:
+            _boldEnabled = false;
+            _additionalKerning -= 1;
+            disableEffect(LabelEffect::SHADOW);
+            break;
+        case LabelEffect::ALL:
         {
             disableEffect(LabelEffect::SHADOW);
             disableEffect(LabelEffect::GLOW);
             disableEffect(LabelEffect::OUTLINE);
+            disableEffect(LabelEffect::ITALICS);
+            disableEffect(LabelEffect::BOLD);
+            disableEffect(LabelEffect::UNDERLINE);
         }
-        break;
-    default:
-        break;
+            break;
+        default:
+            break;
     }
 }
 
@@ -1343,16 +1362,16 @@ float Label::getBMFontSize()const
     return _bmFontSize;
 }
 
-void Label::onDrawShadow(GLProgram* glProgram)
+void Label::onDrawShadow(GLProgram* glProgram, const Color4F& shadowColor)
 {
     if (_currentLabelType == LabelType::TTF)
     {
         glProgram->setUniformLocationWith4f(_uniformTextColor,
-            _shadowColor4F.r, _shadowColor4F.g, _shadowColor4F.b, _shadowColor4F.a);
+            shadowColor.r, shadowColor.g, shadowColor.b, shadowColor.a);
         if (_currLabelEffect == LabelEffect::OUTLINE || _currLabelEffect == LabelEffect::GLOW)
         {
             glProgram->setUniformLocationWith4f(_uniformEffectColor,
-                _shadowColor4F.r, _shadowColor4F.g, _shadowColor4F.b, _shadowColor4F.a);
+                shadowColor.r, shadowColor.g, shadowColor.b, shadowColor.a);
         }
 
         glProgram->setUniformsForBuiltins(_shadowTransform);
@@ -1369,8 +1388,8 @@ void Label::onDrawShadow(GLProgram* glProgram)
     {
         Color3B oldColor = _realColor;
         GLubyte oldOPacity = _displayedOpacity;
-        _displayedOpacity = _shadowOpacity;
-        setColor(_shadowColor3B);
+        _displayedOpacity = shadowColor.a * 255;
+        setColor(Color3B(shadowColor));
 
         glProgram->setUniformsForBuiltins(_shadowTransform);
         for (auto&& it : _letters)
@@ -1395,7 +1414,10 @@ void Label::onDraw(const Mat4& transform, bool transformUpdated)
 
     if (_shadowEnabled)
     {
-        onDrawShadow(glprogram);
+        if (_boldEnabled)
+            onDrawShadow(glprogram, _textColorF);
+        else
+            onDrawShadow(glprogram, _shadowColor4F);
     }
 
     glprogram->setUniformsForBuiltins(transform);

@@ -36,6 +36,7 @@ enum {
 NewLabelTests::NewLabelTests()
 {
     ADD_TEST_CASE(LabelItalics);
+    ADD_TEST_CASE(LabelBold);
     ADD_TEST_CASE(LabelRichText);
 
     ADD_TEST_CASE(LabelFNTGlyphDesigner);
@@ -2837,11 +2838,11 @@ LabelItalics::LabelItalics()
     label1->setPosition(Vec2(s.width/2, s.height*4/6));
     // you can enable italics by calling this method
 
-    auto label1a = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello italics", TextHAlignment::CENTER, s.width);
-    addChild(label1a, 0, kTagBitmapAtlas1);
-    label1a->setPosition(Vec2(s.width/2, s.height*3/6));
+    _label1a = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello italics", TextHAlignment::CENTER, s.width);
+    addChild(_label1a, 0, kTagBitmapAtlas1);
+    _label1a->setPosition(Vec2(s.width/2, s.height*3/6));
     // you can enable italics by calling this method
-    label1a->enableItalics();
+    _label1a->enableItalics();
 
 
     // LabelTTF
@@ -2852,9 +2853,19 @@ LabelItalics::LabelItalics()
 
     // or by setting the italics parameter on TTFConfig
     ttfConfig.italics = true;
-    auto label2a = Label::createWithTTF(ttfConfig, "hello italics", TextHAlignment::CENTER,s.width);
-    addChild(label2a, 0, kTagBitmapAtlas2);
-    label2a->setPosition(Vec2(s.width/2, s.height*1/6));
+    _label2a = Label::createWithTTF(ttfConfig, "hello italics", TextHAlignment::CENTER,s.width);
+    addChild(_label2a, 0, kTagBitmapAtlas2);
+    _label2a->setPosition(Vec2(s.width/2, s.height*1/6));
+
+    auto menuItem = MenuItemFont::create("disable italics", [&](cocos2d::Ref* sender) {
+        _label2a->disableEffect(LabelEffect::ITALICS);
+        _label1a->disableEffect(LabelEffect::ITALICS);
+    });
+    menuItem->setFontSizeObj(12);
+    auto menu = Menu::createWithItem(menuItem);
+    addChild(menu);
+    auto winSize = Director::getInstance()->getWinSize();
+    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
 }
 
 std::string LabelItalics::title() const
@@ -2865,4 +2876,54 @@ std::string LabelItalics::title() const
 std::string LabelItalics::subtitle() const
 {
     return "italics on TTF and BMfont";
+}
+
+LabelBold::LabelBold()
+{
+    auto s = Director::getInstance()->getWinSize();
+
+    // LabelBMFont
+    auto label1 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello non-bold", TextHAlignment::CENTER, s.width);
+    addChild(label1, 0, kTagBitmapAtlas1);
+    label1->setPosition(Vec2(s.width/2, s.height*4/6));
+    // you can enable italics by calling this method
+
+    _label1a = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "hello bold", TextHAlignment::CENTER, s.width);
+    addChild(_label1a, 0, kTagBitmapAtlas1);
+    _label1a->setPosition(Vec2(s.width/2, s.height*3/6));
+    // you can enable italics by calling this method
+    _label1a->enableBold();
+
+
+    // LabelTTF
+    TTFConfig ttfConfig("fonts/arial.ttf",24);
+    auto label2 = Label::createWithTTF(ttfConfig, "hello non-bold", TextHAlignment::CENTER,s.width);
+    addChild(label2, 0, kTagBitmapAtlas2);
+    label2->setPosition(Vec2(s.width/2, s.height*2/6));
+
+    // or by setting the italics parameter on TTFConfig
+    ttfConfig.bold = true;
+    _label2a = Label::createWithTTF(ttfConfig, "hello bold", TextHAlignment::CENTER,s.width);
+    addChild(_label2a, 0, kTagBitmapAtlas2);
+    _label2a->setPosition(Vec2(s.width/2, s.height*1/6));
+
+    auto menuItem = MenuItemFont::create("disable bold", [&](cocos2d::Ref* sender) {
+        _label2a->disableEffect(LabelEffect::BOLD);
+        _label1a->disableEffect(LabelEffect::BOLD);
+    });
+    menuItem->setFontSizeObj(12);
+    auto menu = Menu::createWithItem(menuItem);
+    addChild(menu);
+    auto winSize = Director::getInstance()->getWinSize();
+    menu->setPosition(winSize.width * 0.9, winSize.height * 0.25f);
+}
+
+std::string LabelBold::title() const
+{
+    return "Testing Bold";
+}
+
+std::string LabelBold::subtitle() const
+{
+    return "Bold on TTF and BMfont";
 }

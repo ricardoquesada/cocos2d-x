@@ -785,6 +785,22 @@ public:
     LabelItalics();
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
+
+    cocos2d::Label* _label1a;
+    cocos2d::Label* _label2a;
+};
+
+class LabelBold : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelBold);
+
+    LabelBold();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    cocos2d::Label* _label1a;
+    cocos2d::Label* _label2a;
 };
 
 #endif
