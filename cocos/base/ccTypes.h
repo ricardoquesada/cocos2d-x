@@ -582,6 +582,7 @@ enum class LabelEffect {
     ITALICS,
     BOLD,
     UNDERLINE,
+    STRIKETHROUGH,
     ALL
 };
 

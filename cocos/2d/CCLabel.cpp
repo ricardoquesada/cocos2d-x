@@ -46,6 +46,7 @@
 
 NS_CC_BEGIN
 
+static const int UNDERLINE_NODE_TAG = 0xaabbccdd;
 /**
  * LabelLetter used to update the quad in texture atlas without SpriteBatchNode.
  */
@@ -385,6 +386,8 @@ Label::Label(TextHAlignment hAlignment /* = TextHAlignment::LEFT */,
 , _reusedLetter(nullptr)
 , _horizontalKernings(nullptr)
 , _boldEnabled(false)
+, _underlineNode(nullptr)
+, _strikethroughEnabled(false)
 {
     setAnchorPoint(Vec2::ANCHOR_MIDDLE);
     reset();
@@ -514,7 +517,14 @@ void Label::reset()
     _bmfontScale = 1.0f;
     _overflow = Overflow::NORMAL;
     _originalFontSize = 0.0f;
-    
+    _boldEnabled = false;
+    if (_underlineNode)
+    {
+        removeChild(_underlineNode);
+        _underlineNode = nullptr;
+    }
+    _strikethroughEnabled = false;
+    setRotationSkewX(0);        // reverse italics
 }
 
 void Label::updateShaderProgram()
@@ -965,6 +975,10 @@ bool Label::setTTFConfigInternal(const TTFConfig& ttfConfig)
         this->enableItalics();
     if (_fontConfig.bold)
         this->enableBold();
+    if (_fontConfig.underline)
+        this->enableUnderline();
+    if (_fontConfig.strikethrough)
+        this->enableStrikethrough();
 
     return true;
 }
@@ -1123,6 +1137,26 @@ void Label::enableBold()
     }
 }
 
+void Label::enableUnderline()
+{
+    // remove it, just in case to prevent adding two or more
+    if (!_underlineNode)
+    {
+        _underlineNode = DrawNode::create();
+        addChild(_underlineNode, 100000);
+        _contentDirty = true;
+    }
+}
+
+void Label::enableStrikethrough()
+{
+    if (!_strikethroughEnabled)
+    {
+        enableUnderline();
+        _strikethroughEnabled = true;
+    }
+}
+
 void Label::disableEffect()
 {
     disableEffect(LabelEffect::ALL);
@@ -1168,6 +1202,17 @@ void Label::disableEffect(LabelEffect effect)
             _additionalKerning -= 1;
             disableEffect(LabelEffect::SHADOW);
             break;
+        case cocos2d::LabelEffect::UNDERLINE:
+            if (_underlineNode) {
+                removeChild(_underlineNode);
+                _underlineNode = nullptr;
+            }
+            break;
+        case cocos2d::LabelEffect::STRIKETHROUGH:
+            _strikethroughEnabled = false;
+            // since it is based on underline, disable it as well
+            disableEffect(LabelEffect::UNDERLINE);
+            break;
         case LabelEffect::ALL:
         {
             disableEffect(LabelEffect::SHADOW);
@@ -1176,6 +1221,7 @@ void Label::disableEffect(LabelEffect effect)
             disableEffect(LabelEffect::ITALICS);
             disableEffect(LabelEffect::BOLD);
             disableEffect(LabelEffect::UNDERLINE);
+            disableEffect(LabelEffect::STRIKETHROUGH);
         }
             break;
         default:
@@ -1334,6 +1380,25 @@ void Label::updateContent()
             createShadowSpriteForSystemFont(fontDef);
         }
     }
+
+    if (_underlineNode)
+    {
+        const float charheight = (_textDesiredHeight / _numberOfLines);
+
+        _underlineNode->clear();
+        _underlineNode->setLineWidth(charheight/6);
+
+        for (int i=0; i<_numberOfLines; ++i)
+        {
+            float offsety = 0;
+            if (_strikethroughEnabled)
+                offsety += charheight / 2;
+            // FIXME: Might not work with different vertical alignments
+            float y = (_numberOfLines - i - 1) * charheight + offsety;
+            _underlineNode->drawLine(Vec2(_linesOffsetX[i],y), Vec2(_linesWidth[i] + _linesOffsetX[i],y), _textColorF);
+        }
+    }
+
     if(updateFinished){
         _contentDirty = false;
     }

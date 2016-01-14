@@ -803,4 +803,43 @@ public:
     cocos2d::Label* _label2a;
 };
 
+class LabelUnderline : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelUnderline);
+
+    LabelUnderline();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    cocos2d::Label* _label1a;
+    cocos2d::Label* _label2a;
+};
+
+class LabelUnderlineMultiline : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelUnderlineMultiline);
+
+    LabelUnderlineMultiline();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    cocos2d::Label* _label1a;
+    cocos2d::Label* _label2a;
+};
+
+class LabelStrikethrough : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelStrikethrough);
+
+    LabelStrikethrough();
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+    cocos2d::Label* _label1a;
+    cocos2d::Label* _label2a;
+};
+
 #endif
