@@ -35,12 +35,12 @@ enum {
 
 NewLabelTests::NewLabelTests()
 {
+    ADD_TEST_CASE(LabelRichText);
     ADD_TEST_CASE(LabelStrikethrough);
     ADD_TEST_CASE(LabelUnderline);
     ADD_TEST_CASE(LabelUnderlineMultiline);
     ADD_TEST_CASE(LabelItalics);
     ADD_TEST_CASE(LabelBold);
-    ADD_TEST_CASE(LabelRichText);
 
     ADD_TEST_CASE(LabelFNTGlyphDesigner);
     ADD_TEST_CASE(LabelFNTColor);
@@ -2800,7 +2800,7 @@ LabelRichText::LabelRichText()
 //    auto richText2 = RichText::createWithXML("hello world<br/>");
 
     //    auto richText2 = RichText::createWithXML("hello world!<br/>hello moon!");
-    auto richText2 = RichText::createWithXML("this is the default size, color and face<br/>"
+    auto richText2 = RichText::createWithXML("this is the default size, color and face. <small>This should be smaller</small>"
                                              "<font size=\"20\">"
                                                   "size 20<br/>"
                                                   "<font color=\"#0000ff\">"

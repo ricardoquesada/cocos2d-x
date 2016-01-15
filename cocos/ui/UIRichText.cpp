@@ -28,6 +28,9 @@
 
 #include "tinyxml2/tinyxml2.h"
 #include "platform/CCFileUtils.h"
+#include "platform/CCApplication.h"
+#include "base/CCEventListenerTouch.h"
+#include "base/CCEventDispatcher.h"
 #include "2d/CCLabel.h"
 #include "2d/CCSprite.h"
 #include "base/ccUTF8.h"
@@ -37,7 +40,34 @@ NS_CC_BEGIN
 
 namespace ui {
 
-    
+    class URLLabel : public cocos2d::Label
+    {
+        friend RichElementText;
+    public:
+        URLLabel()
+        : _eventDispatcher(nullptr)
+        {
+            auto touchListener = cocos2d::EventListenerTouchAllAtOnce::create();
+            touchListener->onTouchesEnded = CC_CALLBACK_2(URLLabel::onTouchesEnded, this);
+            _eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
+        }
+
+        void onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
+        {
+            for (const auto& touch: touches)
+            {
+                if (getBoundingBox().containsPoint(convertTouchToNodeSpace(touch)))
+                    Application::getInstance()->openURL(_url);
+            }
+        }
+
+    private:
+        std::string _url;
+        EventDispatcher* _eventDispatcher;
+
+    };
+
+
 bool RichElement::init(int tag, const Color3B &color, GLubyte opacity)
 {
     _tag = tag;
@@ -47,10 +77,10 @@ bool RichElement::init(int tag, const Color3B &color, GLubyte opacity)
 }
     
     
-RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold)
+RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags)
 {
     RichElementText* element = new (std::nothrow) RichElementText();
-    if (element && element->init(tag, color, opacity, text, fontName, fontSize, italics, bold))
+    if (element && element->init(tag, color, opacity, text, fontName, fontSize, flags))
     {
         element->autorelease();
         return element;
@@ -59,15 +89,14 @@ RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte 
     return nullptr;
 }
     
-bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold)
+bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags)
 {
     if (RichElement::init(tag, color, opacity))
     {
         _text = text;
         _fontName = fontName;
         _fontSize = fontSize;
-        _italics = italics;
-        _bold = bold;
+        _flags = flags;
         return true;
     }
     return false;
@@ -181,11 +210,14 @@ class MyXMLVisitor: public tinyxml2::XMLVisitor
     struct Attributes
     {
         std::string face;
+        std::string url;
         float fontSize;
         Color3B color;
         bool hasColor;
-        int bold;
-        int italics;
+        bool bold;
+        bool italics;
+        bool underline;
+        bool strikethrough;
 
         void setColor(const Color3B& acolor)
         {
@@ -193,11 +225,12 @@ class MyXMLVisitor: public tinyxml2::XMLVisitor
             hasColor = true;
         }
         Attributes()
-        : bold(-1)
-        , italics(-1)
+        : bold(false)
+        , italics(false)
+        , underline(false)
+        , strikethrough(false)
         , hasColor(false)
         , fontSize(-1)
-        , face()
         {
         }
     };
@@ -236,11 +269,21 @@ class MyXMLVisitor: public tinyxml2::XMLVisitor
         return "fonts/Marker Felt.ttf";
     }
 
+    std::string getURL() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->url.size() != 0)
+                return i->url;
+        }
+        return "";
+    }
+
     bool getBold() const
     {
         for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
         {
-            if (i->bold == 1)
+            if (i->bold)
                 return true;
         }
         return false;
@@ -250,7 +293,27 @@ class MyXMLVisitor: public tinyxml2::XMLVisitor
     {
         for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
         {
-            if (i->italics == 1)
+            if (i->italics)
+                return true;
+        }
+        return false;
+    }
+
+    bool getUnderline() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->underline)
+                return true;
+        }
+        return false;
+    }
+
+    bool getStrikethrough() const
+    {
+        for (auto i = _fontElements.rbegin(); i != _fontElements.rend(); ++i)
+        {
+            if (i->strikethrough)
                 return true;
         }
         return false;
@@ -309,6 +372,33 @@ public:
             attribs.italics = 1;
             _fontElements.push_back(attribs);
         }
+        else if (strcmp(elementName, "del") == 0)
+        {
+            // no supported attributes
+            Attributes attribs;
+            attribs.strikethrough = true;
+            _fontElements.push_back(attribs);
+        }
+        else if (strcmp(elementName, "u") == 0)
+        {
+            // no supported attributes
+            Attributes attribs;
+            attribs.underline = true;
+            _fontElements.push_back(attribs);
+        }
+        else if (strcmp(elementName, "small") == 0)
+        {
+            Attributes attribs;
+            attribs.fontSize = getFontSize() * 0.8;
+            _fontElements.push_back(attribs);
+        }
+
+        else if (strcmp(elementName, "big") == 0)
+        {
+            Attributes attribs;
+            attribs.fontSize = getFontSize() * 1.25;
+            _fontElements.push_back(attribs);
+        }
 
         else if (strcmp(elementName, "img") == 0)
         {
@@ -318,12 +408,25 @@ public:
             auto height = element.Attribute("height");
             auto width = element.Attribute("width");
 
+            if (src) {
+                auto elementNL = RichElementImage::create(0, getColor(), 255, src);
+
+                if (height){
+                }
+                if (width) {
+                }
+                _richText->pushBackElement(elementNL);
+            }
         }
         else if (strcmp(elementName, "a") ==  0)
         {
             // supported attributes:
-            // href
+            Attributes attribs;
             auto href = element.Attribute("href");
+            attribs.color = Color3B::BLUE;
+            attribs.underline = true;
+            attribs.url = href;
+            _fontElements.push_back(attribs);
         }
         else if (strcmp(elementName, "br") == 0)
         {
@@ -339,7 +442,12 @@ public:
         auto elementName = element.Value();
         if ((strcmp(elementName, "font") == 0) ||
             (strcmp(elementName, "i") == 0) ||
-            (strcmp(elementName, "b") == 0))
+            (strcmp(elementName, "b") == 0) ||
+            (strcmp(elementName, "del") == 0) ||
+            (strcmp(elementName, "u") == 0) ||
+            (strcmp(elementName, "small") == 0) ||
+            (strcmp(elementName, "big") == 0) ||
+            (strcmp(elementName, "a") == 0))
         {
             _fontElements.pop_back();
         }
@@ -353,9 +461,21 @@ public:
         auto face = getFace();
         auto fontSize = getFontSize();
         auto italics = getItalics();
+        auto underline = getUnderline();
+        auto strikethrough = getStrikethrough();
         auto bold = getBold();
 
-        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize, italics, bold);
+        uint32_t flags = 0;
+        if (italics)
+            flags |= RichElementText::ITALICS_FLAG;
+        if (bold)
+            flags |= RichElementText::BOLD_FLAG;
+        if (underline)
+            flags |= RichElementText::UNDERLINE_FLAG;
+        if (strikethrough)
+            flags |= RichElementText::STRIKETHROUGH_FLAG;
+
+        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize, flags);
         _richText->pushBackElement(element);
         return true;
     }
@@ -370,7 +490,7 @@ bool RichText::initWithXML(const std::string& origxml)
         // solves to issues:
         //  - creates defaults values
         //  - makes sure that the xml well formed and starts with an element
-        auto xml = "<font face=\"verdana\" size=\"12\" color=\"#ffffff\" align=\"left\">" + origxml + "</font>";
+        auto xml = "<font face=\"Verdana\" size=\"12\" color=\"#ffffff\">" + origxml + "</font>";
 
         if (document.Parse(xml.c_str(), xml.length()) == tinyxml2::XML_SUCCESS)
         {
@@ -437,10 +557,14 @@ void RichText::formatText()
                         {
                             label = Label::createWithSystemFont(elmtText->_text, elmtText->_fontName, elmtText->_fontSize);
                         }
-                        if (elmtText->_italics)
+                        if (elmtText->_flags & RichElementText::ITALICS_FLAG)
                             label->enableItalics();
-                        if (elmtText->_bold)
+                        if (elmtText->_flags & RichElementText::BOLD_FLAG)
                             label->enableBold();
+                        if (elmtText->_flags & RichElementText::UNDERLINE_FLAG)
+                            label->enableUnderline();
+                        if (elmtText->_flags & RichElementText::STRIKETHROUGH_FLAG)
+                            label->enableStrikethrough();
                         elementRenderer = label;
                         break;
                     }
@@ -484,7 +608,7 @@ void RichText::formatText()
                     case RichElement::Type::TEXT:
                     {
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
-                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity, elmtText->_italics, elmtText->_bold);
+                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity, elmtText->_flags);
                         break;
                     }
                     case RichElement::Type::IMAGE:
@@ -514,7 +638,7 @@ void RichText::formatText()
     }
 }
 
-void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity, bool italics, bool bold)
+void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity, uint32_t flags)
 {
     auto fileExist = FileUtils::getInstance()->isFileExist(fontName);
     Label* textRenderer = nullptr;
@@ -526,10 +650,14 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
     {
         textRenderer = Label::createWithSystemFont(text, fontName, fontSize);
     }
-    if (italics)
+    if (flags & RichElementText::ITALICS_FLAG)
         textRenderer->enableItalics();
-    if (bold)
+    if (flags & RichElementText::BOLD_FLAG)
         textRenderer->enableBold();
+    if (flags & RichElementText::UNDERLINE_FLAG)
+        textRenderer->enableUnderline();
+    if (flags & RichElementText::STRIKETHROUGH_FLAG)
+        textRenderer->enableStrikethrough();
 
     float textRendererWidth = textRenderer->getContentSize().width;
     _leftSpaceWidth -= textRendererWidth;
@@ -598,15 +726,19 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
                 leftRenderer->setOpacity(opacity);
                 pushToContainer(leftRenderer);
 
-                if (italics)
+                if (flags & RichElementText::ITALICS_FLAG)
                     leftRenderer->enableItalics();
-                if (bold)
+                if (flags & RichElementText::BOLD_FLAG)
                     leftRenderer->enableBold();
+                if (flags & RichElementText::UNDERLINE_FLAG)
+                    leftRenderer->enableUnderline();
+                if (flags & RichElementText::STRIKETHROUGH_FLAG)
+                    leftRenderer->enableStrikethrough();
             }
         }
 
         addNewLine();
-        handleTextRenderer(cutWords, fontName, fontSize, color, opacity, italics, bold);
+        handleTextRenderer(cutWords, fontName, fontSize, color, opacity, flags);
     }
     else
     {

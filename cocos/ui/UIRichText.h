@@ -101,6 +101,12 @@ public:
     RichElementText()
     {_type = Type::TEXT;};
 
+    enum {
+        ITALICS_FLAG = 1 << 0,
+        BOLD_FLAG = 1 << 1,
+        UNDERLINE_FLAG = 1 << 2,
+        STRIKETHROUGH_FLAG = 1 << 3
+    };
     
     /**
      *@brief Default destructor.
@@ -118,11 +124,10 @@ public:
      * @param text Content string.
      * @param fontName Content font name.
      * @param fontSize Content font size.
-     * @param italics whether or not the font will be in italics.
-     * @param bold whether or not the font will be bold.
+     * @param flags: italics, bold, underline or strikethrough
      * @return True if initialize success, false otherwise.
      */
-    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, bool italics, bool bold);
+    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags);
 
     
     /**
@@ -134,18 +139,16 @@ public:
      * @param text Content string.
      * @param fontName Content font name.
      * @param fontSize Content font size.
-     * @param italics whether or not the font will be in italics. `false` by default
-     * @param bold whether or not the font will be bold. `false` by default
+     * @param flags: italics, bold, underline or strikethrough
      * @return RichElementText instance.
      */
     static RichElementText* create(int tag, const Color3B& color, GLubyte opacity, const std::string& text,
-                                   const std::string& fontName, float fontSize, bool italics=false, bool bold=false);
+                                   const std::string& fontName, float fontSize, uint32_t flags=0);
 protected:
     std::string _text;
     std::string _fontName;
     float _fontSize;
-    bool _italics;
-    bool _bold;
+    uint32_t _flags;
 
     friend class RichText;
     
@@ -380,7 +383,7 @@ protected:
 
     virtual void initRenderer() override;
     void pushToContainer(Node* renderer);
-    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, bool italics, bool bold);
+    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, uint32_t flags);
     void handleImageRenderer(const std::string& fileParh, const Color3B& color, GLubyte opacity);
     void handleCustomRenderer(Node* renderer);
     void formarRenderers();
