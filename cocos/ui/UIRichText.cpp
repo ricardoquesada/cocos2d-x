@@ -31,6 +31,7 @@
 #include "platform/CCApplication.h"
 #include "base/CCEventListenerTouch.h"
 #include "base/CCEventDispatcher.h"
+#include "base/CCDirector.h"
 #include "2d/CCLabel.h"
 #include "2d/CCSprite.h"
 #include "base/ccUTF8.h"
@@ -39,65 +40,49 @@
 NS_CC_BEGIN
 
 namespace ui {
-
-    class URLLabel : public cocos2d::Label
+    class ListenerComponent : public Component
     {
-        friend RichElementText;
     public:
-        static URLLabel* createWithTTF(const std::string& text, const std::string& fontFile, float fontSize, const Size& dimensions /* = Size::ZERO */, TextHAlignment hAlignment /* = TextHAlignment::LEFT */, TextVAlignment vAlignment /* = TextVAlignment::TOP */)
+        static ListenerComponent* create(Label* parent, const std::string& url)
         {
-            auto ret = new (std::nothrow) URLLabel(hAlignment,vAlignment);
-
-            if (ret && ret->initWithTTF(text, fontFile, fontSize, dimensions, hAlignment, vAlignment))
-            {
-                ret->autorelease();
-                return ret;
-            }
-            
-            CC_SAFE_DELETE(ret);
-            return nullptr;
+            auto component = new (std::nothrow) ListenerComponent(parent, url);
+            component->autorelease();
+            return component;
         }
 
-        URLLabel* createWithSystemFont(const std::string& text, const std::string& font, float fontSize, const Size& dimensions /* = Size::ZERO */, TextHAlignment hAlignment /* = TextHAlignment::LEFT */, TextVAlignment vAlignment /* = TextVAlignment::TOP */)
+        explicit ListenerComponent(Label* parent, const std::string& url)
+        : _parent(parent)
+        , _url(url)
         {
-            auto ret = new (std::nothrow) URLLabel(hAlignment,vAlignment);
+            _touchListener = cocos2d::EventListenerTouchAllAtOnce::create();
+            _touchListener->onTouchesEnded = CC_CALLBACK_2(ListenerComponent::onTouchesEnded, this);
 
-            if (ret)
-            {
-                ret->setSystemFontName(font);
-                ret->setSystemFontSize(fontSize);
-                ret->setDimensions(dimensions.width, dimensions.height);
-                ret->setString(text);
-
-                ret->autorelease();
-                
-                return ret;
-            }
-            
-            return nullptr;
+            Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(_touchListener, _parent);
+            _touchListener->retain();
         }
-        URLLabel(TextHAlignment hAlignment, TextVAlignment vAlignment)
-        : Label(hAlignment, vAlignment)
-        , _eventDispatcher(nullptr)
+
+        virtual ~ListenerComponent()
         {
-            auto touchListener = cocos2d::EventListenerTouchAllAtOnce::create();
-            touchListener->onTouchesEnded = CC_CALLBACK_2(URLLabel::onTouchesEnded, this);
-            _eventDispatcher->addEventListenerWithSceneGraphPriority(touchListener, this);
+            Director::getInstance()->getEventDispatcher()->removeEventListener(_touchListener);
+            _touchListener->release();
         }
 
         void onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
         {
             for (const auto& touch: touches)
             {
-                if (getBoundingBox().containsPoint(convertTouchToNodeSpace(touch)))
+                // FIXME: Node::getBoundBox() doesn't return it in local coordinates... so create one manually.
+                Rect localRect = Rect(Vec2::ZERO, _parent->getContentSize());
+                if (localRect.containsPoint(_parent->convertTouchToNodeSpace(touch)))
                     Application::getInstance()->openURL(_url);
             }
         }
 
     private:
+        Label* _parent;      // weak ref.
         std::string _url;
-        EventDispatcher* _eventDispatcher;
-
+        EventDispatcher* _eventDispatcher;  // weak ref.
+        EventListenerTouchAllAtOnce* _touchListener;    // strong ref.
     };
 
 
@@ -110,10 +95,10 @@ bool RichElement::init(int tag, const Color3B &color, GLubyte opacity)
 }
     
     
-RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags)
+RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags, const std::string& url)
 {
     RichElementText* element = new (std::nothrow) RichElementText();
-    if (element && element->init(tag, color, opacity, text, fontName, fontSize, flags))
+    if (element && element->init(tag, color, opacity, text, fontName, fontSize, flags, url))
     {
         element->autorelease();
         return element;
@@ -122,7 +107,7 @@ RichElementText* RichElementText::create(int tag, const Color3B &color, GLubyte 
     return nullptr;
 }
     
-bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags)
+bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags, const std::string& url)
 {
     if (RichElement::init(tag, color, opacity))
     {
@@ -130,6 +115,7 @@ bool RichElementText::init(int tag, const Color3B &color, GLubyte opacity, const
         _fontName = fontName;
         _fontSize = fontSize;
         _flags = flags;
+        _url = url;
         return true;
     }
     return false;
@@ -456,7 +442,7 @@ public:
             // supported attributes:
             Attributes attribs;
             auto href = element.Attribute("href");
-            attribs.color = Color3B::BLUE;
+            attribs.setColor(Color3B::BLUE);
             attribs.underline = true;
             attribs.url = href;
             _fontElements.push_back(attribs);
@@ -497,6 +483,7 @@ public:
         auto underline = getUnderline();
         auto strikethrough = getStrikethrough();
         auto bold = getBold();
+        auto url = getURL();
 
         uint32_t flags = 0;
         if (italics)
@@ -507,8 +494,10 @@ public:
             flags |= RichElementText::UNDERLINE_FLAG;
         if (strikethrough)
             flags |= RichElementText::STRIKETHROUGH_FLAG;
+        if (url.size() > 0)
+            flags |= RichElementText::URL_FLAG;
 
-        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize, flags);
+        auto element = RichElementText::create(0, color, 255, text.Value(), face, fontSize, flags, url);
         _richText->pushBackElement(element);
         return true;
     }
@@ -598,6 +587,8 @@ void RichText::formatText()
                             label->enableUnderline();
                         if (elmtText->_flags & RichElementText::STRIKETHROUGH_FLAG)
                             label->enableStrikethrough();
+                        if (elmtText->_flags & RichElementText::URL_FLAG)
+                            label->addComponent(ListenerComponent::create(label, elmtText->_url));
                         elementRenderer = label;
                         break;
                     }
@@ -641,7 +632,7 @@ void RichText::formatText()
                     case RichElement::Type::TEXT:
                     {
                         RichElementText* elmtText = static_cast<RichElementText*>(element);
-                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity, elmtText->_flags);
+                        handleTextRenderer(elmtText->_text, elmtText->_fontName, elmtText->_fontSize, elmtText->_color, elmtText->_opacity, elmtText->_flags, elmtText->_url);
                         break;
                     }
                     case RichElement::Type::IMAGE:
@@ -671,7 +662,7 @@ void RichText::formatText()
     }
 }
 
-void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity, uint32_t flags)
+void RichText::handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B &color, GLubyte opacity, uint32_t flags, const std::string& url)
 {
     auto fileExist = FileUtils::getInstance()->isFileExist(fontName);
     Label* textRenderer = nullptr;
@@ -691,6 +682,8 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
         textRenderer->enableUnderline();
     if (flags & RichElementText::STRIKETHROUGH_FLAG)
         textRenderer->enableStrikethrough();
+    if (flags & RichElementText::URL_FLAG)
+        textRenderer->addComponent(ListenerComponent::create(textRenderer, url));
 
     float textRendererWidth = textRenderer->getContentSize().width;
     _leftSpaceWidth -= textRendererWidth;
@@ -771,7 +764,7 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
         }
 
         addNewLine();
-        handleTextRenderer(cutWords, fontName, fontSize, color, opacity, flags);
+        handleTextRenderer(cutWords, fontName, fontSize, color, opacity, flags, url);
     }
     else
     {

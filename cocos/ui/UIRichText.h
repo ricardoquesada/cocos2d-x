@@ -105,7 +105,8 @@ public:
         ITALICS_FLAG = 1 << 0,
         BOLD_FLAG = 1 << 1,
         UNDERLINE_FLAG = 1 << 2,
-        STRIKETHROUGH_FLAG = 1 << 3
+        STRIKETHROUGH_FLAG = 1 << 3,
+        URL_FLAG = 1 << 4
     };
     
     /**
@@ -127,7 +128,7 @@ public:
      * @param flags: italics, bold, underline or strikethrough
      * @return True if initialize success, false otherwise.
      */
-    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags);
+    bool init(int tag, const Color3B& color, GLubyte opacity, const std::string& text, const std::string& fontName, float fontSize, uint32_t flags, const std::string& url);
 
     
     /**
@@ -143,13 +144,13 @@ public:
      * @return RichElementText instance.
      */
     static RichElementText* create(int tag, const Color3B& color, GLubyte opacity, const std::string& text,
-                                   const std::string& fontName, float fontSize, uint32_t flags=0);
+                                   const std::string& fontName, float fontSize, uint32_t flags=0, const std::string& url="");
 protected:
     std::string _text;
     std::string _fontName;
     float _fontSize;
     uint32_t _flags;
-
+    std::string _url;
     friend class RichText;
     
 };
@@ -383,7 +384,7 @@ protected:
 
     virtual void initRenderer() override;
     void pushToContainer(Node* renderer);
-    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, uint32_t flags);
+    void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, uint32_t flags, const std::string& url="");
     void handleImageRenderer(const std::string& fileParh, const Color3B& color, GLubyte opacity);
     void handleCustomRenderer(Node* renderer);
     void formarRenderers();
