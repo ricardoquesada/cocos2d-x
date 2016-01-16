@@ -44,8 +44,41 @@ namespace ui {
     {
         friend RichElementText;
     public:
-        URLLabel()
-        : _eventDispatcher(nullptr)
+        static URLLabel* createWithTTF(const std::string& text, const std::string& fontFile, float fontSize, const Size& dimensions /* = Size::ZERO */, TextHAlignment hAlignment /* = TextHAlignment::LEFT */, TextVAlignment vAlignment /* = TextVAlignment::TOP */)
+        {
+            auto ret = new (std::nothrow) URLLabel(hAlignment,vAlignment);
+
+            if (ret && ret->initWithTTF(text, fontFile, fontSize, dimensions, hAlignment, vAlignment))
+            {
+                ret->autorelease();
+                return ret;
+            }
+            
+            CC_SAFE_DELETE(ret);
+            return nullptr;
+        }
+
+        URLLabel* createWithSystemFont(const std::string& text, const std::string& font, float fontSize, const Size& dimensions /* = Size::ZERO */, TextHAlignment hAlignment /* = TextHAlignment::LEFT */, TextVAlignment vAlignment /* = TextVAlignment::TOP */)
+        {
+            auto ret = new (std::nothrow) URLLabel(hAlignment,vAlignment);
+
+            if (ret)
+            {
+                ret->setSystemFontName(font);
+                ret->setSystemFontSize(fontSize);
+                ret->setDimensions(dimensions.width, dimensions.height);
+                ret->setString(text);
+
+                ret->autorelease();
+                
+                return ret;
+            }
+            
+            return nullptr;
+        }
+        URLLabel(TextHAlignment hAlignment, TextVAlignment vAlignment)
+        : Label(hAlignment, vAlignment)
+        , _eventDispatcher(nullptr)
         {
             auto touchListener = cocos2d::EventListenerTouchAllAtOnce::create();
             touchListener->onTouchesEnded = CC_CALLBACK_2(URLLabel::onTouchesEnded, this);

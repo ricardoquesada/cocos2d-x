@@ -211,7 +211,6 @@ Label* Label::createWithSystemFont(const std::string& text, const std::string& f
         return ret;
     }
 
-    delete ret;
     return nullptr;
 }
 
