@@ -35,13 +35,6 @@ enum {
 
 NewLabelTests::NewLabelTests()
 {
-    ADD_TEST_CASE(LabelRichText);
-    ADD_TEST_CASE(LabelStrikethrough);
-    ADD_TEST_CASE(LabelUnderline);
-    ADD_TEST_CASE(LabelUnderlineMultiline);
-    ADD_TEST_CASE(LabelItalics);
-    ADD_TEST_CASE(LabelBold);
-
     ADD_TEST_CASE(LabelFNTGlyphDesigner);
     ADD_TEST_CASE(LabelFNTColor);
     ADD_TEST_CASE(LabelFNTOpacity);
@@ -105,6 +98,13 @@ NewLabelTests::NewLabelTests()
     ADD_TEST_CASE(LabelSystemFontTest);
     ADD_TEST_CASE(LabelCharMapFontTest);
     ADD_TEST_CASE(LabelIssue13846Test);
+
+    ADD_TEST_CASE(LabelRichText);
+    ADD_TEST_CASE(LabelStrikethrough);
+    ADD_TEST_CASE(LabelUnderline);
+    ADD_TEST_CASE(LabelUnderlineMultiline);
+    ADD_TEST_CASE(LabelItalics);
+    ADD_TEST_CASE(LabelBold);
 };
 
 LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
@@ -2796,21 +2796,7 @@ LabelRichText::LabelRichText()
 {
     auto center = VisibleRect::center();
 
-    // label 2
-//    auto richText2 = RichText::createWithXML("hello world<br/>");
-
-    auto richText2 = RichText::createWithXML("<font face=\"fonts/Marker Felt.ttf\">hello <a href=\"http://www.google.com\">click me</a></font>");
-//    auto richText2 = RichText::createWithXML("this is the default size, color and face. <small>This should be smaller</small>"
-//                                             "<font size=\"20\">"
-//                                                  "size 20<br/>"
-//                                                  "<font color=\"#0000ff\">"
-//                                                      "<i>blue italics</i>collision<i>italics again</i> and <i><b>italics and bold</b></i><br/>"
-//                                                      "<font color=\"#ff0000\">red and 20<br/></font>"
-//                                                  "</font>"
-//                                                  "<font size=\"8\">blue and 8<br/></font>"
-//                                             "</font>"
-//                                             "default again"
-//                                             );
+    auto richText2 = RichText::createWithXML("Mixing <b>UIRichText</b> with non <i>UIWidget</i> code. For more samples, see the UIRichTextTest.cpp file");
     if (richText2)
     {
         richText2->ignoreContentAdaptWithSize(false);
