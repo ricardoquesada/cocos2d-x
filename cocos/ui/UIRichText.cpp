@@ -138,9 +138,20 @@ bool RichElementImage::init(int tag, const Color3B &color, GLubyte opacity, cons
     if (RichElement::init(tag, color, opacity))
     {
         _filePath = filePath;
+        _width = -1;
+        _height = -1;
         return true;
     }
     return false;
+}
+void RichElementImage::setWidth(int width)
+{
+    _width = width;
+}
+
+void RichElementImage::setHeight(int height)
+{
+    _height = height;
 }
 
 RichElementCustomNode* RichElementCustomNode::create(int tag, const Color3B &color, GLubyte opacity, cocos2d::Node *customNode)
@@ -430,10 +441,11 @@ public:
             if (src) {
                 auto elementNL = RichElementImage::create(0, getColor(), 255, src);
 
-                if (height){
-                }
-                if (width) {
-                }
+                if (height)
+                    elementNL->setHeight(atoi(height));
+                if (width)
+                    elementNL->setWidth(atoi(width));
+                
                 _richText->pushBackElement(elementNL);
             }
         }
@@ -596,6 +608,16 @@ void RichText::formatText()
                     {
                         RichElementImage* elmtImage = static_cast<RichElementImage*>(element);
                         elementRenderer = Sprite::create(elmtImage->_filePath);
+                        if (elementRenderer && (elmtImage->_height != -1 || elmtImage->_width != -1))
+                        {
+                            auto currentSize = elementRenderer->getContentSize();
+                            if (elmtImage->_width != -1)
+                                elementRenderer->setScaleX(elmtImage->_width / currentSize.width);
+                            if (elmtImage->_height != -1)
+                                elementRenderer->setScaleY(elmtImage->_height / currentSize.height);
+                            elementRenderer->setContentSize(Size(currentSize.width * elementRenderer->getScaleX(),
+                                                                 currentSize.height * elementRenderer->getScaleY()));
+                        }
                         break;
                     }
                     case RichElement::Type::CUSTOM:
@@ -638,7 +660,7 @@ void RichText::formatText()
                     case RichElement::Type::IMAGE:
                     {
                         RichElementImage* elmtImage = static_cast<RichElementImage*>(element);
-                        handleImageRenderer(elmtImage->_filePath, elmtImage->_color, elmtImage->_opacity);
+                        handleImageRenderer(elmtImage->_filePath, elmtImage->_color, elmtImage->_opacity, elmtImage->_width, elmtImage->_height);
                         break;
                     }
                     case RichElement::Type::CUSTOM:
@@ -760,6 +782,9 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
                     leftRenderer->enableUnderline();
                 if (flags & RichElementText::STRIKETHROUGH_FLAG)
                     leftRenderer->enableStrikethrough();
+                if (flags & RichElementText::URL_FLAG)
+                    leftRenderer->addComponent(ListenerComponent::create(leftRenderer, url));
+
             }
         }
 
@@ -774,12 +799,23 @@ void RichText::handleTextRenderer(const std::string& text, const std::string& fo
     }
 }
     
-void RichText::handleImageRenderer(const std::string& fileParh, const Color3B &color, GLubyte opacity)
+void RichText::handleImageRenderer(const std::string& filePath, const Color3B &color, GLubyte opacity, int width, int height)
 {
-    Sprite* imageRenderer = Sprite::create(fileParh);
+    Sprite* imageRenderer = Sprite::create(filePath);
+    if (imageRenderer)
+    {
+        auto currentSize = imageRenderer->getContentSize();
+        if (width != -1)
+            imageRenderer->setScaleX(width / currentSize.width);
+        if (height != -1)
+            imageRenderer->setScaleY(height / currentSize.height);
+        imageRenderer->setContentSize(Size(currentSize.width * imageRenderer->getScaleX(),
+                                             currentSize.height * imageRenderer->getScaleY()));
+    }
+
     handleCustomRenderer(imageRenderer);
 }
-    
+
 void RichText::handleCustomRenderer(cocos2d::Node *renderer)
 {
     Size imgSize = renderer->getContentSize();

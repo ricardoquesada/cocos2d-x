@@ -201,11 +201,16 @@ public:
      * @return A RichElementImage instance.
      */
     static RichElementImage* create(int tag, const Color3B& color, GLubyte opacity, const std::string& filePath);
+
+    void setWidth(int width);
+    void setHeight(int height);
 protected:
     std::string _filePath;
     Rect _textureRect;
     int _textureType;
     friend class RichText;
+    int _width;
+    int _height;
 };
     
 /**
@@ -385,7 +390,7 @@ protected:
     virtual void initRenderer() override;
     void pushToContainer(Node* renderer);
     void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity, uint32_t flags, const std::string& url="");
-    void handleImageRenderer(const std::string& fileParh, const Color3B& color, GLubyte opacity);
+    void handleImageRenderer(const std::string& fileParh, const Color3B& color, GLubyte opacity, int width, int height);
     void handleCustomRenderer(Node* renderer);
     void formarRenderers();
     void addNewLine();
