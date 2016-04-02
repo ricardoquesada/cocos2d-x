@@ -298,8 +298,8 @@ void Director::drawScene()
         _renderer->clearDrawStats();
         
         //render the scene
-        _runningScene->render(_renderer);
-        
+        _openGLView->renderScene(_renderer, _runningScene);
+
         _eventDispatcher->dispatchEvent(_eventAfterVisit);
     }
 

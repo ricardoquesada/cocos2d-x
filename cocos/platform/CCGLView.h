@@ -86,6 +86,9 @@ struct GLContextAttrs
 
 NS_CC_BEGIN
 
+class Scene;
+class Renderer;
+
 /**
  * @addtogroup platform
  * @{
@@ -377,6 +380,9 @@ public:
      */
     ResolutionPolicy getResolutionPolicy() const { return _resolutionPolicy; }
 
+    /** Renders the main scene */
+    void renderScene(Renderer* renderer, Scene* scene);
+
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
     virtual HWND getWin32Window() = 0;
 #endif /* (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) */
@@ -387,6 +393,7 @@ public:
     
 protected:
     void updateDesignResolutionSize();
+    void setupVR();
     
     void handleTouchesOfEndOrCancel(EventTouch::EventCode eventCode, int num, intptr_t ids[], float xs[], float ys[]);
 

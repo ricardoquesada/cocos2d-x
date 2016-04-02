@@ -29,6 +29,8 @@ THE SOFTWARE.
 #include "base/CCDirector.h"
 #include "base/CCEventDispatcher.h"
 #include "2d/CCCamera.h"
+#include "2d/CCScene.h"
+#include "renderer/CCRenderer.h"
 
 NS_CC_BEGIN
 
@@ -464,4 +466,51 @@ float GLView::getScaleY() const
     return _scaleY;
 }
 
+void GLView::renderScene(Renderer* renderer, Scene* scene)
+{
+    scene->render(renderer);
+}
+
+void DistortionRenderer::renderDistortionMesh(DistortionMesh *mesh, GLint textureID)
+{
+    ProgramHolder *programHolder = nullptr;
+    if (_chromaticAberrationCorrectionEnabled)
+    {
+        programHolder = _programHolderAberration;
+    }
+    else
+    {
+        programHolder = _programHolder;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->_arrayBufferID);
+    glVertexAttribPointer(programHolder->positionLocation, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(0 * sizeof(float)));
+    glEnableVertexAttribArray(programHolder->positionLocation);
+    glVertexAttribPointer(programHolder->vignetteLocation, 1, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(2 * sizeof(float)));
+    glEnableVertexAttribArray(programHolder->vignetteLocation);
+    glVertexAttribPointer(programHolder->blueTextureCoordLocation, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(7 * sizeof(float)));
+    glEnableVertexAttribArray(programHolder->blueTextureCoordLocation);
+
+    if (_chromaticAberrationCorrectionEnabled)
+    {
+        glVertexAttribPointer(programHolder->redTextureCoordLocation, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(3 * sizeof(float)));
+        glEnableVertexAttribArray(programHolder->redTextureCoordLocation);
+        glVertexAttribPointer(programHolder->greenTextureCoordLocation, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(5 * sizeof(float)));
+        glEnableVertexAttribArray(programHolder->greenTextureCoordLocation);
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glUniform1i(programHolder->uTextureSamplerLocation, 0);
+    glUniform1f(programHolder->uTextureCoordScaleLocation, _resolutionScale);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->_elementBufferID);
+    glDrawElements(GL_TRIANGLE_STRIP, mesh->_indices, GL_UNSIGNED_SHORT, 0);
+
+    GLCheckForError();
+}
+
+void GLView::setupVR()
+{
+}
 NS_CC_END
