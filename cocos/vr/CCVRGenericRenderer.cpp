@@ -120,9 +120,9 @@ void VRGenericRenderer::render(Scene* scene, Renderer* renderer)
 
     _fb->applyFBO();
     Camera::setDefaultViewport(_leftEye.viewport);
-    scene->render(renderer, leftTransform);
+    scene->render(renderer, leftTransform, nullptr);
     Camera::setDefaultViewport(_rightEye.viewport);
-    scene->render(renderer, rightTransform);
+    scene->render(renderer, rightTransform, nullptr);
     _fb->restoreFBO();
 
     auto texture = _fb->getRenderTarget()->getTexture();

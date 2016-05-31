@@ -42,12 +42,14 @@ public:
     virtual void setup(GLView* glview);
     virtual void cleanup();
     virtual void render(Scene* scene, Renderer* renderer);
+    virtual VRIHeadTracker* getHeadTracker();
 
 protected:
     
     cbHeadMountedDisplay _hmd;
     cbEyes               _eyes;
     VRCardboardHeadTracker *_headTracker;
+    Mat4                 _eyeProjections[CB_EYE_NUM];
 };
 
 NS_CC_END

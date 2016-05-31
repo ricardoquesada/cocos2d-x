@@ -224,8 +224,6 @@ VROculusRenderer::~VROculusRenderer()
 
 void VROculusRenderer::setup(GLView* glview)
 {
-    auto vp = Camera::getDefaultViewport();
-
     ovrResult result = ovr_Initialize(nullptr);
     if (!OVR_SUCCESS(result)) {
         CCLOG("Failed to initialize libOVR.");
@@ -242,9 +240,12 @@ void VROculusRenderer::setup(GLView* glview)
 
     // Make eye render buffers
     for (int eye = 0; eye < EYE_NUM; ++eye){
-        //ovrSizei idealTextureSize = ovr_GetFovTextureSize(_HMD, ovrEyeType(eye), hmdDesc.DefaultEyeFov[eye], 1);
-        _eyeRenderTexture[eye] = new TextureBuffer(_HMD, true, true, { (int)vp._width, (int)vp._height }, 1, nullptr, 1);
+        ovrSizei idealTextureSize = ovr_GetFovTextureSize(_HMD, ovrEyeType(eye), hmdDesc.DefaultEyeFov[eye], 1);
+        _eyeRenderTexture[eye] = new TextureBuffer(_HMD, true, true, idealTextureSize, 1, nullptr, 1);
         _eyeDepthBuffer[eye] = new DepthBuffer(_eyeRenderTexture[eye]->GetSize(), 0);
+        auto projection = ovrMatrix4f_Projection(hmdDesc.DefaultEyeFov[eye], 0.1f, 5000.0f, ovrProjection_RightHanded | ovrProjection_ClipRangeOpenGL);
+        _eyeProjections[eye].set((const GLfloat *)(projection.M[0]));
+        _eyeProjections[eye].transpose();
 
         if (!_eyeRenderTexture[eye]->TextureSet){
             CCLOG("Failed to create texture.");
@@ -252,6 +253,7 @@ void VROculusRenderer::setup(GLView* glview)
         }
     }
 
+    auto vp = Camera::getDefaultViewport();
     // Create mirror texture and an FBO used to copy mirror texture to back buffer
     result = ovr_CreateMirrorTextureGL(_HMD, GL_SRGB8_ALPHA8, vp._width, vp._height, reinterpret_cast<ovrTexture**>(&_mirrorTexture));
     if (!OVR_SUCCESS(result)){
@@ -268,6 +270,7 @@ void VROculusRenderer::setup(GLView* glview)
 
     _eyeRenderDesc[0] = ovr_GetRenderDesc(_HMD, ovrEye_Left, hmdDesc.DefaultEyeFov[0]);
     _eyeRenderDesc[1] = ovr_GetRenderDesc(_HMD, ovrEye_Right, hmdDesc.DefaultEyeFov[1]);
+
 
     _ld.Header.Type = ovrLayerType_EyeFov;
     _ld.Header.Flags = ovrLayerFlag_TextureOriginAtBottomLeft;   // Because OpenGL.
@@ -287,6 +290,11 @@ void VROculusRenderer::cleanup()
     ovr_Destroy(_HMD);
     ovr_Shutdown();
     //OVR::System::Dest
+}
+
+VRIHeadTracker* VROculusRenderer::getHeadTracker()
+{
+    return _headTracker;
 }
 
 void VROculusRenderer::render(Scene* scene, Renderer* renderer)
@@ -313,7 +321,6 @@ void VROculusRenderer::render(Scene* scene, Renderer* renderer)
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
 
-    glDepthMask(true);
     for (unsigned short eye = 0; eye < EYE_NUM; ++eye){
         //EyeRenderPose[eye].Position = { defaultPos.x, defaultPos.y, defaultPos.z };
         _eyeRenderTexture[eye]->TextureSet->CurrentIndex = (_eyeRenderTexture[eye]->TextureSet->CurrentIndex + 1) % _eyeRenderTexture[eye]->TextureSet->TextureCount;
@@ -324,11 +331,11 @@ void VROculusRenderer::render(Scene* scene, Renderer* renderer)
 
         Mat4::createTranslation(ViewOffset[eye].x, ViewOffset[eye].y, ViewOffset[eye].z, &transform);
         _eyeRenderTexture[eye]->SetAndClearRenderSurface(_eyeDepthBuffer[eye]);
+        Camera::setDefaultViewport(experimental::Viewport(0, 0, _ld.Viewport[eye].Size.w, _ld.Viewport[eye].Size.h));
         transform *= headView;
-        scene->render(renderer, transform);
+        scene->render(renderer, transform.getInversed(), &_eyeProjections[eye]);
         _eyeRenderTexture[eye]->UnsetRenderSurface();
     }
-    glDepthMask(false);
 
     // Set up positional data.
     ovrViewScaleDesc viewScaleDesc;

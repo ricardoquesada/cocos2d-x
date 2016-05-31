@@ -34,6 +34,9 @@
 #include "2d/CCSprite.h"
 #include "platform/CCGLView.h"
 #include "platform/android/jni/JniHelper.h"
+#include "base/CCEventListenerCustom.h"
+#include "base/CCEventDispatcher.h"
+#include "base/CCEventType.h"
 
 #define GL( func )		func;
 #define NUM_MULTI_SAMPLES	4
@@ -200,26 +203,51 @@ void VRGearVRRenderer::setup(GLView* glview)
     const float suggestedEyeFovDegreesY = vrapi_GetSystemPropertyFloat(&_java, VRAPI_SYS_PROP_SUGGESTED_EYE_FOV_DEGREES_Y);
     
     _projection = ovrMatrix4f_CreateProjectionFov(suggestedEyeFovDegreesX, suggestedEyeFovDegreesY, 0.0f, 0.0f, VRAPI_ZNEAR, 5000.0f);
+    _eyeProjection.set((const GLfloat *)(ovrMatrix4f_Transpose(&_projection).M[0]));
     
-    if (!_ovr){
-        ovrModeParms modeParms = vrapi_DefaultModeParms(&_java);
-        _ovr = vrapi_EnterVrMode(&modeParms);
-        _headTracker->setOVR(_ovr);
-    }
+    auto backToForegroundListener = EventListenerCustom::create(EVENT_COME_TO_FOREGROUND,
+                                                                [=](EventCustom*)
+                                                                {
+                                                                    if (!_ovr){
+                                                                        ovrModeParms modeParms = vrapi_DefaultModeParms(&_java);
+                                                                        _ovr = vrapi_EnterVrMode(&modeParms);
+                                                                        _headTracker->setOVR(_ovr);
+                                                                    }
+                                                                }
+                                                                );
+    Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(backToForegroundListener, -1);
+    
+    
+    auto foregroundToBackListener = EventListenerCustom::create(EVENT_COME_TO_BACKGROUND,
+                                                                [=](EventCustom*)
+                                                                {
+                                                                    if (_ovr){
+                                                                        _headTracker->setOVR(nullptr);
+                                                                        vrapi_LeaveVrMode(_ovr);
+                                                                        _ovr = nullptr;
+                                                                    }
+                                                                }
+                                                                );
+    Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(foregroundToBackListener, -1);
+
 }
 
 void VRGearVRRenderer::cleanup()
 {
-    _headTracker->setOVR(nullptr);
-    vrapi_LeaveVrMode(_ovr);
     for (int eye = 0; eye < EYE_NUM; eye++){
         ovrFramebuffer_Destroy(&_frameBuffer[eye]);
     }
     vrapi_Shutdown();
 }
 
+VRIHeadTracker* cocos2d::VRGearVRRenderer::getHeadTracker()
+{
+    return _headTracker;
+}
+
 void VRGearVRRenderer::render(Scene* scene, Renderer* renderer)
 {
+    if (!_ovr) return;
     ++_frameIndex;
     const ovrHeadModelParms headModelParms = vrapi_DefaultHeadModelParms();
     ovrFrameParms frameParms = vrapi_DefaultFrameParms(&_java, VRAPI_FRAME_INIT_DEFAULT, vrapi_GetTimeInSeconds(), NULL);
@@ -238,7 +266,6 @@ void VRGearVRRenderer::render(Scene* scene, Renderer* renderer)
     glGetIntegerv(GL_VIEWPORT, viewport);
     
     glEnable(GL_SCISSOR_TEST);
-    glDepthMask(true);
     for (unsigned short i = 0; i < EYE_NUM; ++i){
         ovrFramebuffer * frameBuffer = &_frameBuffer[i];
         ovrFramebuffer_SetCurrent(frameBuffer);
@@ -252,7 +279,7 @@ void VRGearVRRenderer::render(Scene* scene, Renderer* renderer)
         const float eyeOffset = ( i ? -0.5f : 0.5f ) * headModelParms.InterpupillaryDistance;
         Mat4::createTranslation(eyeOffset, 0, 0, &transform);
         transform *= headView;
-        scene->render(renderer, transform);
+        scene->render(renderer, transform.getInversed(), &_eyeProjection);
         
         // Explicitly clear the border texels to black because OpenGL-ES does not support GL_CLAMP_TO_BORDER.
         {
@@ -278,7 +305,6 @@ void VRGearVRRenderer::render(Scene* scene, Renderer* renderer)
         frameParms.Layers[VRAPI_FRAME_LAYER_TYPE_WORLD].Textures[i].HeadPose = _headTracker->getTracking().HeadPose;
         ovrFramebuffer_Advance(frameBuffer);
     }
-    glDepthMask(false);
     glDisable(GL_SCISSOR_TEST);
     
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);

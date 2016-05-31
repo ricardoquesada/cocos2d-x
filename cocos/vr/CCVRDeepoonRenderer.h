@@ -57,10 +57,12 @@ public:
     virtual void setup(GLView* glview);
     virtual void cleanup();
     virtual void render(Scene* scene, Renderer* renderer);
+    virtual VRIHeadTracker* getHeadTracker();
     
 protected:
     
     dpnnFramebuffer _frameBuffer[EYE_NUM];
+    Mat4            _eyeProjection;
     dpnnInstance    _instance;
     VRDeepoonHeadTracker *_headTracker;
 };

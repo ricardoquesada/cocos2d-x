@@ -207,12 +207,18 @@ void VRDeepoonRenderer::setup(GLView* glview)
                                EYE_BUFFER_SIZE,
                                NUM_MULTI_SAMPLES);
     }
-    
+
     auto backToForegroundListener = EventListenerCustom::create(EVENT_COME_TO_FOREGROUND,
                                                                 [=](EventCustom*)
                                                                 {
-                                                                    _instance = dpnnInit(1, DPNN_UM_DEFAULT, NULL, DPNN_DEVICE_GLES2, (void*)JniHelper::getActivity());
-                                                                    _headTracker->setdpnnInstance(&_instance);
+                                                                    if (!_instance){
+                                                                        _instance = dpnnInit(1, DPNN_UM_DEFAULT, NULL, DPNN_DEVICE_GLES2, (void*)JniHelper::getActivity());
+                                                                        _headTracker->setdpnnInstance(_instance);
+                                                                        dpnnDeviceInfo dInfo;
+                                                                        dpnnGetDeviceInfo(_instance, &dInfo);
+                                                                        auto projection = dpnutilMatrix4_CreateProjectionFov(CC_DEGREES_TO_RADIANS(dInfo.fov_x), CC_DEGREES_TO_RADIANS(dInfo.fov_y), 0.0f, 0.0f, 0.1f, 5000.0f);
+                                                                        _eyeProjection.set((const GLfloat *)(dpnutilMatrix4_Transpose(&projection).M[0]));
+                                                                    }
                                                                 }
                                                                 );
     Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(backToForegroundListener, -1);
@@ -221,9 +227,11 @@ void VRDeepoonRenderer::setup(GLView* glview)
     auto foregroundToBackListener = EventListenerCustom::create(EVENT_COME_TO_BACKGROUND,
                                                                 [=](EventCustom*)
                                                                 {
-                                                                    _headTracker->setdpnnInstance(nullptr);
-                                                                    dpnnDeinit(_instance);
-                                                                    _instance = nullptr;
+                                                                    if (_instance){
+                                                                        _headTracker->setdpnnInstance(nullptr);
+                                                                        dpnnDeinit(_instance);
+                                                                        _instance = nullptr;
+                                                                    }
                                                                 }
                                                                 );
     Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(foregroundToBackListener, -1);
@@ -235,8 +243,11 @@ void VRDeepoonRenderer::cleanup()
     {
         dpnnFramebuffer_Destroy(&_frameBuffer[eye]);
     }
-    dpnnDeinit(_instance);
-    _headTracker->setdpnnInstance(nullptr);
+}
+
+VRIHeadTracker* VRDeepoonRenderer::getHeadTracker()
+{
+    return _headTracker;
 }
 
 void VRDeepoonRenderer::render(Scene* scene, Renderer* renderer)
@@ -250,7 +261,6 @@ void VRDeepoonRenderer::render(Scene* scene, Renderer* renderer)
     glGetIntegerv(GL_VIEWPORT, viewport);
     
     glEnable(GL_SCISSOR_TEST);
-    glDepthMask(true);
     for (unsigned short i = 0; i < EYE_NUM; ++i){
         dpnnFramebuffer * frameBuffer = &_frameBuffer[i];
         dpnnFramebuffer_SetCurrent(frameBuffer);
@@ -264,7 +274,7 @@ void VRDeepoonRenderer::render(Scene* scene, Renderer* renderer)
         const float eyeOffset = ( i ? -0.5f : 0.5f ) * headModelParms.ipd;
         Mat4::createTranslation(eyeOffset, 0, 0, &transform);
         transform *= headView;
-        scene->render(renderer, transform);
+        scene->render(renderer, transform.getInversed(), &_eyeProjection);
         
         // Explicitly clear the border texels to black because OpenGL-ES does not support GL_CLAMP_TO_BORDER.
         {
@@ -287,7 +297,6 @@ void VRDeepoonRenderer::render(Scene* scene, Renderer* renderer)
         dpnnSetTexture(_instance, (void*)(frameBuffer->texIDs[frameBuffer->TextureSwapIndex]), i == 0 ? DPNN_EYE_LEFT : DPNN_EYE_RIGHT, DPNN_TW_NONE);
         dpnnFramebuffer_Advance(frameBuffer);
     }
-    glDepthMask(false);
     glDisable(GL_SCISSOR_TEST);
     
     dpnnRecordPose(_instance, DPNN_EYE_COUNT);

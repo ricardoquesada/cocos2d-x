@@ -57,11 +57,13 @@ public:
     virtual void setup(GLView* glview);
     virtual void cleanup();
     virtual void render(Scene* scene, Renderer* renderer);
+    virtual VRIHeadTracker* getHeadTracker();
     
 protected:
     
     ovrFramebuffer _frameBuffer[EYE_NUM];
     ovrMatrix4f    _projection;
+    Mat4           _eyeProjection;
     ovrJava    _java;
     ovrMobile *_ovr;
     long long  _frameIndex;

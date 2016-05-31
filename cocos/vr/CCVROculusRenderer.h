@@ -48,12 +48,14 @@ public:
     virtual void setup(GLView* glview);
     virtual void cleanup();
     virtual void render(Scene* scene, Renderer* renderer);
+    virtual VRIHeadTracker* getHeadTracker();
 
 protected:
 
     TextureBuffer   *_eyeRenderTexture[EYE_NUM];
     DepthBuffer     *_eyeDepthBuffer[EYE_NUM];
     ovrEyeRenderDesc _eyeRenderDesc[EYE_NUM];
+    Mat4             _eyeProjections[EYE_NUM];
     GLuint           _mirrorFBO;
     ovrGLTexture    *_mirrorTexture;
     ovrHmd           _HMD;
