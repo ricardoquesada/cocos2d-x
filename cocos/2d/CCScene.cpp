@@ -208,9 +208,10 @@ void Scene::render(Renderer* renderer, const Mat4& eyeTransform, const Mat4* eye
         // then the "nodeToParent transform" will be lost.
         // And it is important that the change is "permament", because the matrix might be used for calculate
         // culling and other stuff.
-        camera->setAdditionalTransform(eyeTransform.getInversed());
         if (eyeProjection)
             camera->setAdditionalProjection(*eyeProjection * camera->getProjectionMatrix().getInversed());
+        else
+            camera->setAdditionalTransform(eyeTransform.getInversed());
 
         director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION);
         director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_PROJECTION, Camera::_visitingCamera->getViewProjectionMatrix());

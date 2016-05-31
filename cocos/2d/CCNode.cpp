@@ -1792,9 +1792,6 @@ void Node::setAdditionalTransform(Mat4* additionalTransform)
     }
     else
     {
-        // FIXME: Why "set" multiplies with the previous one.
-        // "set" should just replace the old one.
-        // in any case, we should add a new method called "concatAdditionalTransform"
         _additionalTransform = *additionalTransform;
         _useAdditionalTransform = true;
     }
