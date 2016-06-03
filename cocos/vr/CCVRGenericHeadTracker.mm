@@ -28,6 +28,8 @@
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #import <CoreMotion/CoreMotion.h>
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+#include <android/sensor.h>
 #endif
 
 NS_CC_BEGIN
@@ -97,14 +99,20 @@ VRGenericHeadTracker::VRGenericHeadTracker()
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     _motionMgr = [[CMMotionManager alloc] init];
+#endif
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     startTracking();
 #endif
 }
 
 VRGenericHeadTracker::~VRGenericHeadTracker()
 {
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     stopTracking();
+#endif
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     [(CMMotionManager*)_motionMgr release];
 #endif
 }
@@ -130,6 +138,8 @@ void VRGenericHeadTracker::startTracking()
 
     // the inertial reference frame has z up and x forward, while the world has z out and x right
     _worldToInertialReferenceFrame = getRotateEulerMatrix(-90.f, 0.f, 90.f);
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #endif
 }
 
@@ -157,8 +167,9 @@ Mat4 VRGenericHeadTracker::getLocalRotation()
     Mat4 worldToDevice =  inertialReferenceFrameToDevice * _worldToInertialReferenceFrame;
     return  _deviceToDisplay * worldToDevice;
 
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #else
-    
     return Mat4::IDENTITY;
 #endif
 }
