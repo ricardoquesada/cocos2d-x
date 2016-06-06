@@ -215,13 +215,6 @@ navmesh/CCNavMeshDebugDraw.cpp \
 navmesh/CCNavMeshObstacle.cpp \
 navmesh/CCNavMeshUtils.cpp \
 vr/CCVRGenericRenderer.cpp \
-vr/CCVRGearVRRenderer.cpp \
-vr/CCVRGearVRHeadTracker.cpp \
-vr/CCVRDeepoonRenderer.cpp \
-vr/CCVRDeepoonHeadTracker.cpp \
-vr/CCVRCardboardRenderer.cpp \
-vr/CCVRCardboardHeadTracker.cpp \
-vr/cardboard/CbApi.cpp \
 ../external/ConvertUTF/ConvertUTFWrapper.cpp \
 ../external/ConvertUTF/ConvertUTF.c \
 ../external/tinyxml2/tinyxml2.cpp \
@@ -305,9 +298,6 @@ LOCAL_STATIC_LIBRARIES += spine_static
 LOCAL_STATIC_LIBRARIES += cocos_network_static
 LOCAL_STATIC_LIBRARIES += audioengine_static
 
-LOCAL_SHARED_LIBRARIES := vrapi
-LOCAL_SHARED_LIBRARIES += deepoon_sdk
-
 include $(BUILD_STATIC_LIBRARY)
 #==============================================================
 $(call import-module,freetype2/prebuilt/android)
@@ -329,8 +319,6 @@ $(call import-module,extensions)
 $(call import-module,Box2D)
 $(call import-module,bullet)
 $(call import-module,recast)
-$(call import-module,gearvr/prebuild)
-$(call import-module,deepoon/prebuild)
 # $(call import-module,curl/prebuilt/android)
 $(call import-module,websockets/prebuilt/android)
 $(call import-module,flatbuffers)
