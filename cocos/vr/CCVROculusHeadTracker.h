@@ -22,6 +22,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
+#include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRProtocol.h"
 #include "oculus/ovr/OVR_CAPI.h"
 #include "math/Vec3.h"
@@ -49,3 +52,5 @@ protected:
 };
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

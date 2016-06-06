@@ -23,6 +23,8 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRDeepoonRenderer.h"
 #include "vr/CCVRDeepoonHeadTracker.h"
 #include "renderer/CCRenderer.h"
@@ -306,3 +308,5 @@ void VRDeepoonRenderer::render(Scene* scene, Renderer* renderer)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

@@ -23,6 +23,8 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRGearVRHeadTracker.h"
 
 
@@ -61,3 +63,5 @@ void VRGearVRHeadTracker::applyTracking(double predictedDisplayTime)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

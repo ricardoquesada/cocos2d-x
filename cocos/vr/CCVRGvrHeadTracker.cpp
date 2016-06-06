@@ -23,8 +23,9 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
-#include "vr/CCVRGvrHeadTracker.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 
+#include "vr/CCVRGvrHeadTracker.h"
 
 NS_CC_BEGIN
 
@@ -60,3 +61,5 @@ void VRGvrHeadTracker::applyTracking(gvr::ClockTimePoint targetTime)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

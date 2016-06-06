@@ -23,6 +23,8 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRCardboardRenderer.h"
 #include "vr/CCVRCardboardHeadTracker.h"
 #include "renderer/CCRenderer.h"
@@ -123,3 +125,5 @@ void VRCardboardRenderer::render(Scene* scene, Renderer* renderer)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

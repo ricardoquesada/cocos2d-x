@@ -23,6 +23,8 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVROculusHeadTracker.h"
 
 
@@ -58,3 +60,5 @@ void cocos2d::VROculusHeadTracker::applyTracking(double predictedDisplayTime)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

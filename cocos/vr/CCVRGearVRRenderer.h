@@ -22,6 +22,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
+#include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRProtocol.h"
 #include "renderer/CCCustomCommand.h"
 #include "renderer/CCFrameBuffer.h"
@@ -71,3 +74,5 @@ protected:
 };
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

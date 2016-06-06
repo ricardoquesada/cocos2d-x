@@ -22,6 +22,9 @@
  THE SOFTWARE.
  ****************************************************************************/
 
+#include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRProtocol.h"
 #include "deepoon/include/deepoon_sdk_native.h"
 #include "deepoon/include/deepoon_sdk_utils.h"
@@ -47,3 +50,5 @@ protected:
 };
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

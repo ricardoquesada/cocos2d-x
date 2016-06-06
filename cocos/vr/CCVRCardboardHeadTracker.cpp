@@ -23,6 +23,10 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
+#include "platform/CCPlatformMacros.h"
 #include "vr/CCVRCardboardHeadTracker.h"
 #include "vr/cardboard/CbApi_Helpers.h"
 
@@ -55,3 +59,5 @@ Mat4 VRCardboardHeadTracker::getLocalRotation()
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

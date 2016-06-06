@@ -23,6 +23,9 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
+#include "platform/CCPlatformMacros.h"
 #include "vr/CCVROculusRenderer.h"
 #include "vr/CCVROculusHeadTracker.h"
 #include "renderer/CCRenderer.h"
@@ -361,3 +364,5 @@ void VROculusRenderer::render(Scene* scene, Renderer* renderer)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

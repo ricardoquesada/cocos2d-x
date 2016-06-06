@@ -23,8 +23,9 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
-#include "vr/CCVRDeepoonHeadTracker.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 
+#include "vr/CCVRDeepoonHeadTracker.h"
 
 NS_CC_BEGIN
 
@@ -55,3 +56,5 @@ Mat4 VRDeepoonHeadTracker::getLocalRotation()
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)

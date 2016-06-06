@@ -23,6 +23,8 @@
  ****************************************************************************/
 
 #include "platform/CCPlatformMacros.h"
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+
 #include "vr/CCVRGearVRRenderer.h"
 #include "vr/CCVRGearVRHeadTracker.h"
 #include "renderer/CCRenderer.h"
@@ -313,3 +315,5 @@ void VRGearVRRenderer::render(Scene* scene, Renderer* renderer)
 }
 
 NS_CC_END
+
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
