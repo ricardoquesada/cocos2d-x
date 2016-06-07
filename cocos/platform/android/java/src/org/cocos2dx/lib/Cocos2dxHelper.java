@@ -40,6 +40,7 @@ import android.preference.PreferenceManager.OnActivityResultListener;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.WindowManager;
+import android.hardware.SensorManager;
 
 import com.enhance.gameservice.IGameTuningService;
 
@@ -48,6 +49,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+
 
 public class Cocos2dxHelper {
     // ===========================================================
@@ -611,4 +613,12 @@ public class Cocos2dxHelper {
         }
     }
     //Enhance API modification end     
+    public static float[] getSensorRotationMatrix() {
+        float[] rotationM = new float[16];
+        float[] inclinationM = new float[16];
+        float[] gravs = new float[3];
+        float[] geoMags = new float[3];
+        SensorManager.getRotationMatrix(rotationMatrix, inclimationMatrix, gravs, geoMags);
+        return rotationM;
+    }
 }

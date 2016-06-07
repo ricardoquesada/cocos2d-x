@@ -33,7 +33,8 @@
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #import <CoreMotion/CoreMotion.h>
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-#include <android/sensor.h>
+#include <jni.h>
+#include "platform/android/jni/JniHelper.h"
 #endif
 
 NS_CC_BEGIN
@@ -172,7 +173,11 @@ Mat4 VRGenericHeadTracker::getLocalRotation()
     return  _deviceToDisplay * worldToDevice;
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+    static const std::string helperClassName = "org/cocos2dx/lib/Cocos2dxHelper";
+    auto rotMatrix = JniHelper::callStaticFloatArrayMethod(helperClassName, "getSensorRotationMatrix");
 
+    Mat4 ret(rotMatrix);
+    return ret;
 #else
     return Mat4::IDENTITY;
 #endif

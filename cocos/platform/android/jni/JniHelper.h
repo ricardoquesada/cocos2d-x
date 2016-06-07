@@ -132,6 +132,23 @@ public:
     }
 
     template <typename... Ts>
+    static jfloatArray callStaticFloatArrayMethod(const std::string& className, 
+                                       const std::string& methodName, 
+                                       Ts... xs) {
+        jfloatArray ret;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")[F";
+        if (cocos2d::JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            ret = (jfloatArray) t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(t, xs)...);
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
+    }
+
+    template <typename... Ts>
     static double callStaticDoubleMethod(const std::string& className, 
                                          const std::string& methodName, 
                                          Ts... xs) {
