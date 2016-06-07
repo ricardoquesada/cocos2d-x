@@ -26,6 +26,7 @@
 #include "vr/CCVRDistortionMesh.h"
 #include "vr/CCVRDistortion.h"
 #include "math/Vec2.h"
+#include "platform/CCGL.h"
 
 NS_CC_BEGIN
 
