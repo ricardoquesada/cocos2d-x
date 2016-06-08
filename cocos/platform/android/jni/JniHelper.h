@@ -132,20 +132,29 @@ public:
     }
 
     template <typename... Ts>
-    static jfloatArray callStaticFloatArrayMethod(const std::string& className, 
+    static float* callStaticFloatArrayMethod(const std::string& className, 
                                        const std::string& methodName, 
                                        Ts... xs) {
-        jfloatArray ret;
+        static float ret[32];
         cocos2d::JniMethodInfo t;
         std::string signature = "(" + std::string(getJNISignature(xs...)) + ")[F";
         if (cocos2d::JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
-            ret = (jfloatArray) t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(t, xs)...);
+            jfloatArray array = (jfloatArray) t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(t, xs)...);
+            jsize len = t.env->GetArrayLength(array);
+            if (len <= 32) {
+                jfloat* elems = t.env->GetFloatArrayElements(array, 0);
+                if (elems) {
+                    memcpy(ret, elems, sizeof(float) * len);
+                    t.env->ReleaseFloatArrayElements(array, elems, 0);
+                };
+            }
             t.env->DeleteLocalRef(t.classID);
             deleteLocalRefs(t.env);
+            return &ret[0];
         } else {
             reportError(className, methodName, signature);
         }
-        return ret;
+        return nullptr;
     }
 
     template <typename... Ts>

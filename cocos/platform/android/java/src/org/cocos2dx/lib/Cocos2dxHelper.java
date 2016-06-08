@@ -618,7 +618,7 @@ public class Cocos2dxHelper {
         float[] inclinationM = new float[16];
         float[] gravs = new float[3];
         float[] geoMags = new float[3];
-        SensorManager.getRotationMatrix(rotationMatrix, inclimationMatrix, gravs, geoMags);
+        SensorManager.getRotationMatrix(rotationM, inclinationM, gravs, geoMags);
         return rotationM;
     }
 }

@@ -64,6 +64,7 @@ static Mat4 matrixFromRotationMatrix(const CMRotationMatrix& rotationMatrix)
                 0.0f,
                 1.0f);
 }
+#endif // (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
 static Mat4 getRotateEulerMatrix(float x, float y, float z)
 {
@@ -97,7 +98,6 @@ static Mat4 getRotateEulerMatrix(float x, float y, float z)
     matrix.m[15] = 1.0f;
     return matrix;
 }
-#endif
 
 VRGenericHeadTracker::VRGenericHeadTracker()
 : _localPosition(Vec3::ZERO)
@@ -144,7 +144,8 @@ void VRGenericHeadTracker::startTracking()
     // the inertial reference frame has z up and x forward, while the world has z out and x right
     _worldToInertialReferenceFrame = getRotateEulerMatrix(-90.f, 0.f, 90.f);
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-
+    _deviceToDisplay = getRotateEulerMatrix(0.f, 0.f, -90.f);
+    _worldToInertialReferenceFrame = getRotateEulerMatrix(-90.f, 0.f, 90.f);
 #endif
 }
 
@@ -176,8 +177,9 @@ Mat4 VRGenericHeadTracker::getLocalRotation()
     static const std::string helperClassName = "org/cocos2dx/lib/Cocos2dxHelper";
     auto rotMatrix = JniHelper::callStaticFloatArrayMethod(helperClassName, "getSensorRotationMatrix");
 
-    Mat4 ret(rotMatrix);
-    return ret;
+    Mat4 inertialReferenceFrameToDevice(rotMatrix);
+    Mat4 worldToDevice =  inertialReferenceFrameToDevice * _worldToInertialReferenceFrame;
+    return  _deviceToDisplay * worldToDevice;
 #else
     return Mat4::IDENTITY;
 #endif

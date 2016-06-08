@@ -180,7 +180,7 @@ bool AppDelegate::applicationDidFinishLaunching()
     _testController = TestController::getInstance();
 
     glview->setVREnabled(true);
-    
+
     return true;
 }
 
