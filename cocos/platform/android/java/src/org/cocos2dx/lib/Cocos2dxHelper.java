@@ -616,10 +616,29 @@ public class Cocos2dxHelper {
     //Enhance API modification end     
     public static float[] getSensorRotationMatrix() {
         float[] rotationM = new float[16];
-        float[] inclinationM = new float[16];
-        float[] gravs = new float[3];
-        float[] geoMags = new float[3];
-        SensorManager.getRotationMatrix(rotationM, inclinationM, gravs, geoMags);
+        Log.d("carlos", "accel x = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[0]
+                + " y = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[1]
+                + " z = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[2]);
+        Log.d("carlos", "mag x = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[0]
+                + " y = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[1]
+                + " z = " +
+                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[2]);
+        if (!SensorManager.getRotationMatrix(rotationM,
+                null,
+                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues,
+                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues))
+        {
+            for (int i=0; i<16; i++) {
+                rotationM[i] = 0;
+            }
+            // identity matrix if error
+            rotationM[0] = rotationM[5] = rotationM[10] = rotationM[15] = 1;
+        }
         return rotationM;
     }
 }

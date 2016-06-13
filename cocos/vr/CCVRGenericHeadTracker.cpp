@@ -29,6 +29,7 @@
 
 #include "vr/CCVRGenericHeadTracker.h"
 #include "platform/CCPlatformMacros.h"
+#include "platform/CCDevice.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 #import <CoreMotion/CoreMotion.h>
@@ -146,6 +147,7 @@ void VRGenericHeadTracker::startTracking()
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     _deviceToDisplay = getRotateEulerMatrix(0.f, 0.f, -90.f);
     _worldToInertialReferenceFrame = getRotateEulerMatrix(-90.f, 0.f, 90.f);
+    Device::setAccelerometerEnabled(true);
 #endif
 }
 
@@ -153,6 +155,8 @@ void VRGenericHeadTracker::stopTracking()
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     [(CMMotionManager*)_motionMgr stopDeviceMotionUpdates];
+#elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
+    Device::setAccelerometerEnabled(false);
 #endif
 }
 
