@@ -147,7 +147,7 @@ void VRGenericHeadTracker::startTracking()
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
     _deviceToDisplay = getRotateEulerMatrix(0.f, 0.f, -90.f);
     _worldToInertialReferenceFrame = getRotateEulerMatrix(-90.f, 0.f, 90.f);
-    Device::setAccelerometerEnabled(true);
+    JniHelper::callStaticVoidMethod("org/cocos2dx/lib/Cocos2dxHelper", "enableAccelAndCompass");
 #endif
 }
 
@@ -178,27 +178,26 @@ Mat4 VRGenericHeadTracker::getLocalRotation()
     return  _deviceToDisplay * worldToDevice;
 
 #elif (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    static const std::string helperClassName = "org/cocos2dx/lib/Cocos2dxHelper";
-    auto rotMatrix = JniHelper::callStaticFloatArrayMethod(helperClassName, "getSensorRotationMatrix");
-
-    char buf[512];
-    snprintf(buf,  sizeof(buf)-1, "%f %f %f %f - %f %f %f %f - %f %f %f %f - %f %f %f %f", rotMatrix[0]
-             , rotMatrix[1]
-             , rotMatrix[2]
-             , rotMatrix[3]
-             , rotMatrix[4]
-             , rotMatrix[5]
-             , rotMatrix[6]
-             , rotMatrix[7]
-             , rotMatrix[8]
-             , rotMatrix[9]
-             , rotMatrix[10]
-             , rotMatrix[11]
-             , rotMatrix[12]
-             , rotMatrix[13]
-             , rotMatrix[14]
-             , rotMatrix[15]);
-    log("cocos matrix: %s", buf);
+    auto rotMatrix = JniHelper::callStaticFloatArrayMethod("org/cocos2dx/lib/Cocos2dxHelper", "getSensorRotationMatrix");
+//
+//    char buf[512];
+//    snprintf(buf,  sizeof(buf)-1, "%f %f %f %f - %f %f %f %f - %f %f %f %f - %f %f %f %f", rotMatrix[0]
+//             , rotMatrix[1]
+//             , rotMatrix[2]
+//             , rotMatrix[3]
+//             , rotMatrix[4]
+//             , rotMatrix[5]
+//             , rotMatrix[6]
+//             , rotMatrix[7]
+//             , rotMatrix[8]
+//             , rotMatrix[9]
+//             , rotMatrix[10]
+//             , rotMatrix[11]
+//             , rotMatrix[12]
+//             , rotMatrix[13]
+//             , rotMatrix[14]
+//             , rotMatrix[15]);
+//    log("cocos matrix: %s", buf);
 
     Mat4 inertialReferenceFrameToDevice(rotMatrix);
     Mat4 worldToDevice =  inertialReferenceFrameToDevice * _worldToInertialReferenceFrame;

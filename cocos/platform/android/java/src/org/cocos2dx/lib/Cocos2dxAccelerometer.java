@@ -51,6 +51,7 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     private final int mNaturalOrientation;
     final float[] accelerometerValues = new float[3];
     final float[] magneticFieldValues = new float[3];
+    final float[] rotationMatrix = new float[16];
 
     // ===========================================================
     // Constructors
@@ -77,7 +78,6 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     }
 
     public void enable() {
-        this.mSensorManager.registerListener(this, this.mCompass, SensorManager.SENSOR_DELAY_GAME);
         this.mSensorManager.registerListener(this, this.mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
@@ -107,6 +107,9 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
             float y = sensorEvent.values[1];
             final float z = sensorEvent.values[2];
 
+            this.accelerometerValues[0] = x;
+            this.accelerometerValues[1] = y;
+            this.accelerometerValues[2] = z;
             /*
              * Because the axes are not swapped when the device's screen orientation
              * changes. So we should swap it here. In tablets such as Motorola Xoom,
@@ -126,9 +129,6 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
             
             Cocos2dxGLSurfaceView.queueAccelerometer(x,y,z,sensorEvent.timestamp);
 
-            this.accelerometerValues[0] = x;
-            this.accelerometerValues[1] = y;
-            this.accelerometerValues[2] = z;
             
             /*
             if(BuildConfig.DEBUG) {

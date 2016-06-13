@@ -191,6 +191,10 @@ public class Cocos2dxHelper {
         Cocos2dxHelper.sCocos2dxAccelerometer.enable();
     }
 
+    public static void enableAccelAndCompass() {
+        Cocos2dxHelper.sAccelerometerEnabled = true;
+        Cocos2dxHelper.sCocos2dxAccelerometer.enableAll();
+    }
 
     public static void setAccelerometerInterval(float interval) {
         Cocos2dxHelper.sCocos2dxAccelerometer.setInterval(interval);
@@ -615,30 +619,21 @@ public class Cocos2dxHelper {
     }
     //Enhance API modification end     
     public static float[] getSensorRotationMatrix() {
-        float[] rotationM = new float[16];
-        Log.d("carlos", "accel x = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[0]
-                + " y = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[1]
-                + " z = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues[2]);
-        Log.d("carlos", "mag x = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[0]
-                + " y = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[1]
-                + " z = " +
-                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues[2]);
-        if (!SensorManager.getRotationMatrix(rotationM,
+        if (!SensorManager.getRotationMatrix(
+                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix,
                 null,
                 Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues,
                 Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues))
         {
             for (int i=0; i<16; i++) {
-                rotationM[i] = 0;
+                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[i] = 0;
             }
             // identity matrix if error
-            rotationM[0] = rotationM[5] = rotationM[10] = rotationM[15] = 1;
+            Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[0] = 
+                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[5] = 
+                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[10] = 
+                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[15] =  1;
         }
-        return rotationM;
+        return Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix;
     }
 }
