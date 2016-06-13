@@ -52,6 +52,7 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     final float[] accelerometerValues = new float[3];
     final float[] magneticFieldValues = new float[3];
     final float[] rotationMatrix = new float[16];
+    static final float ALPHA = 0.25f; // if ALPHA = 1 OR 0, no filter applies.
 
     // ===========================================================
     // Constructors
@@ -98,18 +99,26 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     // ===========================================================
     // Methods for/from SuperClass/Interfaces
     // ===========================================================
+    
+    protected float[] lowPass( float[] input, float[] output ) {
+        if ( output == null ) return input;
+
+        for ( int i=0; i<input.length; i++ ) {
+            output[i] = output[i] + ALPHA * (input[i] - output[i]);
+        }
+        return output;
+    }
 
     @Override
     public void onSensorChanged(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
+            lowPass(sensorEvent.values, this.accelerometerValues);
+
             float x = sensorEvent.values[0];
             float y = sensorEvent.values[1];
             final float z = sensorEvent.values[2];
 
-            this.accelerometerValues[0] = x;
-            this.accelerometerValues[1] = y;
-            this.accelerometerValues[2] = z;
             /*
              * Because the axes are not swapped when the device's screen orientation
              * changes. So we should swap it here. In tablets such as Motorola Xoom,
@@ -137,9 +146,7 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
             */
         }
         else if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            this.magneticFieldValues[0] = sensorEvent.values[0];
-            this.magneticFieldValues[1] = sensorEvent.values[1];
-            this.magneticFieldValues[2] = sensorEvent.values[2];
+            lowPass(sensorEvent.values, this.magneticFieldValues);
         }
     }
 
