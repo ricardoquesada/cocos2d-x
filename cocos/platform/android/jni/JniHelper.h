@@ -31,6 +31,7 @@ THE SOFTWARE.
 #include <unordered_map>
 #include <functional>
 #include "platform/CCPlatformMacros.h"
+#include "math/Vec3.h"
 
 NS_CC_BEGIN
 
@@ -155,6 +156,31 @@ public:
             reportError(className, methodName, signature);
         }
         return nullptr;
+    }
+
+    template <typename... Ts>
+    static Vec3 callStaticVec3Method(const std::string& className, 
+                                       const std::string& methodName, 
+                                       Ts... xs) {
+        Vec3 ret;
+        cocos2d::JniMethodInfo t;
+        std::string signature = "(" + std::string(getJNISignature(xs...)) + ")[F";
+        if (cocos2d::JniHelper::getStaticMethodInfo(t, className.c_str(), methodName.c_str(), signature.c_str())) {
+            jfloatArray array = (jfloatArray) t.env->CallStaticObjectMethod(t.classID, t.methodID, convert(t, xs)...);
+            jsize len = t.env->GetArrayLength(array);
+            if (len == 3) {
+                jfloat* elems = t.env->GetFloatArrayElements(array, 0);
+                ret.x = elems[0];
+                ret.y = elems[1];
+                ret.z = elems[2];
+                t.env->ReleaseFloatArrayElements(array, elems, 0);
+            }
+            t.env->DeleteLocalRef(t.classID);
+            deleteLocalRefs(t.env);
+        } else {
+            reportError(className, methodName, signature);
+        }
+        return ret;
     }
 
     template <typename... Ts>

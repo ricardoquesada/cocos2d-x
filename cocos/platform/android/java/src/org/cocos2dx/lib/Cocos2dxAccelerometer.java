@@ -50,8 +50,7 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     private final Sensor mCompass;
     private final int mNaturalOrientation;
     final float[] accelerometerValues = new float[3];
-    final float[] magneticFieldValues = new float[3];
-    final float[] rotationMatrix = new float[16];
+    final float[] compassFieldValues = new float[3];
     static final float ALPHA = 0.25f; // if ALPHA = 1 OR 0, no filter applies.
 
     // ===========================================================
@@ -73,12 +72,11 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     // Getter & Setter
     // ===========================================================
 
-    public void enableAll() {
-        this.mSensorManager.registerListener(this, this.mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+    public void enableCompass() {
         this.mSensorManager.registerListener(this, this.mCompass, SensorManager.SENSOR_DELAY_GAME);
     }
 
-    public void enable() {
+    public void enableAccel() {
         this.mSensorManager.registerListener(this, this.mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
     }
 
@@ -99,25 +97,18 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     // ===========================================================
     // Methods for/from SuperClass/Interfaces
     // ===========================================================
-    
-    protected float[] lowPass( float[] input, float[] output ) {
-        if ( output == null ) return input;
-
-        for ( int i=0; i<input.length; i++ ) {
-            output[i] = output[i] + ALPHA * (input[i] - output[i]);
-        }
-        return output;
-    }
-
     @Override
     public void onSensorChanged(final SensorEvent sensorEvent) {
         if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 
-            lowPass(sensorEvent.values, this.accelerometerValues);
-
             float x = sensorEvent.values[0];
             float y = sensorEvent.values[1];
             final float z = sensorEvent.values[2];
+
+            // needed by VR code
+            this.accelerometerValues[0] = x;
+            this.accelerometerValues[1] = y;
+            this.accelerometerValues[2] = z;
 
             /*
              * Because the axes are not swapped when the device's screen orientation
@@ -134,11 +125,11 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
                 final float tmp = x;
                 x = y;
                 y = -tmp;
-            }       
-            
+            }
+
+
             Cocos2dxGLSurfaceView.queueAccelerometer(x,y,z,sensorEvent.timestamp);
 
-            
             /*
             if(BuildConfig.DEBUG) {
                 Log.d(TAG, "x = " + sensorEvent.values[0] + " y = " + sensorEvent.values[1] + " z = " + pSensorEvent.values[2]);
@@ -146,7 +137,10 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
             */
         }
         else if (sensorEvent.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            lowPass(sensorEvent.values, this.magneticFieldValues);
+            // needed by VR code
+            this.compassFieldValues[0] = sensorEvent.values[0];
+            this.compassFieldValues[1] = sensorEvent.values[1];
+            this.compassFieldValues[2] = sensorEvent.values[2];
         }
     }
 
@@ -158,7 +152,7 @@ public class Cocos2dxAccelerometer implements SensorEventListener {
     // Methods
         // Native method called from Cocos2dxGLSurfaceView (To be in the same thread)
     // ===========================================================
-    
+
     public static native void onSensorChanged(final float x, final float y, final float z, final long timestamp);
 
     // ===========================================================

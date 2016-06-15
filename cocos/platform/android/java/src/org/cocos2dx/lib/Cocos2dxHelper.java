@@ -68,6 +68,7 @@ public class Cocos2dxHelper {
     private static AssetManager sAssetManager;
     private static Cocos2dxAccelerometer sCocos2dxAccelerometer;
     private static boolean sAccelerometerEnabled;
+    private static boolean sCompassEnabled;
     private static boolean sActivityVisible;
     private static String sPackageName;
     private static String sFileDirectory;
@@ -188,12 +189,12 @@ public class Cocos2dxHelper {
 
     public static void enableAccelerometer() {
         Cocos2dxHelper.sAccelerometerEnabled = true;
-        Cocos2dxHelper.sCocos2dxAccelerometer.enable();
+        Cocos2dxHelper.sCocos2dxAccelerometer.enableAccel();
     }
 
-    public static void enableAccelAndCompass() {
-        Cocos2dxHelper.sAccelerometerEnabled = true;
-        Cocos2dxHelper.sCocos2dxAccelerometer.enableAll();
+    public static void enableCompass() {
+        Cocos2dxHelper.sCompassEnabled = true;
+        Cocos2dxHelper.sCocos2dxAccelerometer.enableCompass();
     }
 
     public static void setAccelerometerInterval(float interval) {
@@ -322,7 +323,10 @@ public class Cocos2dxHelper {
     public static void onResume() {
         sActivityVisible = true;
         if (Cocos2dxHelper.sAccelerometerEnabled) {
-            Cocos2dxHelper.sCocos2dxAccelerometer.enable();
+            Cocos2dxHelper.sCocos2dxAccelerometer.enableAccel();
+        }
+        if (Cocos2dxHelper.sCompassEnabled) {
+            Cocos2dxHelper.sCocos2dxAccelerometer.enableCompass();
         }
     }
 
@@ -617,23 +621,13 @@ public class Cocos2dxHelper {
             return -1;
         }
     }
+
     //Enhance API modification end     
-    public static float[] getSensorRotationMatrix() {
-        if (!SensorManager.getRotationMatrix(
-                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix,
-                null,
-                Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues,
-                Cocos2dxHelper.sCocos2dxAccelerometer.magneticFieldValues))
-        {
-            for (int i=0; i<16; i++) {
-                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[i] = 0;
-            }
-            // identity matrix if error
-            Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[0] = 
-                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[5] = 
-                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[10] = 
-                Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix[15] =  1;
-        }
-        return Cocos2dxHelper.sCocos2dxAccelerometer.rotationMatrix;
+    public static float[] getAccelValue() {
+        return Cocos2dxHelper.sCocos2dxAccelerometer.accelerometerValues;
+    }
+
+    public static float[] getCompassValue() {
+        return Cocos2dxHelper.sCocos2dxAccelerometer.compassFieldValues;
     }
 }
