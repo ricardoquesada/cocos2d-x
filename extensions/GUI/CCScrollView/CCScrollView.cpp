@@ -573,7 +573,7 @@ void ScrollView::onBeforeDraw()
         Rect frame = getViewRect();
         auto glview = Director::getInstance()->getOpenGLView();
 
-        if (!glview->isVREnabled()) {
+        if (glview->getVR() == nullptr) {
             if (glview->isScissorEnabled()) {
                 _scissorRestored = true;
                 _parentScissorRect = glview->getScissorRect();
@@ -610,7 +610,7 @@ void ScrollView::onAfterDraw()
     if (_clippingToBounds)
     {
         auto glview = Director::getInstance()->getOpenGLView();
-        if (!glview->isVREnabled()) {
+        if (glview->getVR() == nullptr) {
             if (_scissorRestored) {//restore the parent's scissor rect
                 glview->setScissorInPoints(_parentScissorRect.origin.x, _parentScissorRect.origin.y, _parentScissorRect.size.width, _parentScissorRect.size.height);
             }

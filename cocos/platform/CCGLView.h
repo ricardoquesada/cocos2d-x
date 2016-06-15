@@ -396,11 +396,12 @@ public:
     void renderScene(Scene* scene, Renderer* renderer);
 
     /**
-     * Whether or not to enable VR renderering
+     * Sets a VR renderer. 
+     * if `vrrenderer` is `nullptr` VR will be disabled
      */
-    void setVREnabled(bool enabled);
-    bool isVREnabled() const;
-    
+    void setVR(VRIRenderer* vrrenderer);
+    VRIRenderer* getVR() const;
+
 protected:
     void updateDesignResolutionSize();
     
@@ -420,7 +421,6 @@ protected:
     ResolutionPolicy _resolutionPolicy;
 
     // VR stuff
-    bool _vrEnabled;
     VRIRenderer* _vrImpl;
 };
 

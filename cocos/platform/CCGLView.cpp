@@ -107,7 +107,6 @@ GLView::GLView()
 : _scaleX(1.0f)
 , _scaleY(1.0f)
 , _resolutionPolicy(ResolutionPolicy::UNKNOWN)
-, _vrEnabled(false)
 , _vrImpl(nullptr)
 {
 }
@@ -475,7 +474,7 @@ void GLView::renderScene(Scene* scene, Renderer* renderer)
     CCASSERT(scene, "Invalid Scene");
     CCASSERT(renderer, "Invalid Renderer");
 
-    if (_vrEnabled)
+    if (_vrImpl)
     {
         _vrImpl->render(scene, renderer);
     }
@@ -485,23 +484,23 @@ void GLView::renderScene(Scene* scene, Renderer* renderer)
     }
 }
 
-void GLView::setVREnabled(bool enabled)
+VRIRenderer* GLView::getVR() const
 {
-    if (_vrEnabled != enabled)
+    return _vrImpl;
+}
+
+void GLView::setVR(VRIRenderer* vrRenderer)
+{
+    if (_vrImpl != vrRenderer)
     {
-        _vrEnabled = enabled;
-        if (_vrEnabled && !_vrImpl)
-        {
-            _vrImpl = new VRGenericRenderer;
-            _vrImpl->setup(this);
-        }
+        if (_vrImpl)
+            delete _vrImpl;
+
+        if (vrRenderer)
+            vrRenderer->setup(this);
+
+        _vrImpl = vrRenderer;
     }
 }
-
-bool GLView::isVREnabled() const
-{
-    return _vrEnabled;
-}
-
 
 NS_CC_END
