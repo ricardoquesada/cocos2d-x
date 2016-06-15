@@ -188,7 +188,7 @@ void SpriteFrame::setAnchorPoint(const Vec2& anchorPoint)
 
 bool SpriteFrame::hasAnchorPoint() const
 {
-    return !isnan(_anchorPoint.x);
+    return !std::isnan(_anchorPoint.x);
 }
 
 void SpriteFrame::setTexture(Texture2D * texture)
@@ -218,7 +218,7 @@ void SpriteFrame::setPolygonInfo(const PolygonInfo &polygonInfo)
     _polygonInfo = polygonInfo;
 }
 
-const PolygonInfo &SpriteFrame::getPolygonInfo() const
+const PolygonInfo& SpriteFrame::getPolygonInfo() const
 {
     return _polygonInfo;
 }

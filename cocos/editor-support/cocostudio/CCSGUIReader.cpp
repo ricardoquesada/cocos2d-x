@@ -48,6 +48,7 @@ THE SOFTWARE.
 #include "editor-support/cocostudio/CocoLoader.h"
 #include "tinyxml2.h"
 
+
 using namespace cocos2d;
 using namespace cocos2d::ui;
 

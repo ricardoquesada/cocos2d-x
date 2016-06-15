@@ -29,7 +29,6 @@
 #include "3d/CCSprite3DMaterial.h"
 #include "3d/CCAttachNode.h"
 #include "3d/CCMesh.h"
-#include "3d/CCSprite3DMaterial.h"
 
 #include "base/CCDirector.h"
 #include "base/CCAsyncTaskPool.h"
@@ -589,6 +588,7 @@ void Sprite3D::createNode(NodeData* nodedata, Node* root, const MaterialDatas& m
                     setScaleY(scale.y);
                     setScaleZ(scale.z);
                     
+                    node = this;
                 }
             }
             else

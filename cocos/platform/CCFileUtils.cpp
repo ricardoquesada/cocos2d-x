@@ -31,7 +31,7 @@ THE SOFTWARE.
 #include "base/ccMacros.h"
 #include "base/CCDirector.h"
 #include "platform/CCSAXParser.h"
-#include "base/ccUtils.h"
+//#include "base/ccUtils.h"
 
 #include "tinyxml2.h"
 #ifdef MINIZIP_FROM_SYSTEM
@@ -274,7 +274,7 @@ public:
                 else if (sName == "integer")
                     _curArray->push_back(Value(atoi(_curValue.c_str())));
                 else
-                    _curArray->push_back(Value(utils::atof(_curValue.c_str())));
+                    _curArray->push_back(Value(std::atof(_curValue.c_str())));
             }
             else if (SAX_DICT == curState)
             {
@@ -283,7 +283,7 @@ public:
                 else if (sName == "integer")
                     (*_curDict)[_curKey] = Value(atoi(_curValue.c_str()));
                 else
-                    (*_curDict)[_curKey] = Value(utils::atof(_curValue.c_str()));
+                    (*_curDict)[_curKey] = Value(std::atof(_curValue.c_str()));
             }
 
             _curValue.clear();
@@ -665,19 +665,13 @@ unsigned char* FileUtils::getFileData(const std::string& filename, const char* m
     CCASSERT(!filename.empty() && size != nullptr && mode != nullptr, "Invalid parameters.");
     (void)(mode); // mode is unused, as we do not support text mode any more...
 
-    *size = 0;
-    std::string s;
-    if (getContents(filename, &s) != Status::OK)
+    Data d;
+    if (getContents(filename, &d) != Status::OK) {
+        *size = 0;
         return nullptr;
+    }
 
-    unsigned char * buffer = (unsigned char*)malloc(s.size());
-    if (!buffer)
-        return nullptr;
-
-    memcpy(buffer, s.data(), s.size());
-    *size = s.size();
-
-    return buffer;
+    return d.takeBuffer(size);
 }
 
 unsigned char* FileUtils::getFileDataFromZip(const std::string& zipFilePath, const std::string& filename, ssize_t *size)
