@@ -107,6 +107,7 @@ DistortionMesh::DistortionMesh(Distortion *distortion,
     _indices = (rows-1)*cols*2+rows-2;
 //    GLshort indexData[_indices];
 	std::vector<GLshort> indexData(_indices);
+    const int indexDataSize = _indices * sizeof(GLshort);
 
     int indexOffset = 0;
     vertexOffset = 0;
@@ -141,7 +142,7 @@ DistortionMesh::DistortionMesh(Distortion *distortion,
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _elementBufferID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), &indexData[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexDataSize, &indexData[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
