@@ -1962,6 +1962,18 @@
     <ClCompile Include="..\vr\CCVROculusHeadTracker.cpp">
       <Filter>vr</Filter>
     </ClCompile>
+    <ClCompile Include="..\vr\CCVRDistortion.cpp">
+      <Filter>vr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vr\CCVRDistortionMesh.cpp">
+      <Filter>vr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vr\CCVRGenericHeadTracker.cpp">
+      <Filter>vr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vr\CCVRGenericRenderer.cpp">
+      <Filter>vr</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\physics\CCPhysicsBody.h">
@@ -3831,6 +3843,18 @@
       <Filter>vr</Filter>
     </ClInclude>
     <ClInclude Include="..\vr\CCVROculusHeadTracker.h">
+      <Filter>vr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vr\CCVRDistortion.h">
+      <Filter>vr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vr\CCVRDistortionMesh.h">
+      <Filter>vr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vr\CCVRGenericHeadTracker.h">
+      <Filter>vr</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vr\CCVRGenericRenderer.h">
       <Filter>vr</Filter>
     </ClInclude>
   </ItemGroup>

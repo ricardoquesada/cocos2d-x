@@ -44,7 +44,7 @@ public:
     float distortInverse(float radius);
 
 private:
-    constexpr static int s_numberOfCoefficients = 2;
+    static const int s_numberOfCoefficients = 2;
     float _coefficients[s_numberOfCoefficients];
 };
 

@@ -24,6 +24,9 @@
  ****************************************************************************/
 
 #include "vr/CCVRDistortionMesh.h"
+
+#include <vector>
+
 #include "vr/CCVRDistortion.h"
 #include "math/Vec2.h"
 #include "platform/CCGL.h"
@@ -102,7 +105,8 @@ DistortionMesh::DistortionMesh(Distortion *distortion,
     }
 
     _indices = (rows-1)*cols*2+rows-2;
-    GLshort indexData[_indices];
+//    GLshort indexData[_indices];
+	std::vector<GLshort> indexData(_indices);
 
     int indexOffset = 0;
     vertexOffset = 0;
@@ -137,7 +141,7 @@ DistortionMesh::DistortionMesh(Distortion *distortion,
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _elementBufferID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), &indexData[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
