@@ -802,6 +802,15 @@ protected:
     cocos2d::Vec3 rotation;
 };
 
+class SpriteGetSpriteFrameTest : public SpriteTestDemo
+{
+public:
+    CREATE_FUNC(SpriteGetSpriteFrameTest);
+    SpriteGetSpriteFrameTest();
+    virtual std::string title() const override { return "Sprite::getSpriteFrame(*)"; };
+    virtual std::string subtitle() const override { return "setting after getting should be the same"; }
+};
+
 class SpriteSlice9Test1 : public SpriteTestDemo
 {
 public:
@@ -895,24 +904,29 @@ public:
     virtual std::string subtitle() const override { return "Flipped sprites #2"; }
 };
 
-
 class SpriteSlice9Test10 : public SpriteTestDemo
 {
 public:
     CREATE_FUNC(SpriteSlice9Test10);
     SpriteSlice9Test10();
-    virtual std::string title() const override { return "Slice 10 Test #9"; };
+    virtual std::string title() const override { return "Slice 9 Test #10"; };
     virtual std::string subtitle() const override { return "Rotated Sprites"; }
 };
 
-
-class SpriteGetSpriteFrameTest : public SpriteTestDemo
+class SpriteSlice9Test11 : public SpriteTestDemo
 {
 public:
-    CREATE_FUNC(SpriteGetSpriteFrameTest);
-    SpriteGetSpriteFrameTest();
-    virtual std::string title() const override { return "Sprite::getSpriteFrame(*)"; };
-    virtual std::string subtitle() const override { return "setting after getting should be the same"; }
+    CREATE_FUNC(SpriteSlice9Test11);
+    SpriteSlice9Test11();
+    virtual std::string title() const override { return "Slice 9 Test #11"; };
+    virtual std::string subtitle() const override { return "Dynamic content size"; }
+
+protected:
+    void update(float dt) override;
+
+    cocos2d::Sprite *_sprites[6];
+    cocos2d::Size _originalCS;
+    float _acumm;
 };
 
 #endif

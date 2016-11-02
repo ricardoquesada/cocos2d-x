@@ -429,7 +429,7 @@ void Sprite::updatePoly()
     if (_numberOfSlices == 1) {
         setTextureCoords(_rect, &_quad);
         const Rect copyRect(0, 0, _rect.size.width * _strechFactor.x, _rect.size.height * _strechFactor.y);
-        setVertexCoords(copyRect, _rect.size, &_quad);
+        setVertexCoords(copyRect, &_quad);
         _polyInfo.setQuad(&_quad);
     } else {
         // in theory it can support 3 slices as well, but let's stick to 9 only
@@ -535,9 +535,13 @@ void Sprite::updatePoly()
         for (int i=0; i<_numberOfSlices; ++i) {
             int texIdx = idx[i];
             setTextureCoords(texRects[texIdx], &_quads[i]);
-            setVertexCoords(verticesRects[i], _rect.size, &_quads[i]);
+            setVertexCoords(verticesRects[i], &_quads[i]);
         }
         _polyInfo.setQuads(_quads, _numberOfSlices);
+
+        CCLOG("x0=%g, x1=%g, x2=%g, x0_s=%g, x1_s=%g, x2_s=%g",
+              x0, x1, x2,
+              x0_s, x1_s, x2_s);
     }
 }
 
@@ -704,7 +708,7 @@ void Sprite::setTextureCoords(const Rect& rectInPoints, V3F_C4B_T2F_Quad* outQua
     }
 }
 
-void Sprite::setVertexCoords(const Rect& rect, const Size& imageSize, V3F_C4B_T2F_Quad* outQuad)
+void Sprite::setVertexCoords(const Rect& rect, V3F_C4B_T2F_Quad* outQuad)
 {
     // container size is the Size that contains the "unsliced" sprite
 
@@ -721,8 +725,8 @@ void Sprite::setVertexCoords(const Rect& rect, const Size& imageSize, V3F_C4B_T2
         relativeOffsetY = -relativeOffsetY;
     }
 
-    _offsetPosition.x = relativeOffsetX + (_originalContentSize.width - imageSize.width) / 2;
-    _offsetPosition.y = relativeOffsetY + (_originalContentSize.height - imageSize.height) / 2;
+    _offsetPosition.x = relativeOffsetX + ((_originalContentSize.width - _rect.size.width) / 2) * (_contentSize.width/_originalContentSize.width);
+    _offsetPosition.y = relativeOffsetY + ((_originalContentSize.height - _rect.size.height) / 2) * (_contentSize.height/_originalContentSize.height);
 
     // rendering using batch node
     if (_batchNode)
@@ -1156,30 +1160,18 @@ void Sprite::setContentSize(const Size& size)
 void Sprite::updateStretchFactor()
 {
     const Size size = getContentSize();
-    const float adjustedWidth = size.width - (_originalContentSize.width - _rect.size.width);
-    const float adjustedHeight = size.height - (_originalContentSize.height - _rect.size.height);
-
     if (_numberOfSlices == 1)
     {
-        const float x_factor = adjustedWidth / _rect.size.width;
-        const float y_factor = adjustedHeight / _rect.size.height;
-
-        _strechFactor = Vec2(x_factor, y_factor);
+        _strechFactor = Vec2(size.width / _originalContentSize.width,
+                             size.height / _originalContentSize.height);
     }
     else
     {
-        const float x1 = _rect.size.width * _centerRectNormalized.origin.x;
-        const float x2 = _rect.size.width * _centerRectNormalized.size.width;
-        const float x3 = _rect.size.width * (1 - _centerRectNormalized.origin.x - _centerRectNormalized.size.width);
+        const float rest_w = _originalContentSize.width - (_originalContentSize.width * _centerRectNormalized.size.width);
+        const float rest_h = _originalContentSize.height - (_originalContentSize.height * _centerRectNormalized.size.height);
 
-        const float y1 = _rect.size.height * _centerRectNormalized.origin.y;
-        const float y2 = _rect.size.height * _centerRectNormalized.size.height;
-        const float y3 = _rect.size.height * (1 - _centerRectNormalized.origin.y - _centerRectNormalized.size.height);
-
-        const float x_factor = (adjustedWidth - x1 - x3) / x2;
-        const float y_factor = (adjustedHeight - y1 - y3) / y2;
-
-        _strechFactor = Vec2(x_factor, y_factor);
+        _strechFactor = Vec2((size.width - rest_w) / (_originalContentSize.width - rest_w),
+                             (size.height - rest_h) / (_originalContentSize.height - rest_h));
     }
 }
 

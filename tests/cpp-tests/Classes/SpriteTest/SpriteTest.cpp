@@ -136,6 +136,7 @@ SpriteTests::SpriteTests()
     ADD_TEST_CASE(SpriteSlice9Test8);
     ADD_TEST_CASE(SpriteSlice9Test9);
     ADD_TEST_CASE(SpriteSlice9Test10);
+    ADD_TEST_CASE(SpriteSlice9Test11);
 };
 
 //------------------------------------------------------------------
@@ -5850,3 +5851,107 @@ SpriteSlice9Test10::SpriteSlice9Test10()
     s3->setContentSize(s3->getContentSize()*1.5);
     s3->setFlippedY(true);
 }
+
+//------------------------------------------------------------------
+//
+// Slice9 Test #11
+//
+//------------------------------------------------------------------
+SpriteSlice9Test11::SpriteSlice9Test11()
+{
+    Size s = Director::getInstance()->getVisibleSize();
+
+    SpriteFrameCache::getInstance()->addSpriteFramesWithFile("animations/grossini_family.plist");
+    SpriteFrameCache::getInstance()->addSpriteFramesWithFile("animations/grossini.plist");
+
+
+    // sliced
+    auto s1 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s1);
+    s1->setPosition(s.width/2-s.width/3, s.height*2/3);
+    s1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+    s1->setCenterRectNormalized(Rect(1/3.f, 1/3.f, 1/3.f, 1/3.f));
+
+    auto s2 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s2);
+    s2->setPosition(s.width*2/4, s.height*2/3);
+    s2->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+    s2->setCenterRectNormalized(Rect(1/3.f, 1/3.f, 1/3.f, 1/3.f));
+
+    auto s3 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s3);
+    s3->setPosition(s.width/2+s.width/3, s.height*2/3);
+    s3->setAnchorPoint(Vec2::ANCHOR_TOP_RIGHT);
+    s3->setCenterRectNormalized(Rect(1/3.f, 1/3.f, 1/3.f, 1/3.f));
+
+
+    // NOT sliced
+    auto s4 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s4);
+    s4->setPosition(s.width/2-s.width/3, s.height*1/3);
+    s4->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+
+    auto s5 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s5);
+    s5->setPosition(s.width*2/4, s.height*1/3);
+    s5->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
+    auto s6 = Sprite::createWithSpriteFrameName("grossini.png");
+    addChild(s6);
+    s6->setPosition(s.width/2+s.width/3, s.height*1/3);
+    s6->setAnchorPoint(Vec2::ANCHOR_TOP_RIGHT);
+
+    // "anchor points"
+    auto point = Sprite::create("Images/r1.png");
+    point->setScale(0.1f);
+    point->setPosition(s1->getPosition());
+    addChild(point, 10);
+
+    auto point2 = Sprite::create("Images/r1.png");
+    point2->setScale(0.1f);
+    point2->setPosition(s2->getPosition());
+    addChild(point2, 10);
+
+    auto point3 = Sprite::create("Images/r1.png");
+    point3->setScale(0.1f);
+    point3->setPosition(s3->getPosition());
+    addChild(point3, 10);
+
+    auto point4 = Sprite::create("Images/r1.png");
+    point4->setScale(0.1f);
+    point4->setPosition(s4->getPosition());
+    addChild(point4, 10);
+
+    auto point5 = Sprite::create("Images/r1.png");
+    point5->setScale(0.1f);
+    point5->setPosition(s5->getPosition());
+    addChild(point5, 10);
+
+    auto point6 = Sprite::create("Images/r1.png");
+    point6->setScale(0.1f);
+    point6->setPosition(s6->getPosition());
+    addChild(point6, 10);
+
+
+    _sprites[0] = s1;
+    _sprites[1] = s2;
+    _sprites[2] = s3;
+    _sprites[3] = s4;
+    _sprites[4] = s5;
+    _sprites[5] = s6;
+
+    _originalCS = _sprites[0]->getContentSize();
+    _acumm = 0;
+    
+    scheduleUpdate();
+}
+
+void SpriteSlice9Test11::update(float dt)
+{
+    _acumm += dt;
+    float s = sin(_acumm) + 1; // from 0 to 2
+    auto newcs = _originalCS * s;
+    for (int i=0;i<6;i++)
+        _sprites[i]->setContentSize(newcs);
+}
+

@@ -255,7 +255,7 @@ public:
      * If the value is different than (0,0), (1,1), then the sprite will be sliced into a 3 x 3 grid. The four corners of this grid are applied without
      * performing any scaling. The upper- and lower-middle parts are scaled horizontally, and the left- and right-middle parts are scaled vertically.
      * The center is scaled in both directions.
-     * Important: The scaling is based the Sprite's trimmed size.
+     * Important: The scaling is based the Sprite's untrimmed size.
      *
      * Limitations: Does not work when the sprite is part of `SpriteBatchNode`.
      */
@@ -623,7 +623,7 @@ protected:
     void updateColor() override;
     virtual void setTextureCoords(const Rect& rect);
     virtual void setTextureCoords(const Rect& rect, V3F_C4B_T2F_Quad* outQuad);
-    virtual void setVertexCoords(const Rect& rect, const Size& imageSize, V3F_C4B_T2F_Quad* outQuad);
+    virtual void setVertexCoords(const Rect& rect, V3F_C4B_T2F_Quad* outQuad);
     virtual void updateBlendFunc();
     virtual void setReorderChildDirtyRecursively();
     virtual void setDirtyRecursively(bool value);

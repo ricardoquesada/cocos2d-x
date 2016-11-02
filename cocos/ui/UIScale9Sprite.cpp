@@ -80,9 +80,9 @@ Scale9Sprite* Scale9Sprite::create(const Rect& capInsets, const std::string& fil
     return nullptr;
 }
 
-Scale9Sprite* Scale9Sprite::create(const std::string& fileaname)
+Scale9Sprite* Scale9Sprite::create(const std::string& filename)
 {
-    return create(Rect::ZERO, fileaname);
+    return create(Rect::ZERO, filename);
 }
 
 
