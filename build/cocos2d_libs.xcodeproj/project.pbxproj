@@ -1323,8 +1323,8 @@
 		3823843E1A259140002C4610 /* SingleNodeReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3823843B1A259140002C4610 /* SingleNodeReader.cpp */; };
 		3823843F1A259140002C4610 /* SingleNodeReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3823843C1A259140002C4610 /* SingleNodeReader.h */; };
 		382384401A259140002C4610 /* SingleNodeReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3823843C1A259140002C4610 /* SingleNodeReader.h */; };
-		382384441A25915C002C4610 /* SpriteReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* SpriteReader.cpp */; };
-		382384451A25915C002C4610 /* SpriteReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* SpriteReader.cpp */; };
+		382384441A25915C002C4610 /* objectData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* objectData.cpp */; };
+		382384451A25915C002C4610 /* objectData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* objectData.cpp */; };
 		382384461A25915C002C4610 /* SpriteReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 382384431A25915C002C4610 /* SpriteReader.h */; };
 		382384471A25915C002C4610 /* SpriteReader.h in Headers */ = {isa = PBXBuildFile; fileRef = 382384431A25915C002C4610 /* SpriteReader.h */; };
 		38ACD1FC1A27111900C3093D /* WidgetCallBackHandlerProtocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 38ACD1FA1A27111900C3093D /* WidgetCallBackHandlerProtocol.cpp */; };
@@ -1916,7 +1916,7 @@
 		507B3A571C31BDD30067B53E /* CCMeshCommand.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B29594B21926D5EC003EEF37 /* CCMeshCommand.cpp */; };
 		507B3A581C31BDD30067B53E /* CCStencilStateManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 298C75D31C0465D0006BAE63 /* CCStencilStateManager.cpp */; };
 		507B3A591C31BDD30067B53E /* CCComRender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1A8C5966180E930E00EF57C3 /* CCComRender.cpp */; };
-		507B3A5A1C31BDD30067B53E /* SpriteReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* SpriteReader.cpp */; };
+		507B3A5A1C31BDD30067B53E /* objectData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 382384421A25915C002C4610 /* objectData.cpp */; };
 		507B3A5B1C31BDD30067B53E /* btCollisionWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B6CAB02E1AF9AA1900B9B856 /* btCollisionWorld.cpp */; };
 		507B3A5C1C31BDD30067B53E /* b2MouseJoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 46A169051807AF9C005B8026 /* b2MouseJoint.cpp */; };
 		507B3A5D1C31BDD30067B53E /* LoadingBarReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50FCEB7918C72017004AD434 /* LoadingBarReader.cpp */; };
@@ -6280,7 +6280,7 @@
 		382384351A259126002C4610 /* ProjectNodeReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProjectNodeReader.h; sourceTree = "<group>"; };
 		3823843B1A259140002C4610 /* SingleNodeReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SingleNodeReader.cpp; sourceTree = "<group>"; };
 		3823843C1A259140002C4610 /* SingleNodeReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SingleNodeReader.h; sourceTree = "<group>"; };
-		382384421A25915C002C4610 /* SpriteReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SpriteReader.cpp; sourceTree = "<group>"; };
+		382384421A25915C002C4610 /* objectData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = objectData.cpp; sourceTree = "<group>"; };
 		382384431A25915C002C4610 /* SpriteReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SpriteReader.h; sourceTree = "<group>"; };
 		38ACD1FA1A27111900C3093D /* WidgetCallBackHandlerProtocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WidgetCallBackHandlerProtocol.cpp; sourceTree = "<group>"; };
 		38ACD1FB1A27111900C3093D /* WidgetCallBackHandlerProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WidgetCallBackHandlerProtocol.h; sourceTree = "<group>"; };
@@ -9315,7 +9315,7 @@
 		382384411A25915C002C4610 /* SpriteReader */ = {
 			isa = PBXGroup;
 			children = (
-				382384421A25915C002C4610 /* SpriteReader.cpp */,
+				382384421A25915C002C4610 /* objectData.cpp */,
 				382384431A25915C002C4610 /* SpriteReader.h */,
 			);
 			path = SpriteReader;
@@ -14795,7 +14795,7 @@
 				505385041B01887A00793096 /* CCProperties.cpp in Sources */,
 				1A570085180BC5A10088DEC7 /* CCActionPageTurn3D.cpp in Sources */,
 				B6CAB2B71AF9AA1A00B9B856 /* btConvexTriangleMeshShape.cpp in Sources */,
-				382384441A25915C002C4610 /* SpriteReader.cpp in Sources */,
+				382384441A25915C002C4610 /* objectData.cpp in Sources */,
 				B6CAB3291AF9AA1A00B9B856 /* btGImpactCollisionAlgorithm.cpp in Sources */,
 				1A570089180BC5A10088DEC7 /* CCActionProgressTimer.cpp in Sources */,
 				B665E3A61AA80A6500DDB1C5 /* CCPURandomiser.cpp in Sources */,
@@ -15634,7 +15634,7 @@
 				503D4F6D1CE2BDBE0054A2D1 /* CCVRDistortion.cpp in Sources */,
 				507B3A581C31BDD30067B53E /* CCStencilStateManager.cpp in Sources */,
 				507B3A591C31BDD30067B53E /* CCComRender.cpp in Sources */,
-				507B3A5A1C31BDD30067B53E /* SpriteReader.cpp in Sources */,
+				507B3A5A1C31BDD30067B53E /* objectData.cpp in Sources */,
 				507B3A5B1C31BDD30067B53E /* btCollisionWorld.cpp in Sources */,
 				507B3A5C1C31BDD30067B53E /* b2MouseJoint.cpp in Sources */,
 				507B3A5D1C31BDD30067B53E /* LoadingBarReader.cpp in Sources */,
@@ -16491,7 +16491,7 @@
 				503D4F6C1CE2BDBE0054A2D1 /* CCVRDistortion.cpp in Sources */,
 				298C75D61C0465D1006BAE63 /* CCStencilStateManager.cpp in Sources */,
 				15AE194B19AAD35100C27E9E /* CCComRender.cpp in Sources */,
-				382384451A25915C002C4610 /* SpriteReader.cpp in Sources */,
+				382384451A25915C002C4610 /* objectData.cpp in Sources */,
 				B6CAB2321AF9AA1A00B9B856 /* btCollisionWorld.cpp in Sources */,
 				15AE1ACA19AAD40300C27E9E /* b2MouseJoint.cpp in Sources */,
 				15AE19AC19AAD39700C27E9E /* LoadingBarReader.cpp in Sources */,

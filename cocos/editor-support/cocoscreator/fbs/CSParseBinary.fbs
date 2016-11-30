@@ -1,0 +1,130 @@
+// CSParseBinary IDL file
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// !! When adding new pairs to the maps below,         !!
+// !! please add to the last position of the map.      !!
+// !! It will ensure the reader's version compatible.  !!
+// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+namespace flatbuffers;
+
+table CSParseBinary
+{
+    //Make sure the version is the 1st pair in this map!
+	//It will make sure Cocos2d-x can parse the version string correctly from csbs in various versions.
+	version:string;
+
+    textures:[string];
+    texturePngs:[string];
+
+    nodeTree:NodeTree;
+    action:NodeAction;
+	animationList:[AnimationInfo];
+}
+
+root_type CSParseBinary;
+
+table NodeTree
+{
+    classname:string;
+
+    children:[NodeTree];
+
+    options:Options;
+	customClassName:string;
+}
+
+table Options
+{
+    data:WidgetOptions;
+}
+
+table NodeOptions
+{
+    contentSize:Size;
+    enabled:bool = true;
+    name:string;
+    anchorPoint:Vec2;
+    cascadeOpacityEnabled:bool = true;
+    color:RGB;
+    globalZorderint = 0;
+    localZorder:int = 0;
+    opacity:ubyte = 255;
+    opacityModifyRGB:bool = true;
+    position:Vec2;
+    rotationSkew:Vec2;
+    scale:Vec2;
+    tag:int = 0;
+}
+
+table SpriteOptions
+{
+    spriteFrameName:string;
+    centerRect:Rect;
+}
+
+table LabelOptions
+{
+    labelText:string;
+    horizontalAlignment:float;
+    verticalAlignment:float;
+    fontSize:float;
+    fontType:FontType;
+}
+
+table ParticleOptions
+{
+    plistFile:string;
+}
+
+TileMapOptions
+{
+    tmxFile:string;
+}
+
+table ScrollViewOptions
+{
+}
+
+table UIButtonOptions
+{
+    normalSpriteFrameName:string;
+    ignoreContentAdaptWithSize:bool = false;
+}
+
+enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
+
+
+struct Vec2
+{
+    x:float;
+    y:float;
+}
+
+struct Size
+{
+    w:float;
+    h:float;
+}
+
+struct Rect
+{
+    x:float;
+    y:float;
+    w:float;
+    h:float;
+}
+
+struct RGB
+{
+    r:ubyte;
+    g:ubyte;
+    b:ubyte;
+}
+
+struct RGBA
+{
+    r:ubyte;
+    g:ubyte;
+    b:ubyte;
+    a:ubyte;
+}
