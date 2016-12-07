@@ -7,21 +7,19 @@
 
 namespace flatbuffers;
 
-table CSParseBinary
+enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
+
+table SceneGraph
 {
     //Make sure the version is the 1st pair in this map!
-	//It will make sure Cocos2d-x can parse the version string correctly from csbs in various versions.
-	version:string;
+    //It will make sure Cocos2d-x can parse the version string correctly from csbs in various versions.
+    version:string;
 
     textures:[string];
     texturePngs:[string];
 
     nodeTree:NodeTree;
-    action:NodeAction;
-	animationList:[AnimationInfo];
 }
-
-root_type CSParseBinary;
 
 table NodeTree
 {
@@ -30,12 +28,11 @@ table NodeTree
     children:[NodeTree];
 
     options:Options;
-	customClassName:string;
+    customClassName:string;
 }
 
 table Options
 {
-    data:WidgetOptions;
 }
 
 table NodeOptions
@@ -46,7 +43,7 @@ table NodeOptions
     anchorPoint:Vec2;
     cascadeOpacityEnabled:bool = true;
     color:RGB;
-    globalZorderint = 0;
+    globalZorder:int = 0;
     localZorder:int = 0;
     opacity:ubyte = 255;
     opacityModifyRGB:bool = true;
@@ -76,7 +73,8 @@ table ParticleOptions
     plistFile:string;
 }
 
-TileMapOptions
+
+table TileMapOptions
 {
     tmxFile:string;
 }
@@ -91,13 +89,19 @@ table UIButtonOptions
     ignoreContentAdaptWithSize:bool = false;
 }
 
-enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
 
 
 struct Vec2
 {
     x:float;
     y:float;
+}
+
+struct Vec3
+{
+    x:float;
+    y:float;
+    z:float;
 }
 
 struct Size
@@ -128,3 +132,6 @@ struct RGBA
     b:ubyte;
     a:ubyte;
 }
+
+root_type SceneGraph;
+
