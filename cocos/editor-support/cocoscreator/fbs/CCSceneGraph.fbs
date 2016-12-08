@@ -1,66 +1,58 @@
-// CSParseBinary IDL file
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// !! When adding new pairs to the maps below,         !!
-// !! please add to the last position of the map.      !!
-// !! It will ensure the reader's version compatible.  !!
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 namespace flatbuffers;
 
 enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
 
+// New nodes should be added at the end of the union
+// no more than 255 union objects can be added
+union AnyNode {Sprite}
+
 table SceneGraph
 {
-    //Make sure the version is the 1st pair in this map!
-    //It will make sure Cocos2d-x can parse the version string correctly from csbs in various versions.
     version:string;
 
-    textures:[string];
-    texturePngs:[string];
-
-    nodeTree:NodeTree;
+    root:NodeTree;
 }
 
 table NodeTree
 {
     classname:string;
-
-    children:[NodeTree];
-
-    options:Options;
     customClassName:string;
+
+    // Flatbuffers doesn't support array of unions
+    // so split the tree from node
+    // children:[NodeTree];
+    node:Sprite;
 }
 
-table Options
-{
-}
-
-table NodeOptions
+table Node
 {
     contentSize:Size;
     enabled:bool = true;
     name:string;
     anchorPoint:Vec2;
-    cascadeOpacityEnabled:bool = true;
-    color:RGB;
-    globalZorder:int = 0;
-    localZorder:int = 0;
-    opacity:ubyte = 255;
-    opacityModifyRGB:bool = true;
-    position:Vec2;
-    rotationSkew:Vec2;
-    scale:Vec2;
-    tag:int = 0;
+    // cascadeOpacityEnabled:bool = true;
+    // color:RGB;
+    // globalZorder:int = 0;
+    // localZorder:int = 0;
+    // opacity:ubyte = 255;
+    // opacityModifyRGB:bool = true;
+    // position:Vec2;
+    // rotationSkew:Vec2;
+    // scale:Vec2;
+    // tag:int = 0;
 }
 
-table SpriteOptions
+table Sprite
 {
+    node:Node;
     spriteFrameName:string;
     centerRect:Rect;
 }
 
-table LabelOptions
+table Label
 {
+    node:Node;
+
     labelText:string;
     horizontalAlignment:float;
     verticalAlignment:float;
@@ -68,28 +60,20 @@ table LabelOptions
     fontType:FontType;
 }
 
-table ParticleOptions
+table Particle
 {
+    node:Node;
+
     plistFile:string;
 }
 
 
-table TileMapOptions
+table TileMap
 {
+    node:Node;
+
     tmxFile:string;
 }
-
-table ScrollViewOptions
-{
-}
-
-table UIButtonOptions
-{
-    normalSpriteFrameName:string;
-    ignoreContentAdaptWithSize:bool = false;
-}
-
-
 
 struct Vec2
 {
