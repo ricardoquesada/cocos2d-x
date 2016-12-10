@@ -794,9 +794,9 @@
 		500D1CD31CF4A48B00535D35 /* Bug-15594.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 500D1CD11CF4A48B00535D35 /* Bug-15594.cpp */; };
 		500D1CD41CF4A48B00535D35 /* Bug-15594.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 500D1CD11CF4A48B00535D35 /* Bug-15594.cpp */; };
 		500D1CD51CF4A48B00535D35 /* Bug-15594.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 500D1CD11CF4A48B00535D35 /* Bug-15594.cpp */; };
-		5013B5DC1DFBC3D90044D212 /* flatbuffers in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DB1DFBC3D90044D212 /* flatbuffers */; };
-		5013B5DD1DFBC3D90044D212 /* flatbuffers in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DB1DFBC3D90044D212 /* flatbuffers */; };
-		5013B5DE1DFBC3D90044D212 /* flatbuffers in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DB1DFBC3D90044D212 /* flatbuffers */; };
+		5013B5E01DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
+		5013B5E11DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
+		5013B5E21DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
 		5046AB4A1AF2A8D80060550B /* MaterialSystemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5046AB481AF2A8D80060550B /* MaterialSystemTest.cpp */; };
 		5046AB4B1AF2A8D80060550B /* MaterialSystemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5046AB481AF2A8D80060550B /* MaterialSystemTest.cpp */; };
 		5046AB5B1AF2C4180060550B /* Materials in Resources */ = {isa = PBXBuildFile; fileRef = 5046AB5A1AF2C4180060550B /* Materials */; };
@@ -2479,7 +2479,15 @@
 		4B5C5BB41CA114DB00D55A14 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS9.1.sdk/System/Library/Frameworks/Security.framework; sourceTree = DEVELOPER_DIR; };
 		500D1CD11CF4A48B00535D35 /* Bug-15594.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "Bug-15594.cpp"; sourceTree = "<group>"; };
 		500D1CD21CF4A48B00535D35 /* Bug-15594.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Bug-15594.h"; sourceTree = "<group>"; };
-		5013B5DB1DFBC3D90044D212 /* flatbuffers */ = {isa = PBXFileReference; lastKnownFileType = folder; name = flatbuffers; path = CreatorReaderTest/flatbuffers; sourceTree = "<group>"; };
+		5013B5DF1DFBC6200044D212 /* creator */ = {isa = PBXFileReference; lastKnownFileType = folder; name = creator; path = "../tests/cpp-tests/Resources/creator"; sourceTree = "<group>"; };
+		5013B5E41DFBC6740044D212 /* code_generators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = code_generators.h; sourceTree = "<group>"; };
+		5013B5E51DFBC6740044D212 /* flatbuffers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flatbuffers.h; sourceTree = "<group>"; };
+		5013B5E61DFBC6740044D212 /* grpc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = grpc.h; sourceTree = "<group>"; };
+		5013B5E71DFBC6740044D212 /* hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hash.h; sourceTree = "<group>"; };
+		5013B5E81DFBC6740044D212 /* idl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = idl.h; sourceTree = "<group>"; };
+		5013B5E91DFBC6740044D212 /* reflection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reflection.h; sourceTree = "<group>"; };
+		5013B5EA1DFBC6740044D212 /* reflection_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reflection_generated.h; sourceTree = "<group>"; };
+		5013B5EB1DFBC6740044D212 /* util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
 		503FAE1B1D74B6C30036585D /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		503FAE1D1D74B6C30036585D /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		503FAE1E1D74B6C30036585D /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
@@ -2494,9 +2502,6 @@
 		505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CreatorReaderTest.cpp; path = CreatorReaderTest/CreatorReaderTest.cpp; sourceTree = "<group>"; };
 		505D76A31DFBAB6500024157 /* CreatorReaderTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreatorReaderTest.h; path = CreatorReaderTest/CreatorReaderTest.h; sourceTree = "<group>"; };
 		505D76A41DFBAB6500024157 /* CreatorReader_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreatorReader_generated.h; path = CreatorReaderTest/CreatorReader_generated.h; sourceTree = "<group>"; };
-		505D76A51DFBAB6500024157 /* test.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; name = test.bin; path = CreatorReaderTest/test.bin; sourceTree = "<group>"; };
-		505D76A61DFBAB6500024157 /* test.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = test.json; path = CreatorReaderTest/test.json; sourceTree = "<group>"; };
-		505D76A71DFBAB6500024157 /* CreatorReader.fbs */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CreatorReader.fbs; path = CreatorReaderTest/CreatorReader.fbs; sourceTree = "<group>"; };
 		507B420D1C31BEA60067B53E /* cpp-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cpp-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B42B01C31E6070067B53E /* js-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "js-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B43B91C31FB670067B53E /* lua-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lua-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3456,13 +3461,10 @@
 		1AC3592418CECF0A00F37B72 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				5013B5DB1DFBC3D90044D212 /* flatbuffers */,
+				5013B5E31DFBC6740044D212 /* flatbuffers */,
 				505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */,
 				505D76A31DFBAB6500024157 /* CreatorReaderTest.h */,
 				505D76A41DFBAB6500024157 /* CreatorReader_generated.h */,
-				505D76A51DFBAB6500024157 /* test.bin */,
-				505D76A61DFBAB6500024157 /* test.json */,
-				505D76A71DFBAB6500024157 /* CreatorReader.fbs */,
 				53367D531DC22891005862DE /* WindowTest */,
 				504C94991D1C51BE00E4E9B3 /* VRTest */,
 				50921EAC1B746D5F00C085CC /* DownloaderTest */,
@@ -4437,6 +4439,7 @@
 		1AC35CA818CED83500F37B72 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				5013B5DF1DFBC6200044D212 /* creator */,
 				460629771CDB4DBA00B44058 /* ccs-res */,
 				B61E90CA1B12B74B00BE69EA /* NavMesh */,
 				5046AB5A1AF2C4180060550B /* Materials */,
@@ -5069,6 +5072,22 @@
 				507B42111C31BEA70067B53E /* libcocos2d tvOS.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5013B5E31DFBC6740044D212 /* flatbuffers */ = {
+			isa = PBXGroup;
+			children = (
+				5013B5E41DFBC6740044D212 /* code_generators.h */,
+				5013B5E51DFBC6740044D212 /* flatbuffers.h */,
+				5013B5E61DFBC6740044D212 /* grpc.h */,
+				5013B5E71DFBC6740044D212 /* hash.h */,
+				5013B5E81DFBC6740044D212 /* idl.h */,
+				5013B5E91DFBC6740044D212 /* reflection.h */,
+				5013B5EA1DFBC6740044D212 /* reflection_generated.h */,
+				5013B5EB1DFBC6740044D212 /* util.h */,
+			);
+			name = flatbuffers;
+			path = CreatorReaderTest/flatbuffers;
 			sourceTree = "<group>";
 		};
 		503FAE191D74B6C30036585D /* proj.mac */ = {
@@ -6241,7 +6260,6 @@
 				1AC35CF018CED84500F37B72 /* hd in Resources */,
 				1AC35CFC18CED84500F37B72 /* music.mid in Resources */,
 				1AC35D0A18CED84500F37B72 /* zwoptex in Resources */,
-				5013B5DC1DFBC3D90044D212 /* flatbuffers in Resources */,
 				1AC35CD218CED84500F37B72 /* background.ogg in Resources */,
 				1AC35D0018CED84500F37B72 /* pew-pew-lei.wav in Resources */,
 				1AC35CD018CED84500F37B72 /* background.mp3 in Resources */,
@@ -6251,6 +6269,7 @@
 				1AC35CA418CECF1E00F37B72 /* MainMenu.xib in Resources */,
 				B603F1B41AC8FBFB00A9579C /* TerrainTest in Resources */,
 				1AC35CD418CED84500F37B72 /* ccb in Resources */,
+				5013B5E01DFBC6200044D212 /* creator in Resources */,
 				C08689C118D370C90093E810 /* background.caf in Resources */,
 				1AC35CE418CED84500F37B72 /* effect1.wav in Resources */,
 			);
@@ -6328,6 +6347,7 @@
 				507B41281C31BEA60067B53E /* Hello.png in Resources */,
 				507B41291C31BEA60067B53E /* Icon-152.png in Resources */,
 				507B412A1C31BEA60067B53E /* effect2.ogg in Resources */,
+				5013B5E21DFBC6200044D212 /* creator in Resources */,
 				507B412B1C31BEA60067B53E /* ActionTimeline in Resources */,
 				507B412C1C31BEA60067B53E /* NavMesh in Resources */,
 				507B412D1C31BEA60067B53E /* Icon-80.png in Resources */,
@@ -6342,7 +6362,6 @@
 				507B41361C31BEA60067B53E /* CocosBuilderExample.ccbresourcelog in Resources */,
 				507B41371C31BEA60067B53E /* Shaders3D in Resources */,
 				507B41381C31BEA60067B53E /* fonts in Resources */,
-				5013B5DE1DFBC3D90044D212 /* flatbuffers in Resources */,
 				507B41391C31BEA60067B53E /* CocosBuilderExample.ccbproj in Resources */,
 				507B413A1C31BEA60067B53E /* Default.png in Resources */,
 			);
@@ -6552,6 +6571,7 @@
 				1AC35CF318CED84500F37B72 /* Hello.png in Resources */,
 				1AC35C8F18CECF1400F37B72 /* Icon-152.png in Resources */,
 				1AC35CE718CED84500F37B72 /* effect2.ogg in Resources */,
+				5013B5E11DFBC6200044D212 /* creator in Resources */,
 				38FA2E77194AECF800FF2BE4 /* ActionTimeline in Resources */,
 				B61E90CC1B12B74B00BE69EA /* NavMesh in Resources */,
 				1AC35C9718CECF1400F37B72 /* Icon-80.png in Resources */,
@@ -6566,7 +6586,6 @@
 				1AC35CD918CED84500F37B72 /* CocosBuilderExample.ccbresourcelog in Resources */,
 				B2507B6C192589AF00FA4972 /* Shaders3D in Resources */,
 				1AC35CED18CED84500F37B72 /* fonts in Resources */,
-				5013B5DD1DFBC3D90044D212 /* flatbuffers in Resources */,
 				1AC35CD718CED84500F37B72 /* CocosBuilderExample.ccbproj in Resources */,
 				1AC35C8918CECF1400F37B72 /* Default.png in Resources */,
 			);
