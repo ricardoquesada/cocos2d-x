@@ -1,0 +1,28 @@
+{
+  version: "hola",
+  root: {
+    classname: "sprite",
+    customClassName: "sprite",
+    object_type: "Sprite",
+    object: {
+      node: {
+        contentSize: {
+          w: 0,
+          h: 0
+        },
+        name: "carlos",
+        anchorPoint: {
+          x: 0,
+          y: 0
+        }
+      },
+      spriteFrameName: "grossini.png",
+      centerRect: {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0
+      }
+    }
+  }
+}
