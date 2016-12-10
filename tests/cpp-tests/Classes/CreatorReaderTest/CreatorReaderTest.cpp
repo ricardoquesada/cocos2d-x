@@ -24,7 +24,7 @@
  ****************************************************************************/
 
 #include "CreatorReaderTest.h"
-// #include "CreatorReader_generated.h"
+ #include "CreatorReader_generated.h"
 
 USING_NS_CC;
 
