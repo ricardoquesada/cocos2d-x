@@ -327,12 +327,32 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_CONTENTSIZE = 4,
     VT_ENABLED = 6,
     VT_NAME = 8,
-    VT_ANCHORPOINT = 10
+    VT_ANCHORPOINT = 10,
+    VT_CASCADEOPACITYENABLED = 12,
+    VT_COLOR = 14,
+    VT_GLOBALZORDER = 16,
+    VT_LOCALZORDER = 18,
+    VT_OPACITY = 20,
+    VT_OPACITYMODIFYRGB = 22,
+    VT_POSITION = 24,
+    VT_ROTATIONSKEW = 26,
+    VT_SCALE = 28,
+    VT_TAG = 30
   };
   const Size *contentSize() const { return GetStruct<const Size *>(VT_CONTENTSIZE); }
   bool enabled() const { return GetField<uint8_t>(VT_ENABLED, 1) != 0; }
   const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
   const Vec2 *anchorPoint() const { return GetStruct<const Vec2 *>(VT_ANCHORPOINT); }
+  bool cascadeOpacityEnabled() const { return GetField<uint8_t>(VT_CASCADEOPACITYENABLED, 1) != 0; }
+  const RGB *color() const { return GetStruct<const RGB *>(VT_COLOR); }
+  int32_t globalZorder() const { return GetField<int32_t>(VT_GLOBALZORDER, 0); }
+  int32_t localZorder() const { return GetField<int32_t>(VT_LOCALZORDER, 0); }
+  uint8_t opacity() const { return GetField<uint8_t>(VT_OPACITY, 255); }
+  bool opacityModifyRGB() const { return GetField<uint8_t>(VT_OPACITYMODIFYRGB, 1) != 0; }
+  const Vec2 *position() const { return GetStruct<const Vec2 *>(VT_POSITION); }
+  const Vec2 *rotationSkew() const { return GetStruct<const Vec2 *>(VT_ROTATIONSKEW); }
+  const Vec2 *scale() const { return GetStruct<const Vec2 *>(VT_SCALE); }
+  int32_t tag() const { return GetField<int32_t>(VT_TAG, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<Size>(verifier, VT_CONTENTSIZE) &&
@@ -340,6 +360,16 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
            verifier.Verify(name()) &&
            VerifyField<Vec2>(verifier, VT_ANCHORPOINT) &&
+           VerifyField<uint8_t>(verifier, VT_CASCADEOPACITYENABLED) &&
+           VerifyField<RGB>(verifier, VT_COLOR) &&
+           VerifyField<int32_t>(verifier, VT_GLOBALZORDER) &&
+           VerifyField<int32_t>(verifier, VT_LOCALZORDER) &&
+           VerifyField<uint8_t>(verifier, VT_OPACITY) &&
+           VerifyField<uint8_t>(verifier, VT_OPACITYMODIFYRGB) &&
+           VerifyField<Vec2>(verifier, VT_POSITION) &&
+           VerifyField<Vec2>(verifier, VT_ROTATIONSKEW) &&
+           VerifyField<Vec2>(verifier, VT_SCALE) &&
+           VerifyField<int32_t>(verifier, VT_TAG) &&
            verifier.EndTable();
   }
 };
@@ -351,10 +381,20 @@ struct NodeBuilder {
   void add_enabled(bool enabled) { fbb_.AddElement<uint8_t>(Node::VT_ENABLED, static_cast<uint8_t>(enabled), 1); }
   void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(Node::VT_NAME, name); }
   void add_anchorPoint(const Vec2 *anchorPoint) { fbb_.AddStruct(Node::VT_ANCHORPOINT, anchorPoint); }
+  void add_cascadeOpacityEnabled(bool cascadeOpacityEnabled) { fbb_.AddElement<uint8_t>(Node::VT_CASCADEOPACITYENABLED, static_cast<uint8_t>(cascadeOpacityEnabled), 1); }
+  void add_color(const RGB *color) { fbb_.AddStruct(Node::VT_COLOR, color); }
+  void add_globalZorder(int32_t globalZorder) { fbb_.AddElement<int32_t>(Node::VT_GLOBALZORDER, globalZorder, 0); }
+  void add_localZorder(int32_t localZorder) { fbb_.AddElement<int32_t>(Node::VT_LOCALZORDER, localZorder, 0); }
+  void add_opacity(uint8_t opacity) { fbb_.AddElement<uint8_t>(Node::VT_OPACITY, opacity, 255); }
+  void add_opacityModifyRGB(bool opacityModifyRGB) { fbb_.AddElement<uint8_t>(Node::VT_OPACITYMODIFYRGB, static_cast<uint8_t>(opacityModifyRGB), 1); }
+  void add_position(const Vec2 *position) { fbb_.AddStruct(Node::VT_POSITION, position); }
+  void add_rotationSkew(const Vec2 *rotationSkew) { fbb_.AddStruct(Node::VT_ROTATIONSKEW, rotationSkew); }
+  void add_scale(const Vec2 *scale) { fbb_.AddStruct(Node::VT_SCALE, scale); }
+  void add_tag(int32_t tag) { fbb_.AddElement<int32_t>(Node::VT_TAG, tag, 0); }
   NodeBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   NodeBuilder &operator=(const NodeBuilder &);
   flatbuffers::Offset<Node> Finish() {
-    auto o = flatbuffers::Offset<Node>(fbb_.EndTable(start_, 4));
+    auto o = flatbuffers::Offset<Node>(fbb_.EndTable(start_, 14));
     return o;
   }
 };
@@ -363,11 +403,31 @@ inline flatbuffers::Offset<Node> CreateNode(flatbuffers::FlatBufferBuilder &_fbb
     const Size *contentSize = 0,
     bool enabled = true,
     flatbuffers::Offset<flatbuffers::String> name = 0,
-    const Vec2 *anchorPoint = 0) {
+    const Vec2 *anchorPoint = 0,
+    bool cascadeOpacityEnabled = true,
+    const RGB *color = 0,
+    int32_t globalZorder = 0,
+    int32_t localZorder = 0,
+    uint8_t opacity = 255,
+    bool opacityModifyRGB = true,
+    const Vec2 *position = 0,
+    const Vec2 *rotationSkew = 0,
+    const Vec2 *scale = 0,
+    int32_t tag = 0) {
   NodeBuilder builder_(_fbb);
+  builder_.add_tag(tag);
+  builder_.add_scale(scale);
+  builder_.add_rotationSkew(rotationSkew);
+  builder_.add_position(position);
+  builder_.add_localZorder(localZorder);
+  builder_.add_globalZorder(globalZorder);
+  builder_.add_color(color);
   builder_.add_anchorPoint(anchorPoint);
   builder_.add_name(name);
   builder_.add_contentSize(contentSize);
+  builder_.add_opacityModifyRGB(opacityModifyRGB);
+  builder_.add_opacity(opacity);
+  builder_.add_cascadeOpacityEnabled(cascadeOpacityEnabled);
   builder_.add_enabled(enabled);
   return builder_.Finish();
 }
@@ -376,8 +436,18 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(flatbuffers::FlatBufferBuilder
     const Size *contentSize = 0,
     bool enabled = true,
     const char *name = nullptr,
-    const Vec2 *anchorPoint = 0) {
-  return CreateNode(_fbb, contentSize, enabled, name ? _fbb.CreateString(name) : 0, anchorPoint);
+    const Vec2 *anchorPoint = 0,
+    bool cascadeOpacityEnabled = true,
+    const RGB *color = 0,
+    int32_t globalZorder = 0,
+    int32_t localZorder = 0,
+    uint8_t opacity = 255,
+    bool opacityModifyRGB = true,
+    const Vec2 *position = 0,
+    const Vec2 *rotationSkew = 0,
+    const Vec2 *scale = 0,
+    int32_t tag = 0) {
+  return CreateNode(_fbb, contentSize, enabled, name ? _fbb.CreateString(name) : 0, anchorPoint, cascadeOpacityEnabled, color, globalZorder, localZorder, opacity, opacityModifyRGB, position, rotationSkew, scale, tag);
 }
 
 struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

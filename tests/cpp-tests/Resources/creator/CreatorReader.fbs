@@ -30,16 +30,16 @@ table Node
     enabled:bool = true;
     name:string;
     anchorPoint:Vec2;
-    // cascadeOpacityEnabled:bool = true;
-    // color:RGB;
-    // globalZorder:int = 0;
-    // localZorder:int = 0;
-    // opacity:ubyte = 255;
-    // opacityModifyRGB:bool = true;
-    // position:Vec2;
-    // rotationSkew:Vec2;
-    // scale:Vec2;
-    // tag:int = 0;
+    cascadeOpacityEnabled:bool = true;
+    color:RGB;
+    globalZorder:float = 0;
+    localZorder:int = 0;
+    opacity:ubyte = 255;
+    opacityModifyRGB:bool = true;
+    position:Vec2;
+    rotationSkew:Vec2;
+    scale:Vec2;
+    tag:int = 0;
 }
 
 table Sprite

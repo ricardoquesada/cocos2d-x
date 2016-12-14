@@ -14,6 +14,11 @@ CreatorReader::CreatorReader()
 {
 }
 
+CreatorReader::~CreatorReader()
+{
+    CC_SAFE_RELEASE(_scene);
+}
+
 CreatorReader* CreatorReader::createWithFilename(const std::string& filename)
 {
     CreatorReader* reader = new(std::nothrow) CreatorReader;
@@ -94,10 +99,16 @@ cocos2d::Node* CreatorReader::getNode(const void* buffer, buffers::AnyNode buffe
  * creators
  *
  *=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+cocos2d::Scene* CreatorReader::createScene(const buffers::Scene* sceneBuffer) const
+{
+    cocos2d::Scene* scene = cocos2d::Scene::create();
+    return scene;
+}
 
 cocos2d::Node* CreatorReader::createNode(const buffers::Node* nodeBuffer) const
 {
     cocos2d::Node* node = cocos2d::Node::create();
+    parseNode(node, nodeBuffer);
     return node;
 }
 cocos2d::Sprite* CreatorReader::createSprite(const buffers::Sprite* spriteBuffer) const
@@ -134,7 +145,49 @@ void CreatorReader::parseScene(cocos2d::Scene* scene, const buffers::Scene* scen
 
 void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuffer) const
 {
+    //contentSize:Size;
+    //enabled:bool = true;
+    //name:string;
+    //anchorPoint:Vec2;
+    //cascadeOpacityEnabled:bool = true;
+    //color:RGB;
+    //globalZorder:int = 0;
+    //localZorder:int = 0;
+    //opacity:ubyte = 255;
+    //opacityModifyRGB:bool = true;
+    //position:Vec2;
+    //rotationSkew:Vec2;
+    //scale:Vec2;
+    //tag:int = 0;
 
+    const auto& contentSize = nodeBuffer->contentSize();
+    node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
+//    auto enabled = nodeBuffer->enabled();
+    const auto& name = nodeBuffer->name();
+    node->setName(name->str());
+    const auto& anchorPoint = nodeBuffer->anchorPoint();
+    node->setAnchorPoint(cocos2d::Vec2(anchorPoint->x(), anchorPoint->y()));
+    const auto& cascadeOpacityEnabled = nodeBuffer->cascadeOpacityEnabled();
+    node->setCascadeOpacityEnabled(cascadeOpacityEnabled);
+    const auto& color = nodeBuffer->color();
+    node->setColor(cocos2d::Color3B(color->r(), color->g(), color->b()));
+    const auto& globalZOrder = nodeBuffer->globalZorder();
+    node->setGlobalZOrder(globalZOrder);
+    const auto& localZOrder = nodeBuffer->localZorder();
+    node->setLocalZOrder(localZOrder);
+    const auto& opacity = nodeBuffer->opacity();
+    node->setOpacity(opacity);
+    const auto& opacityModifyRGB = nodeBuffer->opacityModifyRGB();
+    node->setOpacityModifyRGB(opacityModifyRGB);
+    const auto& position = nodeBuffer->position();
+    node->setPosition(position->x(), position->y());
+    const auto& rotationSkew = nodeBuffer->rotationSkew();
+    node->setRotationSkewX(rotationSkew->x());
+    node->setRotationSkewY(rotationSkew->y());
+    const auto& scale = nodeBuffer->scale();
+    node->setScale(scale->x(), scale->y());
+    const auto& tag = nodeBuffer->tag();
+    node->setTag(tag);
 }
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
