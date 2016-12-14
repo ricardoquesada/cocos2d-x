@@ -597,12 +597,22 @@ inline const flatbuffers::SceneGraph *GetSceneGraph(const void *buf) {
   return flatbuffers::GetRoot<flatbuffers::SceneGraph>(buf);
 }
 
-inline bool VerifySceneGraphBuffer(flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<flatbuffers::SceneGraph>(nullptr);
+inline const char *SceneGraphIdentifier() {
+  return "CCRE";
 }
 
+inline bool SceneGraphBufferHasIdentifier(const void *buf) {
+  return flatbuffers::BufferHasIdentifier(buf, SceneGraphIdentifier());
+}
+
+inline bool VerifySceneGraphBuffer(flatbuffers::Verifier &verifier) {
+  return verifier.VerifyBuffer<flatbuffers::SceneGraph>(SceneGraphIdentifier());
+}
+
+inline const char *SceneGraphExtension() { return "ccreator"; }
+
 inline void FinishSceneGraphBuffer(flatbuffers::FlatBufferBuilder &fbb, flatbuffers::Offset<flatbuffers::SceneGraph> root) {
-  fbb.Finish(root);
+  fbb.Finish(root, SceneGraphIdentifier());
 }
 
 }  // namespace flatbuffers
