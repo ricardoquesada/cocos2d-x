@@ -51,6 +51,36 @@ inline const char **EnumNamesFontType() {
 
 inline const char *EnumNameFontType(FontType e) { return EnumNamesFontType()[static_cast<int>(e)]; }
 
+enum VerticalAlignment {
+  VerticalAlignment_Top = 0,
+  VerticalAlignment_Center = 1,
+  VerticalAlignment_Bottom = 2,
+  VerticalAlignment_MIN = VerticalAlignment_Top,
+  VerticalAlignment_MAX = VerticalAlignment_Bottom
+};
+
+inline const char **EnumNamesVerticalAlignment() {
+  static const char *names[] = { "Top", "Center", "Bottom", nullptr };
+  return names;
+}
+
+inline const char *EnumNameVerticalAlignment(VerticalAlignment e) { return EnumNamesVerticalAlignment()[static_cast<int>(e)]; }
+
+enum HorizontalAlignment {
+  HorizontalAlignment_Left = 0,
+  HorizontalAlignment_Center = 1,
+  HorizontalAlignment_Right = 2,
+  HorizontalAlignment_MIN = HorizontalAlignment_Left,
+  HorizontalAlignment_MAX = HorizontalAlignment_Right
+};
+
+inline const char **EnumNamesHorizontalAlignment() {
+  static const char *names[] = { "Left", "Center", "Right", nullptr };
+  return names;
+}
+
+inline const char *EnumNameHorizontalAlignment(HorizontalAlignment e) { return EnumNamesHorizontalAlignment()[static_cast<int>(e)]; }
+
 enum AnyNode {
   AnyNode_NONE = 0,
   AnyNode_Scene = 1,
@@ -345,7 +375,7 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec2 *anchorPoint() const { return GetStruct<const Vec2 *>(VT_ANCHORPOINT); }
   bool cascadeOpacityEnabled() const { return GetField<uint8_t>(VT_CASCADEOPACITYENABLED, 1) != 0; }
   const RGB *color() const { return GetStruct<const RGB *>(VT_COLOR); }
-  int32_t globalZorder() const { return GetField<int32_t>(VT_GLOBALZORDER, 0); }
+  float globalZorder() const { return GetField<float>(VT_GLOBALZORDER, 0.0f); }
   int32_t localZorder() const { return GetField<int32_t>(VT_LOCALZORDER, 0); }
   uint8_t opacity() const { return GetField<uint8_t>(VT_OPACITY, 255); }
   bool opacityModifyRGB() const { return GetField<uint8_t>(VT_OPACITYMODIFYRGB, 1) != 0; }
@@ -362,7 +392,7 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Vec2>(verifier, VT_ANCHORPOINT) &&
            VerifyField<uint8_t>(verifier, VT_CASCADEOPACITYENABLED) &&
            VerifyField<RGB>(verifier, VT_COLOR) &&
-           VerifyField<int32_t>(verifier, VT_GLOBALZORDER) &&
+           VerifyField<float>(verifier, VT_GLOBALZORDER) &&
            VerifyField<int32_t>(verifier, VT_LOCALZORDER) &&
            VerifyField<uint8_t>(verifier, VT_OPACITY) &&
            VerifyField<uint8_t>(verifier, VT_OPACITYMODIFYRGB) &&
@@ -383,7 +413,7 @@ struct NodeBuilder {
   void add_anchorPoint(const Vec2 *anchorPoint) { fbb_.AddStruct(Node::VT_ANCHORPOINT, anchorPoint); }
   void add_cascadeOpacityEnabled(bool cascadeOpacityEnabled) { fbb_.AddElement<uint8_t>(Node::VT_CASCADEOPACITYENABLED, static_cast<uint8_t>(cascadeOpacityEnabled), 1); }
   void add_color(const RGB *color) { fbb_.AddStruct(Node::VT_COLOR, color); }
-  void add_globalZorder(int32_t globalZorder) { fbb_.AddElement<int32_t>(Node::VT_GLOBALZORDER, globalZorder, 0); }
+  void add_globalZorder(float globalZorder) { fbb_.AddElement<float>(Node::VT_GLOBALZORDER, globalZorder, 0.0f); }
   void add_localZorder(int32_t localZorder) { fbb_.AddElement<int32_t>(Node::VT_LOCALZORDER, localZorder, 0); }
   void add_opacity(uint8_t opacity) { fbb_.AddElement<uint8_t>(Node::VT_OPACITY, opacity, 255); }
   void add_opacityModifyRGB(bool opacityModifyRGB) { fbb_.AddElement<uint8_t>(Node::VT_OPACITYMODIFYRGB, static_cast<uint8_t>(opacityModifyRGB), 1); }
@@ -406,7 +436,7 @@ inline flatbuffers::Offset<Node> CreateNode(flatbuffers::FlatBufferBuilder &_fbb
     const Vec2 *anchorPoint = 0,
     bool cascadeOpacityEnabled = true,
     const RGB *color = 0,
-    int32_t globalZorder = 0,
+    float globalZorder = 0.0f,
     int32_t localZorder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
@@ -439,7 +469,7 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(flatbuffers::FlatBufferBuilder
     const Vec2 *anchorPoint = 0,
     bool cascadeOpacityEnabled = true,
     const RGB *color = 0,
-    int32_t globalZorder = 0,
+    float globalZorder = 0.0f,
     int32_t localZorder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
@@ -508,13 +538,17 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_LABELTEXT = 6,
     VT_HORIZONTALALIGNMENT = 8,
     VT_VERTICALALIGNMENT = 10,
-    VT_FONTSIZE = 12,
-    VT_FONTTYPE = 14
+    VT_LINEHEIGHT = 12,
+    VT_FONTNAME = 14,
+    VT_FONTSIZE = 16,
+    VT_FONTTYPE = 18
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
   const flatbuffers::String *labelText() const { return GetPointer<const flatbuffers::String *>(VT_LABELTEXT); }
-  float horizontalAlignment() const { return GetField<float>(VT_HORIZONTALALIGNMENT, 0.0f); }
-  float verticalAlignment() const { return GetField<float>(VT_VERTICALALIGNMENT, 0.0f); }
+  HorizontalAlignment horizontalAlignment() const { return static_cast<HorizontalAlignment>(GetField<int8_t>(VT_HORIZONTALALIGNMENT, 0)); }
+  VerticalAlignment verticalAlignment() const { return static_cast<VerticalAlignment>(GetField<int8_t>(VT_VERTICALALIGNMENT, 0)); }
+  float lineHeight() const { return GetField<float>(VT_LINEHEIGHT, 0.0f); }
+  const flatbuffers::String *fontName() const { return GetPointer<const flatbuffers::String *>(VT_FONTNAME); }
   float fontSize() const { return GetField<float>(VT_FONTSIZE, 0.0f); }
   FontType fontType() const { return static_cast<FontType>(GetField<int8_t>(VT_FONTTYPE, 0)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
@@ -523,8 +557,11 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.VerifyTable(node()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_LABELTEXT) &&
            verifier.Verify(labelText()) &&
-           VerifyField<float>(verifier, VT_HORIZONTALALIGNMENT) &&
-           VerifyField<float>(verifier, VT_VERTICALALIGNMENT) &&
+           VerifyField<int8_t>(verifier, VT_HORIZONTALALIGNMENT) &&
+           VerifyField<int8_t>(verifier, VT_VERTICALALIGNMENT) &&
+           VerifyField<float>(verifier, VT_LINEHEIGHT) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FONTNAME) &&
+           verifier.Verify(fontName()) &&
            VerifyField<float>(verifier, VT_FONTSIZE) &&
            VerifyField<int8_t>(verifier, VT_FONTTYPE) &&
            verifier.EndTable();
@@ -536,14 +573,16 @@ struct LabelBuilder {
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(Label::VT_NODE, node); }
   void add_labelText(flatbuffers::Offset<flatbuffers::String> labelText) { fbb_.AddOffset(Label::VT_LABELTEXT, labelText); }
-  void add_horizontalAlignment(float horizontalAlignment) { fbb_.AddElement<float>(Label::VT_HORIZONTALALIGNMENT, horizontalAlignment, 0.0f); }
-  void add_verticalAlignment(float verticalAlignment) { fbb_.AddElement<float>(Label::VT_VERTICALALIGNMENT, verticalAlignment, 0.0f); }
+  void add_horizontalAlignment(HorizontalAlignment horizontalAlignment) { fbb_.AddElement<int8_t>(Label::VT_HORIZONTALALIGNMENT, static_cast<int8_t>(horizontalAlignment), 0); }
+  void add_verticalAlignment(VerticalAlignment verticalAlignment) { fbb_.AddElement<int8_t>(Label::VT_VERTICALALIGNMENT, static_cast<int8_t>(verticalAlignment), 0); }
+  void add_lineHeight(float lineHeight) { fbb_.AddElement<float>(Label::VT_LINEHEIGHT, lineHeight, 0.0f); }
+  void add_fontName(flatbuffers::Offset<flatbuffers::String> fontName) { fbb_.AddOffset(Label::VT_FONTNAME, fontName); }
   void add_fontSize(float fontSize) { fbb_.AddElement<float>(Label::VT_FONTSIZE, fontSize, 0.0f); }
   void add_fontType(FontType fontType) { fbb_.AddElement<int8_t>(Label::VT_FONTTYPE, static_cast<int8_t>(fontType), 0); }
   LabelBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   LabelBuilder &operator=(const LabelBuilder &);
   flatbuffers::Offset<Label> Finish() {
-    auto o = flatbuffers::Offset<Label>(fbb_.EndTable(start_, 6));
+    auto o = flatbuffers::Offset<Label>(fbb_.EndTable(start_, 8));
     return o;
   }
 };
@@ -551,28 +590,34 @@ struct LabelBuilder {
 inline flatbuffers::Offset<Label> CreateLabel(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
     flatbuffers::Offset<flatbuffers::String> labelText = 0,
-    float horizontalAlignment = 0.0f,
-    float verticalAlignment = 0.0f,
+    HorizontalAlignment horizontalAlignment = HorizontalAlignment_Left,
+    VerticalAlignment verticalAlignment = VerticalAlignment_Top,
+    float lineHeight = 0.0f,
+    flatbuffers::Offset<flatbuffers::String> fontName = 0,
     float fontSize = 0.0f,
     FontType fontType = FontType_System) {
   LabelBuilder builder_(_fbb);
   builder_.add_fontSize(fontSize);
-  builder_.add_verticalAlignment(verticalAlignment);
-  builder_.add_horizontalAlignment(horizontalAlignment);
+  builder_.add_fontName(fontName);
+  builder_.add_lineHeight(lineHeight);
   builder_.add_labelText(labelText);
   builder_.add_node(node);
   builder_.add_fontType(fontType);
+  builder_.add_verticalAlignment(verticalAlignment);
+  builder_.add_horizontalAlignment(horizontalAlignment);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Label> CreateLabelDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
     const char *labelText = nullptr,
-    float horizontalAlignment = 0.0f,
-    float verticalAlignment = 0.0f,
+    HorizontalAlignment horizontalAlignment = HorizontalAlignment_Left,
+    VerticalAlignment verticalAlignment = VerticalAlignment_Top,
+    float lineHeight = 0.0f,
+    const char *fontName = nullptr,
     float fontSize = 0.0f,
     FontType fontType = FontType_System) {
-  return CreateLabel(_fbb, node, labelText ? _fbb.CreateString(labelText) : 0, horizontalAlignment, verticalAlignment, fontSize, fontType);
+  return CreateLabel(_fbb, node, labelText ? _fbb.CreateString(labelText) : 0, horizontalAlignment, verticalAlignment, lineHeight, fontName ? _fbb.CreateString(fontName) : 0, fontSize, fontType);
 }
 
 struct Particle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

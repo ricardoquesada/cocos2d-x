@@ -134,7 +134,26 @@ cocos2d::TMXTiledMap* CreatorReader::createTileMap(const buffers::TileMap* tilem
 }
 cocos2d::Label* CreatorReader::createLabel(const buffers::Label* labelBuffer) const
 {
-    cocos2d::Label* label = cocos2d::Label::create();
+    cocos2d::Label* label = nullptr;
+    auto text = labelBuffer->labelText();
+    auto fontSize = labelBuffer->fontSize();
+    auto fontName = labelBuffer->fontName();
+
+    auto fontType = labelBuffer->fontType();
+    switch (fontType) {
+        case buffers::FontType_TTF:
+            label = cocos2d::Label::createWithTTF(text->str(), fontName->str(), fontSize);
+            break;
+        case buffers::FontType_BMFont:
+            label = cocos2d::Label::createWithBMFont(fontName->str(), text->str());
+            label->setBMFontSize(fontSize);
+            break;
+        case buffers::FontType_System:
+            label = cocos2d::Label::createWithSystemFont(text->str(), "arial", fontSize);
+            break;
+    }
+
+    parseLabel(label, labelBuffer);
     return label;
 }
 
@@ -213,7 +232,12 @@ void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::T
 
 void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const
 {
-
+    const auto& lineHeight = labelBuffer->lineHeight();
+    const auto& verticalA = labelBuffer->verticalAlignment();
+    const auto& horizontalA = labelBuffer->horizontalAlignment();
+    label->setVerticalAlignment(static_cast<cocos2d::TextVAlignment>(verticalA));
+    label->setHorizontalAlignment(static_cast<cocos2d::TextHAlignment>(horizontalA));
+    label->setLineHeight(lineHeight);
 }
 
 void CreatorReader::parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const
