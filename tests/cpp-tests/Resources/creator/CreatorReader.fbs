@@ -1,10 +1,10 @@
-namespace flatbuffers;
+namespace creator.buffers;
 
 enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
 
 // New nodes should be added at the end of the union
 // no more than 255 union objects can be added
-union AnyNode {Sprite, Label, Particle, TileMap}
+union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node}
 
 table SceneGraph
 {
@@ -73,6 +73,11 @@ table TileMap
     node:Node;
 
     tmxFile:string;
+}
+
+table Scene
+{
+    node:Node;
 }
 
 struct Vec2

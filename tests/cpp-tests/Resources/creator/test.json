@@ -1,5 +1,5 @@
 {
-  version: "hola",
+  version: "1.0",
   root: {
     classname: "sprite",
     customClassName: "sprite",

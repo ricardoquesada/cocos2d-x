@@ -24,9 +24,10 @@
  ****************************************************************************/
 
 #include "CreatorReaderTest.h"
- #include "CreatorReader_generated.h"
+#include "CreatorReader.h"
 
 USING_NS_CC;
+USING_NS_CCR;
 
 CreatorReaderTests::CreatorReaderTests()
 {
@@ -41,12 +42,16 @@ CreatorReaderTests::CreatorReaderTests()
 
 CreatorReaderTest1::CreatorReaderTest1()
 {
+    CreatorReader* reader = CreatorReader::createWithFilename("creator/test.ccreator");
+    CCLOG("Version: %s", reader->getVersion().c_str());
+
+    // will create the needed spritesheets, design resolution
+    reader->setup();
+    reader->getSceneGraph();
 }
 
 std::string CreatorReaderTest1::title() const
 {
     return "Reading sprites";
 }
-
-
 

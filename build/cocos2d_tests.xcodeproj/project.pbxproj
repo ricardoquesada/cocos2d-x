@@ -797,6 +797,9 @@
 		5013B5E01DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
 		5013B5E11DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
 		5013B5E21DFBC6200044D212 /* creator in Resources */ = {isa = PBXBuildFile; fileRef = 5013B5DF1DFBC6200044D212 /* creator */; };
+		50462C281E00D3F300C01497 /* CreatorReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50462C261E00D3E800C01497 /* CreatorReader.cpp */; };
+		50462C291E00D40300C01497 /* CreatorReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50462C261E00D3E800C01497 /* CreatorReader.cpp */; };
+		50462C2A1E00D40500C01497 /* CreatorReader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50462C261E00D3E800C01497 /* CreatorReader.cpp */; };
 		5046AB4A1AF2A8D80060550B /* MaterialSystemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5046AB481AF2A8D80060550B /* MaterialSystemTest.cpp */; };
 		5046AB4B1AF2A8D80060550B /* MaterialSystemTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5046AB481AF2A8D80060550B /* MaterialSystemTest.cpp */; };
 		5046AB5B1AF2C4180060550B /* Materials in Resources */ = {isa = PBXBuildFile; fileRef = 5046AB5A1AF2C4180060550B /* Materials */; };
@@ -2494,6 +2497,8 @@
 		503FAE1F1D74B6C30036585D /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		503FAE201D74B6C30036585D /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		503FAE211D74B6C30036585D /* Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Prefix.pch; sourceTree = "<group>"; };
+		50462C261E00D3E800C01497 /* CreatorReader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CreatorReader.cpp; path = CreatorReaderTest/CreatorReader.cpp; sourceTree = "<group>"; };
+		50462C271E00D3E800C01497 /* CreatorReader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreatorReader.h; path = CreatorReaderTest/CreatorReader.h; sourceTree = "<group>"; };
 		5046AB481AF2A8D80060550B /* MaterialSystemTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MaterialSystemTest.cpp; sourceTree = "<group>"; };
 		5046AB491AF2A8D80060550B /* MaterialSystemTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MaterialSystemTest.h; sourceTree = "<group>"; };
 		5046AB5A1AF2C4180060550B /* Materials */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Materials; path = "../tests/cpp-tests/Resources/Materials"; sourceTree = "<group>"; };
@@ -3462,6 +3467,8 @@
 			isa = PBXGroup;
 			children = (
 				5013B5E31DFBC6740044D212 /* flatbuffers */,
+				50462C261E00D3E800C01497 /* CreatorReader.cpp */,
+				50462C271E00D3E800C01497 /* CreatorReader.h */,
 				505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */,
 				505D76A31DFBAB6500024157 /* CreatorReaderTest.h */,
 				505D76A41DFBAB6500024157 /* CreatorReader_generated.h */,
@@ -7019,6 +7026,7 @@
 				505D76A81DFBAB6500024157 /* CreatorReaderTest.cpp in Sources */,
 				D0FD03641A3B546400825BB5 /* AllocatorTest.cpp in Sources */,
 				1AC35B5F18CECF0C00F37B72 /* DataVisitorTest.cpp in Sources */,
+				50462C281E00D3F300C01497 /* CreatorReader.cpp in Sources */,
 				1AC35B5D18CECF0C00F37B72 /* CurrentLanguageTest.cpp in Sources */,
 				1AC35B3B18CECF0C00F37B72 /* Bug-350.cpp in Sources */,
 				1AC35C4718CECF0C00F37B72 /* SchedulerTest.cpp in Sources */,
@@ -7227,6 +7235,7 @@
 				507B41C91C31BEA60067B53E /* PhysicsTest.cpp in Sources */,
 				507B41CC1C31BEA60067B53E /* UILayoutTest.cpp in Sources */,
 				507B41CD1C31BEA60067B53E /* ButtonTestLayer.cpp in Sources */,
+				50462C2A1E00D40500C01497 /* CreatorReader.cpp in Sources */,
 				507B41CE1C31BEA60067B53E /* UIListViewTest.cpp in Sources */,
 				507B41CF1C31BEA60067B53E /* MaterialSystemTest.cpp in Sources */,
 				507B41D01C31BEA60067B53E /* Box2dView.cpp in Sources */,
@@ -7345,6 +7354,7 @@
 				688669721AE8E8B500C2CFD9 /* SpritePolygonTest.cpp in Sources */,
 				1AC35C5418CECF0C00F37B72 /* TextInputTest.cpp in Sources */,
 				1AC35B4618CECF0C00F37B72 /* Bug-886.cpp in Sources */,
+				50462C291E00D40300C01497 /* CreatorReader.cpp in Sources */,
 				1AC35BE218CECF0C00F37B72 /* CCControlButtonTest.cpp in Sources */,
 				1AC35BEC18CECF0C00F37B72 /* CCControlSliderTest.cpp in Sources */,
 				1AC35C4E18CECF0C00F37B72 /* SpineTest.cpp in Sources */,
