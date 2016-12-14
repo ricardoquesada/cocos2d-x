@@ -47,7 +47,7 @@ protected:
     ~CreatorReader();
     bool initWithFilename(const std::string& filename);
 
-    cocos2d::Node* getNode(const void* buffer, buffers::AnyNode bufferType) const;
+    cocos2d::Node* createTree(const buffers::NodeTree* treeBuffer) const;
 
     cocos2d::Scene* createScene(const buffers::Scene* sceneBuffer) const;
     void parseScene(cocos2d::Scene* scene, const buffers::Scene* sceneBuffer) const;

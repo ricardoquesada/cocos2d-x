@@ -61,9 +61,7 @@ cocos2d::Scene* CreatorReader::getSceneGraph() const
     auto nodeTree = sceneGraph->root();
     CCLOG("NodeTree: %p", nodeTree);
 
-    auto object = nodeTree->object();
-    auto object_type = nodeTree->object_type();
-    cocos2d::Node* node = getNode(object, object_type);
+    cocos2d::Node* node = createTree(nodeTree);
 
     return static_cast<cocos2d::Scene*>(node);
 }
@@ -73,25 +71,38 @@ std::string CreatorReader::getVersion() const
     return _version;
 }
 
-cocos2d::Node* CreatorReader::getNode(const void* buffer, buffers::AnyNode bufferType) const
+cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
 {
+    cocos2d::Node *node = nullptr;
+
+    const void* buffer = tree->object();
+    buffers::AnyNode bufferType = tree->object_type();
+    
     switch (bufferType) {
         case buffers::AnyNode_NONE:
             break;
         case buffers::AnyNode_Label:
-            return createLabel(static_cast<const buffers::Label*>(buffer));
+            node = createLabel(static_cast<const buffers::Label*>(buffer));
         case buffers::AnyNode_Sprite:
-            return createSprite(static_cast<const buffers::Sprite*>(buffer));
+            node = createSprite(static_cast<const buffers::Sprite*>(buffer));
         case buffers::AnyNode_TileMap:
-            return createTileMap(static_cast<const buffers::TileMap*>(buffer));
+            node = createTileMap(static_cast<const buffers::TileMap*>(buffer));
         case buffers::AnyNode_Particle:
-            return createParticle(static_cast<const buffers::Particle*>(buffer));
+            node = createParticle(static_cast<const buffers::Particle*>(buffer));
         case buffers::AnyNode_Scene:
-            return createScene(static_cast<const buffers::Scene*>(buffer));
+            node = createScene(static_cast<const buffers::Scene*>(buffer));
         case buffers::AnyNode_Node:
-            return createNode(static_cast<const buffers::Node*>(buffer));
+            node = createNode(static_cast<const buffers::Node*>(buffer));
     }
-    return nullptr;
+
+    // recursively add its children
+    const auto& children = tree->children();
+    for(const auto& childBuffer: *children) {
+        cocos2d::Node* child = createTree(childBuffer);
+        node->addChild(child);
+    }
+
+    return node;
 }
 
 /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
