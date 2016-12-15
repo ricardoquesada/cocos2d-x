@@ -198,7 +198,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "arial",
+                    "fontSize": 40,
+                    "fontType": "System",
                     "horizontalAlignment": "Center",
+                    "labelText": "This is a label",
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,
@@ -238,7 +242,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "arial",
+                    "fontSize": 40,
+                    "fontType": "System",
                     "horizontalAlignment": "Center",
+                    "labelText": "This is another label",
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,

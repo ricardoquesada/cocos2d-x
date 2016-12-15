@@ -48,7 +48,11 @@
                     {
                         "children": [],
                         "object": {
+                            "fontName": "arial",
+                            "fontSize": 30,
+                            "fontType": "System",
                             "horizontalAlignment": "Center",
+                            "labelText": "This is a button",
                             "node": {
                                 "anchorPoint": {
                                     "x": 0.5,
@@ -128,7 +132,11 @@
                     {
                         "children": [],
                         "object": {
+                            "fontName": "A Damn Mess.ttf",
+                            "fontSize": 40,
+                            "fontType": "TTF",
                             "horizontalAlignment": "Center",
+                            "labelText": "Button 2",
                             "lineHeight": 40,
                             "node": {
                                 "anchorPoint": {
@@ -209,7 +217,11 @@
                     {
                         "children": [],
                         "object": {
+                            "fontName": "American Typewriter.ttf",
+                            "fontSize": 20,
+                            "fontType": "TTF",
                             "horizontalAlignment": "Center",
+                            "labelText": "Another Button",
                             "lineHeight": 40,
                             "node": {
                                 "anchorPoint": {
@@ -330,7 +342,11 @@
                     {
                         "children": [],
                         "object": {
+                            "fontName": "arial",
+                            "fontSize": 16,
+                            "fontType": "System",
                             "horizontalAlignment": "Center",
+                            "labelText": "ScrollView content\n\n",
                             "node": {
                                 "anchorPoint": {
                                     "x": 0,
@@ -372,7 +388,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -756,7 +776,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -836,7 +860,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -916,7 +944,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -996,7 +1028,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -1076,7 +1112,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,
@@ -1156,7 +1196,11 @@
                             {
                                 "children": [],
                                 "object": {
+                                    "fontName": "arial",
+                                    "fontSize": 20,
+                                    "fontType": "System",
                                     "horizontalAlignment": "Center",
+                                    "labelText": "button",
                                     "node": {
                                         "anchorPoint": {
                                             "x": 0.5,

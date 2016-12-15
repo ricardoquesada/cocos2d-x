@@ -46,7 +46,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "arial",
+                    "fontSize": 32,
+                    "fontType": "System",
                     "horizontalAlignment": "Center",
+                    "labelText": "System Font Label: 32",
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,
@@ -86,8 +90,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "arial16.fnt",
                     "fontSize": 40,
+                    "fontType": "BMFont",
                     "horizontalAlignment": "Left",
+                    "labelText": "BMFont: Arial 16",
                     "lineHeight": 19,
                     "node": {
                         "anchorPoint": {
@@ -128,7 +135,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "A Damn Mess.ttf",
+                    "fontSize": 64,
+                    "fontType": "TTF",
                     "horizontalAlignment": "Left",
+                    "labelText": "TTF Font: A Damn Mess: 64",
                     "lineHeight": 64,
                     "node": {
                         "anchorPoint": {
@@ -169,7 +180,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "American Typewriter.ttf",
+                    "fontSize": 32,
+                    "fontType": "TTF",
                     "horizontalAlignment": "Left",
+                    "labelText": "This is a\nmultiline\nTTF label: Left",
                     "lineHeight": 48,
                     "node": {
                         "anchorPoint": {
@@ -210,7 +225,11 @@
             {
                 "children": [],
                 "object": {
+                    "fontName": "American Typewriter.ttf",
+                    "fontSize": 32,
+                    "fontType": "TTF",
                     "horizontalAlignment": "Right",
+                    "labelText": "This is a\nmultiline\nTTF label:  Right",
                     "lineHeight": 64,
                     "node": {
                         "anchorPoint": {
