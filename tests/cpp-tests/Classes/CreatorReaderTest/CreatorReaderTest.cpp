@@ -42,7 +42,7 @@ CreatorReaderTests::CreatorReaderTests()
 
 CreatorReaderTest1::CreatorReaderTest1()
 {
-    CreatorReader* reader = CreatorReader::createWithFilename("creator/test.ccreator");
+    CreatorReader* reader = CreatorReader::createWithFilename("creator/CreatorLabels.ccreator");
     CCLOG("Version: %s", reader->getVersion().c_str());
 
     // will create the needed spritesheets, design resolution
