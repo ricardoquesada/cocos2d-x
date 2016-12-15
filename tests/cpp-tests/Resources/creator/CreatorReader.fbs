@@ -40,12 +40,12 @@ table Node
     opacity:ubyte = 255;
     opacityModifyRGB:bool = true;
     position:Vec2;
-    rotationSkewX:float;
-    rotationSkewY:float;
-    scaleX:float;
-    scaleY:float;
-    skewX:float;
-    skewY:float;
+    rotationSkewX:float = 0;
+    rotationSkewY:float = 0;
+    scaleX:float = 1;
+    scaleY:float = 1;
+    skewX:float = 0;
+    skewY:float = 0;
     tag:int = 0;
 }
 

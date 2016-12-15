@@ -391,8 +391,8 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec2 *position() const { return GetStruct<const Vec2 *>(VT_POSITION); }
   float rotationSkewX() const { return GetField<float>(VT_ROTATIONSKEWX, 0.0f); }
   float rotationSkewY() const { return GetField<float>(VT_ROTATIONSKEWY, 0.0f); }
-  float scaleX() const { return GetField<float>(VT_SCALEX, 0.0f); }
-  float scaleY() const { return GetField<float>(VT_SCALEY, 0.0f); }
+  float scaleX() const { return GetField<float>(VT_SCALEX, 1.0f); }
+  float scaleY() const { return GetField<float>(VT_SCALEY, 1.0f); }
   float skewX() const { return GetField<float>(VT_SKEWX, 0.0f); }
   float skewY() const { return GetField<float>(VT_SKEWY, 0.0f); }
   int32_t tag() const { return GetField<int32_t>(VT_TAG, 0); }
@@ -437,8 +437,8 @@ struct NodeBuilder {
   void add_position(const Vec2 *position) { fbb_.AddStruct(Node::VT_POSITION, position); }
   void add_rotationSkewX(float rotationSkewX) { fbb_.AddElement<float>(Node::VT_ROTATIONSKEWX, rotationSkewX, 0.0f); }
   void add_rotationSkewY(float rotationSkewY) { fbb_.AddElement<float>(Node::VT_ROTATIONSKEWY, rotationSkewY, 0.0f); }
-  void add_scaleX(float scaleX) { fbb_.AddElement<float>(Node::VT_SCALEX, scaleX, 0.0f); }
-  void add_scaleY(float scaleY) { fbb_.AddElement<float>(Node::VT_SCALEY, scaleY, 0.0f); }
+  void add_scaleX(float scaleX) { fbb_.AddElement<float>(Node::VT_SCALEX, scaleX, 1.0f); }
+  void add_scaleY(float scaleY) { fbb_.AddElement<float>(Node::VT_SCALEY, scaleY, 1.0f); }
   void add_skewX(float skewX) { fbb_.AddElement<float>(Node::VT_SKEWX, skewX, 0.0f); }
   void add_skewY(float skewY) { fbb_.AddElement<float>(Node::VT_SKEWY, skewY, 0.0f); }
   void add_tag(int32_t tag) { fbb_.AddElement<int32_t>(Node::VT_TAG, tag, 0); }
@@ -464,8 +464,8 @@ inline flatbuffers::Offset<Node> CreateNode(flatbuffers::FlatBufferBuilder &_fbb
     const Vec2 *position = 0,
     float rotationSkewX = 0.0f,
     float rotationSkewY = 0.0f,
-    float scaleX = 0.0f,
-    float scaleY = 0.0f,
+    float scaleX = 1.0f,
+    float scaleY = 1.0f,
     float skewX = 0.0f,
     float skewY = 0.0f,
     int32_t tag = 0) {
@@ -505,8 +505,8 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(flatbuffers::FlatBufferBuilder
     const Vec2 *position = 0,
     float rotationSkewX = 0.0f,
     float rotationSkewY = 0.0f,
-    float scaleX = 0.0f,
-    float scaleY = 0.0f,
+    float scaleX = 1.0f,
+    float scaleY = 1.0f,
     float skewX = 0.0f,
     float skewY = 0.0f,
     int32_t tag = 0) {

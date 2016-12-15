@@ -149,7 +149,7 @@ cocos2d::Label* CreatorReader::createLabel(const buffers::Label* labelBuffer) co
             label->setBMFontSize(fontSize);
             break;
         case buffers::FontType_System:
-            label = cocos2d::Label::createWithSystemFont(text->str(), "arial", fontSize);
+            label = cocos2d::Label::createWithSystemFont(text->str(), fontName->str(), fontSize);
             break;
     }
 
@@ -194,28 +194,29 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
 //    auto enabled = nodeBuffer->enabled();
     const auto& name = nodeBuffer->name();
-    node->setName(name->str());
+    if (name) node->setName(name->str());
     const auto& anchorPoint = nodeBuffer->anchorPoint();
-    node->setAnchorPoint(cocos2d::Vec2(anchorPoint->x(), anchorPoint->y()));
+    if (anchorPoint) node->setAnchorPoint(cocos2d::Vec2(anchorPoint->x(), anchorPoint->y()));
     const auto& cascadeOpacityEnabled = nodeBuffer->cascadeOpacityEnabled();
     node->setCascadeOpacityEnabled(cascadeOpacityEnabled);
     const auto& color = nodeBuffer->color();
-    node->setColor(cocos2d::Color3B(color->r(), color->g(), color->b()));
-    const auto& globalZOrder = nodeBuffer->globalZorder();
+    if (color) node->setColor(cocos2d::Color3B(color->r(), color->g(), color->b()));
+    const auto& globalZOrder = nodeBuffer->globalZOrder();
     node->setGlobalZOrder(globalZOrder);
-    const auto& localZOrder = nodeBuffer->localZorder();
+    const auto& localZOrder = nodeBuffer->localZOrder();
     node->setLocalZOrder(localZOrder);
     const auto& opacity = nodeBuffer->opacity();
     node->setOpacity(opacity);
     const auto& opacityModifyRGB = nodeBuffer->opacityModifyRGB();
     node->setOpacityModifyRGB(opacityModifyRGB);
     const auto& position = nodeBuffer->position();
-    node->setPosition(position->x(), position->y());
-    const auto& rotationSkew = nodeBuffer->rotationSkew();
-    node->setRotationSkewX(rotationSkew->x());
-    node->setRotationSkewY(rotationSkew->y());
-    const auto& scale = nodeBuffer->scale();
-    node->setScale(scale->x(), scale->y());
+    if (position) node->setPosition(position->x(), position->y());
+    node->setRotationSkewX(nodeBuffer->rotationSkewX());
+    node->setRotationSkewY(nodeBuffer->rotationSkewY());
+    node->setScaleX(nodeBuffer->scaleX());
+    node->setScaleY(nodeBuffer->scaleY());
+    node->setSkewX(nodeBuffer->skewX());
+    node->setSkewY(nodeBuffer->skewY());
     const auto& tag = nodeBuffer->tag();
     node->setTag(tag);
 }
