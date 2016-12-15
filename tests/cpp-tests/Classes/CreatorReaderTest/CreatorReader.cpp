@@ -238,7 +238,9 @@ void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labe
     const auto& horizontalA = labelBuffer->horizontalAlignment();
     label->setVerticalAlignment(static_cast<cocos2d::TextVAlignment>(verticalA));
     label->setHorizontalAlignment(static_cast<cocos2d::TextHAlignment>(horizontalA));
-    label->setLineHeight(lineHeight);
+
+    if (labelBuffer->fontType() != FontType_System)
+        label->setLineHeight(lineHeight);
 }
 
 void CreatorReader::parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const
