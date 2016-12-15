@@ -83,23 +83,29 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
             break;
         case buffers::AnyNode_Label:
             node = createLabel(static_cast<const buffers::Label*>(buffer));
+            break;
         case buffers::AnyNode_Sprite:
             node = createSprite(static_cast<const buffers::Sprite*>(buffer));
+            break;
         case buffers::AnyNode_TileMap:
             node = createTileMap(static_cast<const buffers::TileMap*>(buffer));
+            break;
         case buffers::AnyNode_Particle:
             node = createParticle(static_cast<const buffers::Particle*>(buffer));
+            break;
         case buffers::AnyNode_Scene:
             node = createScene(static_cast<const buffers::Scene*>(buffer));
+            break;
         case buffers::AnyNode_Node:
             node = createNode(static_cast<const buffers::Node*>(buffer));
+            break;
     }
 
     // recursively add its children
     const auto& children = tree->children();
     for(const auto& childBuffer: *children) {
         cocos2d::Node* child = createTree(childBuffer);
-        node->addChild(child);
+        if (child) node->addChild(child);
     }
 
     return node;
@@ -119,7 +125,8 @@ cocos2d::Scene* CreatorReader::createScene(const buffers::Scene* sceneBuffer) co
 cocos2d::Node* CreatorReader::createNode(const buffers::Node* nodeBuffer) const
 {
     cocos2d::Node* node = cocos2d::Node::create();
-    parseNode(node, nodeBuffer);
+    if (node)
+        parseNode(node, nodeBuffer);
     return node;
 }
 cocos2d::Sprite* CreatorReader::createSprite(const buffers::Sprite* spriteBuffer) const
@@ -146,14 +153,16 @@ cocos2d::Label* CreatorReader::createLabel(const buffers::Label* labelBuffer) co
             break;
         case buffers::FontType_BMFont:
             label = cocos2d::Label::createWithBMFont(fontName->str(), text->str());
-            label->setBMFontSize(fontSize);
+            if (label)
+                label->setBMFontSize(fontSize);
             break;
         case buffers::FontType_System:
             label = cocos2d::Label::createWithSystemFont(text->str(), fontName->str(), fontSize);
             break;
     }
 
-    parseLabel(label, labelBuffer);
+    if (label)
+        parseLabel(label, labelBuffer);
     return label;
 }
 
