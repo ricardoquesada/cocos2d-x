@@ -13,13 +13,14 @@ table SceneGraph
     version:string;
 
     root:NodeTree;
+
+    designResolution:Size;
+    resolutionFitWidth:bool = false;
+    resolutionFitHeight:bool = false;
 }
 
 table NodeTree
 {
-    classname:string;
-    customClassName:string;
-
     // Flatbuffers doesn't support array of unions
     // so split the tree from node
     children:[NodeTree];
@@ -34,13 +35,17 @@ table Node
     anchorPoint:Vec2;
     cascadeOpacityEnabled:bool = true;
     color:RGB;
-    globalZorder:float = 0;
-    localZorder:int = 0;
+    globalZOrder:float = 0;
+    localZOrder:int = 0;
     opacity:ubyte = 255;
     opacityModifyRGB:bool = true;
     position:Vec2;
-    rotationSkew:Vec2;
-    scale:Vec2;
+    rotationSkewX:float;
+    rotationSkewY:float;
+    scaleX:float;
+    scaleY:float;
+    skewX:float;
+    skewY:float;
     tag:int = 0;
 }
 

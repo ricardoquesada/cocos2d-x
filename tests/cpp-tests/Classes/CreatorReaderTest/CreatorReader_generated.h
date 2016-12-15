@@ -241,16 +241,25 @@ STRUCT_END(RGBA, 4);
 struct SceneGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_VERSION = 4,
-    VT_ROOT = 6
+    VT_ROOT = 6,
+    VT_DESIGNRESOLUTION = 8,
+    VT_RESOLUTIONFITWIDTH = 10,
+    VT_RESOLUTIONFITHEIGHT = 12
   };
   const flatbuffers::String *version() const { return GetPointer<const flatbuffers::String *>(VT_VERSION); }
   const NodeTree *root() const { return GetPointer<const NodeTree *>(VT_ROOT); }
+  const Size *designResolution() const { return GetStruct<const Size *>(VT_DESIGNRESOLUTION); }
+  bool resolutionFitWidth() const { return GetField<uint8_t>(VT_RESOLUTIONFITWIDTH, 0) != 0; }
+  bool resolutionFitHeight() const { return GetField<uint8_t>(VT_RESOLUTIONFITHEIGHT, 0) != 0; }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_VERSION) &&
            verifier.Verify(version()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_ROOT) &&
            verifier.VerifyTable(root()) &&
+           VerifyField<Size>(verifier, VT_DESIGNRESOLUTION) &&
+           VerifyField<uint8_t>(verifier, VT_RESOLUTIONFITWIDTH) &&
+           VerifyField<uint8_t>(verifier, VT_RESOLUTIONFITHEIGHT) &&
            verifier.EndTable();
   }
 };
@@ -260,48 +269,52 @@ struct SceneGraphBuilder {
   flatbuffers::uoffset_t start_;
   void add_version(flatbuffers::Offset<flatbuffers::String> version) { fbb_.AddOffset(SceneGraph::VT_VERSION, version); }
   void add_root(flatbuffers::Offset<NodeTree> root) { fbb_.AddOffset(SceneGraph::VT_ROOT, root); }
+  void add_designResolution(const Size *designResolution) { fbb_.AddStruct(SceneGraph::VT_DESIGNRESOLUTION, designResolution); }
+  void add_resolutionFitWidth(bool resolutionFitWidth) { fbb_.AddElement<uint8_t>(SceneGraph::VT_RESOLUTIONFITWIDTH, static_cast<uint8_t>(resolutionFitWidth), 0); }
+  void add_resolutionFitHeight(bool resolutionFitHeight) { fbb_.AddElement<uint8_t>(SceneGraph::VT_RESOLUTIONFITHEIGHT, static_cast<uint8_t>(resolutionFitHeight), 0); }
   SceneGraphBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   SceneGraphBuilder &operator=(const SceneGraphBuilder &);
   flatbuffers::Offset<SceneGraph> Finish() {
-    auto o = flatbuffers::Offset<SceneGraph>(fbb_.EndTable(start_, 2));
+    auto o = flatbuffers::Offset<SceneGraph>(fbb_.EndTable(start_, 5));
     return o;
   }
 };
 
 inline flatbuffers::Offset<SceneGraph> CreateSceneGraph(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<flatbuffers::String> version = 0,
-    flatbuffers::Offset<NodeTree> root = 0) {
+    flatbuffers::Offset<NodeTree> root = 0,
+    const Size *designResolution = 0,
+    bool resolutionFitWidth = false,
+    bool resolutionFitHeight = false) {
   SceneGraphBuilder builder_(_fbb);
+  builder_.add_designResolution(designResolution);
   builder_.add_root(root);
   builder_.add_version(version);
+  builder_.add_resolutionFitHeight(resolutionFitHeight);
+  builder_.add_resolutionFitWidth(resolutionFitWidth);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<SceneGraph> CreateSceneGraphDirect(flatbuffers::FlatBufferBuilder &_fbb,
     const char *version = nullptr,
-    flatbuffers::Offset<NodeTree> root = 0) {
-  return CreateSceneGraph(_fbb, version ? _fbb.CreateString(version) : 0, root);
+    flatbuffers::Offset<NodeTree> root = 0,
+    const Size *designResolution = 0,
+    bool resolutionFitWidth = false,
+    bool resolutionFitHeight = false) {
+  return CreateSceneGraph(_fbb, version ? _fbb.CreateString(version) : 0, root, designResolution, resolutionFitWidth, resolutionFitHeight);
 }
 
 struct NodeTree FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_CLASSNAME = 4,
-    VT_CUSTOMCLASSNAME = 6,
-    VT_CHILDREN = 8,
-    VT_OBJECT_TYPE = 10,
-    VT_OBJECT = 12
+    VT_CHILDREN = 4,
+    VT_OBJECT_TYPE = 6,
+    VT_OBJECT = 8
   };
-  const flatbuffers::String *classname() const { return GetPointer<const flatbuffers::String *>(VT_CLASSNAME); }
-  const flatbuffers::String *customClassName() const { return GetPointer<const flatbuffers::String *>(VT_CUSTOMCLASSNAME); }
   const flatbuffers::Vector<flatbuffers::Offset<NodeTree>> *children() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<NodeTree>> *>(VT_CHILDREN); }
   AnyNode object_type() const { return static_cast<AnyNode>(GetField<uint8_t>(VT_OBJECT_TYPE, 0)); }
   const void *object() const { return GetPointer<const void *>(VT_OBJECT); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_CLASSNAME) &&
-           verifier.Verify(classname()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_CUSTOMCLASSNAME) &&
-           verifier.Verify(customClassName()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_CHILDREN) &&
            verifier.Verify(children()) &&
            verifier.VerifyVectorOfTables(children()) &&
@@ -315,41 +328,33 @@ struct NodeTree FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 struct NodeTreeBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_classname(flatbuffers::Offset<flatbuffers::String> classname) { fbb_.AddOffset(NodeTree::VT_CLASSNAME, classname); }
-  void add_customClassName(flatbuffers::Offset<flatbuffers::String> customClassName) { fbb_.AddOffset(NodeTree::VT_CUSTOMCLASSNAME, customClassName); }
   void add_children(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<NodeTree>>> children) { fbb_.AddOffset(NodeTree::VT_CHILDREN, children); }
   void add_object_type(AnyNode object_type) { fbb_.AddElement<uint8_t>(NodeTree::VT_OBJECT_TYPE, static_cast<uint8_t>(object_type), 0); }
   void add_object(flatbuffers::Offset<void> object) { fbb_.AddOffset(NodeTree::VT_OBJECT, object); }
   NodeTreeBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   NodeTreeBuilder &operator=(const NodeTreeBuilder &);
   flatbuffers::Offset<NodeTree> Finish() {
-    auto o = flatbuffers::Offset<NodeTree>(fbb_.EndTable(start_, 5));
+    auto o = flatbuffers::Offset<NodeTree>(fbb_.EndTable(start_, 3));
     return o;
   }
 };
 
 inline flatbuffers::Offset<NodeTree> CreateNodeTree(flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> classname = 0,
-    flatbuffers::Offset<flatbuffers::String> customClassName = 0,
     flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<NodeTree>>> children = 0,
     AnyNode object_type = AnyNode_NONE,
     flatbuffers::Offset<void> object = 0) {
   NodeTreeBuilder builder_(_fbb);
   builder_.add_object(object);
   builder_.add_children(children);
-  builder_.add_customClassName(customClassName);
-  builder_.add_classname(classname);
   builder_.add_object_type(object_type);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<NodeTree> CreateNodeTreeDirect(flatbuffers::FlatBufferBuilder &_fbb,
-    const char *classname = nullptr,
-    const char *customClassName = nullptr,
     const std::vector<flatbuffers::Offset<NodeTree>> *children = nullptr,
     AnyNode object_type = AnyNode_NONE,
     flatbuffers::Offset<void> object = 0) {
-  return CreateNodeTree(_fbb, classname ? _fbb.CreateString(classname) : 0, customClassName ? _fbb.CreateString(customClassName) : 0, children ? _fbb.CreateVector<flatbuffers::Offset<NodeTree>>(*children) : 0, object_type, object);
+  return CreateNodeTree(_fbb, children ? _fbb.CreateVector<flatbuffers::Offset<NodeTree>>(*children) : 0, object_type, object);
 }
 
 struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -365,9 +370,13 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_OPACITY = 20,
     VT_OPACITYMODIFYRGB = 22,
     VT_POSITION = 24,
-    VT_ROTATIONSKEW = 26,
-    VT_SCALE = 28,
-    VT_TAG = 30
+    VT_ROTATIONSKEWX = 26,
+    VT_ROTATIONSKEWY = 28,
+    VT_SCALEX = 30,
+    VT_SCALEY = 32,
+    VT_SKEWX = 34,
+    VT_SKEWY = 36,
+    VT_TAG = 38
   };
   const Size *contentSize() const { return GetStruct<const Size *>(VT_CONTENTSIZE); }
   bool enabled() const { return GetField<uint8_t>(VT_ENABLED, 1) != 0; }
@@ -375,13 +384,17 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Vec2 *anchorPoint() const { return GetStruct<const Vec2 *>(VT_ANCHORPOINT); }
   bool cascadeOpacityEnabled() const { return GetField<uint8_t>(VT_CASCADEOPACITYENABLED, 1) != 0; }
   const RGB *color() const { return GetStruct<const RGB *>(VT_COLOR); }
-  float globalZorder() const { return GetField<float>(VT_GLOBALZORDER, 0.0f); }
-  int32_t localZorder() const { return GetField<int32_t>(VT_LOCALZORDER, 0); }
+  float globalZOrder() const { return GetField<float>(VT_GLOBALZORDER, 0.0f); }
+  int32_t localZOrder() const { return GetField<int32_t>(VT_LOCALZORDER, 0); }
   uint8_t opacity() const { return GetField<uint8_t>(VT_OPACITY, 255); }
   bool opacityModifyRGB() const { return GetField<uint8_t>(VT_OPACITYMODIFYRGB, 1) != 0; }
   const Vec2 *position() const { return GetStruct<const Vec2 *>(VT_POSITION); }
-  const Vec2 *rotationSkew() const { return GetStruct<const Vec2 *>(VT_ROTATIONSKEW); }
-  const Vec2 *scale() const { return GetStruct<const Vec2 *>(VT_SCALE); }
+  float rotationSkewX() const { return GetField<float>(VT_ROTATIONSKEWX, 0.0f); }
+  float rotationSkewY() const { return GetField<float>(VT_ROTATIONSKEWY, 0.0f); }
+  float scaleX() const { return GetField<float>(VT_SCALEX, 0.0f); }
+  float scaleY() const { return GetField<float>(VT_SCALEY, 0.0f); }
+  float skewX() const { return GetField<float>(VT_SKEWX, 0.0f); }
+  float skewY() const { return GetField<float>(VT_SKEWY, 0.0f); }
   int32_t tag() const { return GetField<int32_t>(VT_TAG, 0); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -397,8 +410,12 @@ struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<uint8_t>(verifier, VT_OPACITY) &&
            VerifyField<uint8_t>(verifier, VT_OPACITYMODIFYRGB) &&
            VerifyField<Vec2>(verifier, VT_POSITION) &&
-           VerifyField<Vec2>(verifier, VT_ROTATIONSKEW) &&
-           VerifyField<Vec2>(verifier, VT_SCALE) &&
+           VerifyField<float>(verifier, VT_ROTATIONSKEWX) &&
+           VerifyField<float>(verifier, VT_ROTATIONSKEWY) &&
+           VerifyField<float>(verifier, VT_SCALEX) &&
+           VerifyField<float>(verifier, VT_SCALEY) &&
+           VerifyField<float>(verifier, VT_SKEWX) &&
+           VerifyField<float>(verifier, VT_SKEWY) &&
            VerifyField<int32_t>(verifier, VT_TAG) &&
            verifier.EndTable();
   }
@@ -413,18 +430,22 @@ struct NodeBuilder {
   void add_anchorPoint(const Vec2 *anchorPoint) { fbb_.AddStruct(Node::VT_ANCHORPOINT, anchorPoint); }
   void add_cascadeOpacityEnabled(bool cascadeOpacityEnabled) { fbb_.AddElement<uint8_t>(Node::VT_CASCADEOPACITYENABLED, static_cast<uint8_t>(cascadeOpacityEnabled), 1); }
   void add_color(const RGB *color) { fbb_.AddStruct(Node::VT_COLOR, color); }
-  void add_globalZorder(float globalZorder) { fbb_.AddElement<float>(Node::VT_GLOBALZORDER, globalZorder, 0.0f); }
-  void add_localZorder(int32_t localZorder) { fbb_.AddElement<int32_t>(Node::VT_LOCALZORDER, localZorder, 0); }
+  void add_globalZOrder(float globalZOrder) { fbb_.AddElement<float>(Node::VT_GLOBALZORDER, globalZOrder, 0.0f); }
+  void add_localZOrder(int32_t localZOrder) { fbb_.AddElement<int32_t>(Node::VT_LOCALZORDER, localZOrder, 0); }
   void add_opacity(uint8_t opacity) { fbb_.AddElement<uint8_t>(Node::VT_OPACITY, opacity, 255); }
   void add_opacityModifyRGB(bool opacityModifyRGB) { fbb_.AddElement<uint8_t>(Node::VT_OPACITYMODIFYRGB, static_cast<uint8_t>(opacityModifyRGB), 1); }
   void add_position(const Vec2 *position) { fbb_.AddStruct(Node::VT_POSITION, position); }
-  void add_rotationSkew(const Vec2 *rotationSkew) { fbb_.AddStruct(Node::VT_ROTATIONSKEW, rotationSkew); }
-  void add_scale(const Vec2 *scale) { fbb_.AddStruct(Node::VT_SCALE, scale); }
+  void add_rotationSkewX(float rotationSkewX) { fbb_.AddElement<float>(Node::VT_ROTATIONSKEWX, rotationSkewX, 0.0f); }
+  void add_rotationSkewY(float rotationSkewY) { fbb_.AddElement<float>(Node::VT_ROTATIONSKEWY, rotationSkewY, 0.0f); }
+  void add_scaleX(float scaleX) { fbb_.AddElement<float>(Node::VT_SCALEX, scaleX, 0.0f); }
+  void add_scaleY(float scaleY) { fbb_.AddElement<float>(Node::VT_SCALEY, scaleY, 0.0f); }
+  void add_skewX(float skewX) { fbb_.AddElement<float>(Node::VT_SKEWX, skewX, 0.0f); }
+  void add_skewY(float skewY) { fbb_.AddElement<float>(Node::VT_SKEWY, skewY, 0.0f); }
   void add_tag(int32_t tag) { fbb_.AddElement<int32_t>(Node::VT_TAG, tag, 0); }
   NodeBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   NodeBuilder &operator=(const NodeBuilder &);
   flatbuffers::Offset<Node> Finish() {
-    auto o = flatbuffers::Offset<Node>(fbb_.EndTable(start_, 14));
+    auto o = flatbuffers::Offset<Node>(fbb_.EndTable(start_, 18));
     return o;
   }
 };
@@ -436,21 +457,29 @@ inline flatbuffers::Offset<Node> CreateNode(flatbuffers::FlatBufferBuilder &_fbb
     const Vec2 *anchorPoint = 0,
     bool cascadeOpacityEnabled = true,
     const RGB *color = 0,
-    float globalZorder = 0.0f,
-    int32_t localZorder = 0,
+    float globalZOrder = 0.0f,
+    int32_t localZOrder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
     const Vec2 *position = 0,
-    const Vec2 *rotationSkew = 0,
-    const Vec2 *scale = 0,
+    float rotationSkewX = 0.0f,
+    float rotationSkewY = 0.0f,
+    float scaleX = 0.0f,
+    float scaleY = 0.0f,
+    float skewX = 0.0f,
+    float skewY = 0.0f,
     int32_t tag = 0) {
   NodeBuilder builder_(_fbb);
   builder_.add_tag(tag);
-  builder_.add_scale(scale);
-  builder_.add_rotationSkew(rotationSkew);
+  builder_.add_skewY(skewY);
+  builder_.add_skewX(skewX);
+  builder_.add_scaleY(scaleY);
+  builder_.add_scaleX(scaleX);
+  builder_.add_rotationSkewY(rotationSkewY);
+  builder_.add_rotationSkewX(rotationSkewX);
   builder_.add_position(position);
-  builder_.add_localZorder(localZorder);
-  builder_.add_globalZorder(globalZorder);
+  builder_.add_localZOrder(localZOrder);
+  builder_.add_globalZOrder(globalZOrder);
   builder_.add_color(color);
   builder_.add_anchorPoint(anchorPoint);
   builder_.add_name(name);
@@ -469,15 +498,19 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(flatbuffers::FlatBufferBuilder
     const Vec2 *anchorPoint = 0,
     bool cascadeOpacityEnabled = true,
     const RGB *color = 0,
-    float globalZorder = 0.0f,
-    int32_t localZorder = 0,
+    float globalZOrder = 0.0f,
+    int32_t localZOrder = 0,
     uint8_t opacity = 255,
     bool opacityModifyRGB = true,
     const Vec2 *position = 0,
-    const Vec2 *rotationSkew = 0,
-    const Vec2 *scale = 0,
+    float rotationSkewX = 0.0f,
+    float rotationSkewY = 0.0f,
+    float scaleX = 0.0f,
+    float scaleY = 0.0f,
+    float skewX = 0.0f,
+    float skewY = 0.0f,
     int32_t tag = 0) {
-  return CreateNode(_fbb, contentSize, enabled, name ? _fbb.CreateString(name) : 0, anchorPoint, cascadeOpacityEnabled, color, globalZorder, localZorder, opacity, opacityModifyRGB, position, rotationSkew, scale, tag);
+  return CreateNode(_fbb, contentSize, enabled, name ? _fbb.CreateString(name) : 0, anchorPoint, cascadeOpacityEnabled, color, globalZOrder, localZOrder, opacity, opacityModifyRGB, position, rotationSkewX, rotationSkewY, scaleX, scaleY, skewX, skewY, tag);
 }
 
 struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
