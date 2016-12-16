@@ -132,7 +132,7 @@
                     {
                         "children": [],
                         "object": {
-                            "fontName": "A Damn Mess.ttf",
+                            "fontName": "creator/assets/A Damn Mess.ttf",
                             "fontSize": 40,
                             "fontType": "TTF",
                             "horizontalAlignment": "Center",
@@ -217,7 +217,7 @@
                     {
                         "children": [],
                         "object": {
-                            "fontName": "American Typewriter.ttf",
+                            "fontName": "creator/assets/American Typewriter.ttf",
                             "fontSize": 20,
                             "fontType": "TTF",
                             "horizontalAlignment": "Center",

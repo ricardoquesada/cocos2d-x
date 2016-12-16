@@ -50,7 +50,30 @@ bool CreatorReader::initWithFilename(const std::string& filename)
 
 void CreatorReader::setup()
 {
-    // XXX TODO
+    const void* buffer = _data.getBytes();
+    auto sceneGraph = GetSceneGraph(buffer);
+
+    const auto& designResolution = sceneGraph->designResolution();
+    const auto& fitWidth = sceneGraph->resolutionFitWidth();
+    const auto& fitHeight = sceneGraph->resolutionFitHeight();
+
+    auto director = cocos2d::Director::getInstance();
+    auto glview = director->getOpenGLView();
+    const auto& frameSize = glview->getFrameSize();
+
+    if (fitWidth && fitHeight) {
+        glview->setDesignResolutionSize(designResolution->w(), designResolution->h(), ResolutionPolicy::EXACT_FIT);
+    } else if (fitHeight) {
+        const float w = frameSize.width / (frameSize.height / designResolution->h());
+        const float h = frameSize.height / (frameSize.height / designResolution->h());
+        glview->setDesignResolutionSize(w, h, ResolutionPolicy::NO_BORDER);
+    } else if (fitWidth) {
+        const float w = frameSize.width / (frameSize.height / designResolution->w());
+        const float h = frameSize.height / (frameSize.height / designResolution->w());
+        glview->setDesignResolutionSize(w, h, ResolutionPolicy::NO_BORDER);
+    } else {
+        glview->setDesignResolutionSize(designResolution->w(), designResolution->h(), ResolutionPolicy::NO_BORDER);
+    }
 }
 
 cocos2d::Scene* CreatorReader::getSceneGraph() const
@@ -232,16 +255,21 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
 {
-
+    const auto& nodeBuffer = spriteBuffer->node();
+    parseNode(sprite, nodeBuffer);
 }
 
 void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::TileMap* tilemapBuffer) const
 {
-
+    const auto& nodeBuffer = tilemapBuffer->node();
+    parseNode(tilemap, nodeBuffer);
 }
 
 void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const
 {
+    const auto& nodeBuffer = labelBuffer->node();
+    parseNode(label, nodeBuffer);
+
     const auto& lineHeight = labelBuffer->lineHeight();
     const auto& verticalA = labelBuffer->verticalAlignment();
     const auto& horizontalA = labelBuffer->horizontalAlignment();
@@ -252,7 +280,8 @@ void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labe
         label->setLineHeight(lineHeight);
 }
 
-void CreatorReader::parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const
+void CreatorReader::parseScene(cocos2d::ParticleSystemQuad* particle, const buffers::Particle* particleBuffer) const
 {
-
+    const auto& nodeBuffer = particleBuffer->node();
+    parseNode(particle, nodeBuffer);
 }

@@ -47,7 +47,8 @@ CreatorReaderTest1::CreatorReaderTest1()
 
     // will create the needed spritesheets, design resolution
     reader->setup();
-    reader->getSceneGraph();
+    Scene* scene = reader->getSceneGraph();
+    addChild(scene);
 }
 
 std::string CreatorReaderTest1::title() const
