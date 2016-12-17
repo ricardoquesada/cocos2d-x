@@ -6,7 +6,7 @@ enum HorizontalAlignment:byte { Left = 0, Center = 1, Right = 2 }
 
 // New nodes should be added at the end of the union
 // no more than 255 union objects can be added
-union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node}
+union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node, Button, ProgressBar, ScrollView}
 
 table SceneGraph
 {
@@ -49,11 +49,14 @@ table Node
     tag:int = 0;
 }
 
+//
+// Render Nodes
+//
 table Sprite
 {
     node:Node;
-    spriteFrameName:string;
-    centerRect:Rect;
+    spriteFrame:string;
+    centerRectNormalized:Rect;
 }
 
 table Label
@@ -85,6 +88,25 @@ table TileMap
 }
 
 table Scene
+{
+    node:Node;
+}
+
+//
+// Render Nodes
+//
+table Button
+{
+    node:Node;
+    ignoreContentAdaptWithSize:bool = false;
+}
+
+table ProgressBar
+{
+    node:Node;
+}
+
+table ScrollView
 {
     node:Node;
 }

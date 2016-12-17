@@ -32,6 +32,7 @@ USING_NS_CCR;
 CreatorReaderTests::CreatorReaderTests()
 {
     ADD_TEST_CASE(CreatorReaderTest1);
+    ADD_TEST_CASE(CreatorReaderTest2);
 };
 
 //------------------------------------------------------------------
@@ -52,6 +53,28 @@ CreatorReaderTest1::CreatorReaderTest1()
 }
 
 std::string CreatorReaderTest1::title() const
+{
+    return "Reading labels";
+}
+
+//------------------------------------------------------------------
+//
+// CreatorReaderTest2
+//
+//------------------------------------------------------------------
+
+CreatorReaderTest2::CreatorReaderTest2()
+{
+    CreatorReader* reader = CreatorReader::createWithFilename("creator/CreatorSprites.ccreator");
+    CCLOG("Version: %s", reader->getVersion().c_str());
+
+    // will create the needed spritesheets, design resolution
+    reader->setup();
+    Scene* scene = reader->getSceneGraph();
+    addChild(scene);
+}
+
+std::string CreatorReaderTest2::title() const
 {
     return "Reading sprites";
 }

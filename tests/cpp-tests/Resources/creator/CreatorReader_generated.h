@@ -24,6 +24,12 @@ struct TileMap;
 
 struct Scene;
 
+struct Button;
+
+struct ProgressBar;
+
+struct ScrollView;
+
 struct Vec2;
 
 struct Vec3;
@@ -89,12 +95,15 @@ enum AnyNode {
   AnyNode_Particle = 4,
   AnyNode_TileMap = 5,
   AnyNode_Node = 6,
+  AnyNode_Button = 7,
+  AnyNode_ProgressBar = 8,
+  AnyNode_ScrollView = 9,
   AnyNode_MIN = AnyNode_NONE,
-  AnyNode_MAX = AnyNode_Node
+  AnyNode_MAX = AnyNode_ScrollView
 };
 
 inline const char **EnumNamesAnyNode() {
-  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", nullptr };
+  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", nullptr };
   return names;
 }
 
@@ -126,6 +135,18 @@ template<> struct AnyNodeTraits<TileMap> {
 
 template<> struct AnyNodeTraits<Node> {
   static const AnyNode enum_value = AnyNode_Node;
+};
+
+template<> struct AnyNodeTraits<Button> {
+  static const AnyNode enum_value = AnyNode_Button;
+};
+
+template<> struct AnyNodeTraits<ProgressBar> {
+  static const AnyNode enum_value = AnyNode_ProgressBar;
+};
+
+template<> struct AnyNodeTraits<ScrollView> {
+  static const AnyNode enum_value = AnyNode_ScrollView;
 };
 
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type);
@@ -775,6 +796,108 @@ inline flatbuffers::Offset<Scene> CreateScene(flatbuffers::FlatBufferBuilder &_f
   return builder_.Finish();
 }
 
+struct Button FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NODE = 4,
+    VT_IGNORECONTENTADAPTWITHSIZE = 6
+  };
+  const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  bool ignoreContentAdaptWithSize() const { return GetField<uint8_t>(VT_IGNORECONTENTADAPTWITHSIZE, 0) != 0; }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
+           verifier.VerifyTable(node()) &&
+           VerifyField<uint8_t>(verifier, VT_IGNORECONTENTADAPTWITHSIZE) &&
+           verifier.EndTable();
+  }
+};
+
+struct ButtonBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(Button::VT_NODE, node); }
+  void add_ignoreContentAdaptWithSize(bool ignoreContentAdaptWithSize) { fbb_.AddElement<uint8_t>(Button::VT_IGNORECONTENTADAPTWITHSIZE, static_cast<uint8_t>(ignoreContentAdaptWithSize), 0); }
+  ButtonBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  ButtonBuilder &operator=(const ButtonBuilder &);
+  flatbuffers::Offset<Button> Finish() {
+    auto o = flatbuffers::Offset<Button>(fbb_.EndTable(start_, 2));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Button> CreateButton(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    bool ignoreContentAdaptWithSize = false) {
+  ButtonBuilder builder_(_fbb);
+  builder_.add_node(node);
+  builder_.add_ignoreContentAdaptWithSize(ignoreContentAdaptWithSize);
+  return builder_.Finish();
+}
+
+struct ProgressBar FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NODE = 4
+  };
+  const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
+           verifier.VerifyTable(node()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ProgressBarBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(ProgressBar::VT_NODE, node); }
+  ProgressBarBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  ProgressBarBuilder &operator=(const ProgressBarBuilder &);
+  flatbuffers::Offset<ProgressBar> Finish() {
+    auto o = flatbuffers::Offset<ProgressBar>(fbb_.EndTable(start_, 1));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ProgressBar> CreateProgressBar(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0) {
+  ProgressBarBuilder builder_(_fbb);
+  builder_.add_node(node);
+  return builder_.Finish();
+}
+
+struct ScrollView FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NODE = 4
+  };
+  const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
+           verifier.VerifyTable(node()) &&
+           verifier.EndTable();
+  }
+};
+
+struct ScrollViewBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(ScrollView::VT_NODE, node); }
+  ScrollViewBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  ScrollViewBuilder &operator=(const ScrollViewBuilder &);
+  flatbuffers::Offset<ScrollView> Finish() {
+    auto o = flatbuffers::Offset<ScrollView>(fbb_.EndTable(start_, 1));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<ScrollView> CreateScrollView(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0) {
+  ScrollViewBuilder builder_(_fbb);
+  builder_.add_node(node);
+  return builder_.Finish();
+}
+
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type) {
   switch (type) {
     case AnyNode_NONE: return true;
@@ -784,6 +907,9 @@ inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj
     case AnyNode_Particle: return verifier.VerifyTable(reinterpret_cast<const Particle *>(union_obj));
     case AnyNode_TileMap: return verifier.VerifyTable(reinterpret_cast<const TileMap *>(union_obj));
     case AnyNode_Node: return verifier.VerifyTable(reinterpret_cast<const Node *>(union_obj));
+    case AnyNode_Button: return verifier.VerifyTable(reinterpret_cast<const Button *>(union_obj));
+    case AnyNode_ProgressBar: return verifier.VerifyTable(reinterpret_cast<const ProgressBar *>(union_obj));
+    case AnyNode_ScrollView: return verifier.VerifyTable(reinterpret_cast<const ScrollView *>(union_obj));
     default: return false;
   }
 }
