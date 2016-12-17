@@ -68,8 +68,8 @@ void CreatorReader::setup()
         const float h = frameSize.height / (frameSize.height / designResolution->h());
         glview->setDesignResolutionSize(w, h, ResolutionPolicy::NO_BORDER);
     } else if (fitWidth) {
-        const float w = frameSize.width / (frameSize.height / designResolution->w());
-        const float h = frameSize.height / (frameSize.height / designResolution->w());
+        const float w = frameSize.width / (frameSize.width / designResolution->w());
+        const float h = frameSize.height / (frameSize.width / designResolution->w());
         glview->setDesignResolutionSize(w, h, ResolutionPolicy::NO_BORDER);
     } else {
         glview->setDesignResolutionSize(designResolution->w(), designResolution->h(), ResolutionPolicy::NO_BORDER);
@@ -118,6 +118,10 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
             break;
         case buffers::AnyNode_Scene:
             node = createScene(static_cast<const buffers::Scene*>(buffer));
+            break;
+        case buffers::AnyNode_ScrollView:
+        case buffers::AnyNode_ProgressBar:
+        case buffers::AnyNode_Button:
             break;
         case buffers::AnyNode_Node:
             node = createNode(static_cast<const buffers::Node*>(buffer));
