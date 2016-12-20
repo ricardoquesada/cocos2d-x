@@ -67,6 +67,7 @@ protected:
     cocos2d::ParticleSystemQuad* createParticle(const buffers::Particle* particleBuffer) const;
     void parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const;
 
+    void setupSpriteFrames();
 
     // variables
     cocos2d::Scene* _scene;

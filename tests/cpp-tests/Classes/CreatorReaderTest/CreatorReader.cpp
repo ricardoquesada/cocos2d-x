@@ -74,6 +74,44 @@ void CreatorReader::setup()
     } else {
         glview->setDesignResolutionSize(designResolution->w(), designResolution->h(), ResolutionPolicy::NO_BORDER);
     }
+
+    setupSpriteFrames();
+}
+
+void CreatorReader::setupSpriteFrames()
+{
+    const void* buffer = _data.getBytes();
+    const auto& sceneGraph = GetSceneGraph(buffer);
+    const auto& spriteFrames = sceneGraph->spriteFrames();
+    auto frameCache = cocos2d::SpriteFrameCache::getInstance();
+
+    if (spriteFrames) {
+        for (const auto& spriteFrame: *spriteFrames) {
+            const auto& name = spriteFrame->name()->str();
+            const auto& filename = spriteFrame->texturePath()->str();
+            const auto& rect = spriteFrame->rect();
+            const auto& rotated = spriteFrame->rotated();
+            const auto& offset = spriteFrame->offset();
+            const auto& originalSize = spriteFrame->originalSize();
+
+            auto sf = cocos2d::SpriteFrame::create(filename,
+                                                   cocos2d::Rect(rect->x(), rect->y(), rect->w(), rect->h()),
+                                                   rotated,
+                                                   cocos2d::Vec2(offset->x(), offset->y()),
+                                                   cocos2d::Size(originalSize->w(), originalSize->h())
+                                                   );
+
+            const auto& centerRect = spriteFrame->centerRect();
+            if (sf && centerRect) {
+                sf->setCenterRectInPixels(cocos2d::Rect(centerRect->x(), centerRect->y(), centerRect->w(), centerRect->h()));
+            }
+
+            if (sf) {
+                frameCache->addSpriteFrame(sf, name);
+                CCLOG("Adding sprite frame: %s", name.c_str());
+            }
+        }
+    }
 }
 
 cocos2d::Scene* CreatorReader::getSceneGraph() const
@@ -122,6 +160,7 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
         case buffers::AnyNode_ScrollView:
         case buffers::AnyNode_ProgressBar:
         case buffers::AnyNode_Button:
+        case buffers::AnyNode_CreatorScene:
             break;
         case buffers::AnyNode_Node:
             node = createNode(static_cast<const buffers::Node*>(buffer));
@@ -159,6 +198,8 @@ cocos2d::Node* CreatorReader::createNode(const buffers::Node* nodeBuffer) const
 cocos2d::Sprite* CreatorReader::createSprite(const buffers::Sprite* spriteBuffer) const
 {
     cocos2d::Sprite* sprite = cocos2d::Sprite::create();
+    if (sprite)
+        parseSprite(sprite, spriteBuffer);
     return sprite;
 }
 cocos2d::TMXTiledMap* CreatorReader::createTileMap(const buffers::TileMap* tilemapBuffer) const
@@ -259,6 +300,24 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
 {
+    const auto& frameName = spriteBuffer->spriteFrameName();
+    if (frameName)
+        sprite->setSpriteFrame(frameName->str());
+
+    const auto& spriteType = spriteBuffer->spriteType();
+    if (spriteType) {
+        switch (spriteType) {
+            case buffers::SpriteType_Tiled:
+            case buffers::SpriteType_Filled:
+            case buffers::SpriteType_Sliced:
+                break;
+            case buffers::SpriteType_Simple:
+                sprite->setCenterRectNormalized(cocos2d::Rect(0,0,1,1));
+                break;
+        }
+    }
+
+    // parse node after sprite
     const auto& nodeBuffer = spriteBuffer->node();
     parseNode(sprite, nodeBuffer);
 }

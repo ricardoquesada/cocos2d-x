@@ -12,6 +12,10 @@ struct SceneGraph;
 
 struct NodeTree;
 
+struct SpriteFrame;
+
+struct CreatorScene;
+
 struct Node;
 
 struct Sprite;
@@ -87,6 +91,22 @@ inline const char **EnumNamesHorizontalAlignment() {
 
 inline const char *EnumNameHorizontalAlignment(HorizontalAlignment e) { return EnumNamesHorizontalAlignment()[static_cast<int>(e)]; }
 
+enum SpriteType {
+  SpriteType_Simple = 0,
+  SpriteType_Sliced = 1,
+  SpriteType_Tiled = 2,
+  SpriteType_Filled = 3,
+  SpriteType_MIN = SpriteType_Simple,
+  SpriteType_MAX = SpriteType_Filled
+};
+
+inline const char **EnumNamesSpriteType() {
+  static const char *names[] = { "Simple", "Sliced", "Tiled", "Filled", nullptr };
+  return names;
+}
+
+inline const char *EnumNameSpriteType(SpriteType e) { return EnumNamesSpriteType()[static_cast<int>(e)]; }
+
 enum AnyNode {
   AnyNode_NONE = 0,
   AnyNode_Scene = 1,
@@ -98,12 +118,13 @@ enum AnyNode {
   AnyNode_Button = 7,
   AnyNode_ProgressBar = 8,
   AnyNode_ScrollView = 9,
+  AnyNode_CreatorScene = 10,
   AnyNode_MIN = AnyNode_NONE,
-  AnyNode_MAX = AnyNode_ScrollView
+  AnyNode_MAX = AnyNode_CreatorScene
 };
 
 inline const char **EnumNamesAnyNode() {
-  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", nullptr };
+  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", "CreatorScene", nullptr };
   return names;
 }
 
@@ -147,6 +168,10 @@ template<> struct AnyNodeTraits<ProgressBar> {
 
 template<> struct AnyNodeTraits<ScrollView> {
   static const AnyNode enum_value = AnyNode_ScrollView;
+};
+
+template<> struct AnyNodeTraits<CreatorScene> {
+  static const AnyNode enum_value = AnyNode_CreatorScene;
 };
 
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type);
@@ -265,13 +290,15 @@ struct SceneGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_ROOT = 6,
     VT_DESIGNRESOLUTION = 8,
     VT_RESOLUTIONFITWIDTH = 10,
-    VT_RESOLUTIONFITHEIGHT = 12
+    VT_RESOLUTIONFITHEIGHT = 12,
+    VT_SPRITEFRAMES = 14
   };
   const flatbuffers::String *version() const { return GetPointer<const flatbuffers::String *>(VT_VERSION); }
   const NodeTree *root() const { return GetPointer<const NodeTree *>(VT_ROOT); }
   const Size *designResolution() const { return GetStruct<const Size *>(VT_DESIGNRESOLUTION); }
   bool resolutionFitWidth() const { return GetField<uint8_t>(VT_RESOLUTIONFITWIDTH, 0) != 0; }
   bool resolutionFitHeight() const { return GetField<uint8_t>(VT_RESOLUTIONFITHEIGHT, 0) != 0; }
+  const flatbuffers::Vector<flatbuffers::Offset<SpriteFrame>> *spriteFrames() const { return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<SpriteFrame>> *>(VT_SPRITEFRAMES); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_VERSION) &&
@@ -281,6 +308,9 @@ struct SceneGraph FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<Size>(verifier, VT_DESIGNRESOLUTION) &&
            VerifyField<uint8_t>(verifier, VT_RESOLUTIONFITWIDTH) &&
            VerifyField<uint8_t>(verifier, VT_RESOLUTIONFITHEIGHT) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_SPRITEFRAMES) &&
+           verifier.Verify(spriteFrames()) &&
+           verifier.VerifyVectorOfTables(spriteFrames()) &&
            verifier.EndTable();
   }
 };
@@ -293,10 +323,11 @@ struct SceneGraphBuilder {
   void add_designResolution(const Size *designResolution) { fbb_.AddStruct(SceneGraph::VT_DESIGNRESOLUTION, designResolution); }
   void add_resolutionFitWidth(bool resolutionFitWidth) { fbb_.AddElement<uint8_t>(SceneGraph::VT_RESOLUTIONFITWIDTH, static_cast<uint8_t>(resolutionFitWidth), 0); }
   void add_resolutionFitHeight(bool resolutionFitHeight) { fbb_.AddElement<uint8_t>(SceneGraph::VT_RESOLUTIONFITHEIGHT, static_cast<uint8_t>(resolutionFitHeight), 0); }
+  void add_spriteFrames(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SpriteFrame>>> spriteFrames) { fbb_.AddOffset(SceneGraph::VT_SPRITEFRAMES, spriteFrames); }
   SceneGraphBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   SceneGraphBuilder &operator=(const SceneGraphBuilder &);
   flatbuffers::Offset<SceneGraph> Finish() {
-    auto o = flatbuffers::Offset<SceneGraph>(fbb_.EndTable(start_, 5));
+    auto o = flatbuffers::Offset<SceneGraph>(fbb_.EndTable(start_, 6));
     return o;
   }
 };
@@ -306,8 +337,10 @@ inline flatbuffers::Offset<SceneGraph> CreateSceneGraph(flatbuffers::FlatBufferB
     flatbuffers::Offset<NodeTree> root = 0,
     const Size *designResolution = 0,
     bool resolutionFitWidth = false,
-    bool resolutionFitHeight = false) {
+    bool resolutionFitHeight = false,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<SpriteFrame>>> spriteFrames = 0) {
   SceneGraphBuilder builder_(_fbb);
+  builder_.add_spriteFrames(spriteFrames);
   builder_.add_designResolution(designResolution);
   builder_.add_root(root);
   builder_.add_version(version);
@@ -321,8 +354,9 @@ inline flatbuffers::Offset<SceneGraph> CreateSceneGraphDirect(flatbuffers::FlatB
     flatbuffers::Offset<NodeTree> root = 0,
     const Size *designResolution = 0,
     bool resolutionFitWidth = false,
-    bool resolutionFitHeight = false) {
-  return CreateSceneGraph(_fbb, version ? _fbb.CreateString(version) : 0, root, designResolution, resolutionFitWidth, resolutionFitHeight);
+    bool resolutionFitHeight = false,
+    const std::vector<flatbuffers::Offset<SpriteFrame>> *spriteFrames = nullptr) {
+  return CreateSceneGraph(_fbb, version ? _fbb.CreateString(version) : 0, root, designResolution, resolutionFitWidth, resolutionFitHeight, spriteFrames ? _fbb.CreateVector<flatbuffers::Offset<SpriteFrame>>(*spriteFrames) : 0);
 }
 
 struct NodeTree FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -376,6 +410,123 @@ inline flatbuffers::Offset<NodeTree> CreateNodeTreeDirect(flatbuffers::FlatBuffe
     AnyNode object_type = AnyNode_NONE,
     flatbuffers::Offset<void> object = 0) {
   return CreateNodeTree(_fbb, children ? _fbb.CreateVector<flatbuffers::Offset<NodeTree>>(*children) : 0, object_type, object);
+}
+
+struct SpriteFrame FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NAME = 4,
+    VT_TEXTUREPATH = 6,
+    VT_RECT = 8,
+    VT_OFFSET = 10,
+    VT_ROTATED = 12,
+    VT_ORIGINALSIZE = 14,
+    VT_CENTERRECT = 16
+  };
+  const flatbuffers::String *name() const { return GetPointer<const flatbuffers::String *>(VT_NAME); }
+  const flatbuffers::String *texturePath() const { return GetPointer<const flatbuffers::String *>(VT_TEXTUREPATH); }
+  const Rect *rect() const { return GetStruct<const Rect *>(VT_RECT); }
+  const Vec2 *offset() const { return GetStruct<const Vec2 *>(VT_OFFSET); }
+  bool rotated() const { return GetField<uint8_t>(VT_ROTATED, 0) != 0; }
+  const Size *originalSize() const { return GetStruct<const Size *>(VT_ORIGINALSIZE); }
+  const Rect *centerRect() const { return GetStruct<const Rect *>(VT_CENTERRECT); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NAME) &&
+           verifier.Verify(name()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEXTUREPATH) &&
+           verifier.Verify(texturePath()) &&
+           VerifyField<Rect>(verifier, VT_RECT) &&
+           VerifyField<Vec2>(verifier, VT_OFFSET) &&
+           VerifyField<uint8_t>(verifier, VT_ROTATED) &&
+           VerifyField<Size>(verifier, VT_ORIGINALSIZE) &&
+           VerifyField<Rect>(verifier, VT_CENTERRECT) &&
+           verifier.EndTable();
+  }
+};
+
+struct SpriteFrameBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) { fbb_.AddOffset(SpriteFrame::VT_NAME, name); }
+  void add_texturePath(flatbuffers::Offset<flatbuffers::String> texturePath) { fbb_.AddOffset(SpriteFrame::VT_TEXTUREPATH, texturePath); }
+  void add_rect(const Rect *rect) { fbb_.AddStruct(SpriteFrame::VT_RECT, rect); }
+  void add_offset(const Vec2 *offset) { fbb_.AddStruct(SpriteFrame::VT_OFFSET, offset); }
+  void add_rotated(bool rotated) { fbb_.AddElement<uint8_t>(SpriteFrame::VT_ROTATED, static_cast<uint8_t>(rotated), 0); }
+  void add_originalSize(const Size *originalSize) { fbb_.AddStruct(SpriteFrame::VT_ORIGINALSIZE, originalSize); }
+  void add_centerRect(const Rect *centerRect) { fbb_.AddStruct(SpriteFrame::VT_CENTERRECT, centerRect); }
+  SpriteFrameBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  SpriteFrameBuilder &operator=(const SpriteFrameBuilder &);
+  flatbuffers::Offset<SpriteFrame> Finish() {
+    auto o = flatbuffers::Offset<SpriteFrame>(fbb_.EndTable(start_, 7));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<SpriteFrame> CreateSpriteFrame(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> name = 0,
+    flatbuffers::Offset<flatbuffers::String> texturePath = 0,
+    const Rect *rect = 0,
+    const Vec2 *offset = 0,
+    bool rotated = false,
+    const Size *originalSize = 0,
+    const Rect *centerRect = 0) {
+  SpriteFrameBuilder builder_(_fbb);
+  builder_.add_centerRect(centerRect);
+  builder_.add_originalSize(originalSize);
+  builder_.add_offset(offset);
+  builder_.add_rect(rect);
+  builder_.add_texturePath(texturePath);
+  builder_.add_name(name);
+  builder_.add_rotated(rotated);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<SpriteFrame> CreateSpriteFrameDirect(flatbuffers::FlatBufferBuilder &_fbb,
+    const char *name = nullptr,
+    const char *texturePath = nullptr,
+    const Rect *rect = 0,
+    const Vec2 *offset = 0,
+    bool rotated = false,
+    const Size *originalSize = 0,
+    const Rect *centerRect = 0) {
+  return CreateSpriteFrame(_fbb, name ? _fbb.CreateString(name) : 0, texturePath ? _fbb.CreateString(texturePath) : 0, rect, offset, rotated, originalSize, centerRect);
+}
+
+struct CreatorScene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_FILENAME = 4
+  };
+  const flatbuffers::String *filename() const { return GetPointer<const flatbuffers::String *>(VT_FILENAME); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FILENAME) &&
+           verifier.Verify(filename()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CreatorSceneBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_filename(flatbuffers::Offset<flatbuffers::String> filename) { fbb_.AddOffset(CreatorScene::VT_FILENAME, filename); }
+  CreatorSceneBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  CreatorSceneBuilder &operator=(const CreatorSceneBuilder &);
+  flatbuffers::Offset<CreatorScene> Finish() {
+    auto o = flatbuffers::Offset<CreatorScene>(fbb_.EndTable(start_, 1));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CreatorScene> CreateCreatorScene(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> filename = 0) {
+  CreatorSceneBuilder builder_(_fbb);
+  builder_.add_filename(filename);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CreatorScene> CreateCreatorSceneDirect(flatbuffers::FlatBufferBuilder &_fbb,
+    const char *filename = nullptr) {
+  return CreateCreatorScene(_fbb, filename ? _fbb.CreateString(filename) : 0);
 }
 
 struct Node FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -537,19 +688,19 @@ inline flatbuffers::Offset<Node> CreateNodeDirect(flatbuffers::FlatBufferBuilder
 struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
-    VT_SPRITEFRAME = 6,
-    VT_CENTERRECTNORMALIZED = 8
+    VT_SPRITEFRAMENAME = 6,
+    VT_SPRITETYPE = 8
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
-  const flatbuffers::String *spriteFrame() const { return GetPointer<const flatbuffers::String *>(VT_SPRITEFRAME); }
-  const Rect *centerRectNormalized() const { return GetStruct<const Rect *>(VT_CENTERRECTNORMALIZED); }
+  const flatbuffers::String *spriteFrameName() const { return GetPointer<const flatbuffers::String *>(VT_SPRITEFRAMENAME); }
+  SpriteType spriteType() const { return static_cast<SpriteType>(GetField<int8_t>(VT_SPRITETYPE, 0)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_SPRITEFRAME) &&
-           verifier.Verify(spriteFrame()) &&
-           VerifyField<Rect>(verifier, VT_CENTERRECTNORMALIZED) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_SPRITEFRAMENAME) &&
+           verifier.Verify(spriteFrameName()) &&
+           VerifyField<int8_t>(verifier, VT_SPRITETYPE) &&
            verifier.EndTable();
   }
 };
@@ -558,8 +709,8 @@ struct SpriteBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(Sprite::VT_NODE, node); }
-  void add_spriteFrame(flatbuffers::Offset<flatbuffers::String> spriteFrame) { fbb_.AddOffset(Sprite::VT_SPRITEFRAME, spriteFrame); }
-  void add_centerRectNormalized(const Rect *centerRectNormalized) { fbb_.AddStruct(Sprite::VT_CENTERRECTNORMALIZED, centerRectNormalized); }
+  void add_spriteFrameName(flatbuffers::Offset<flatbuffers::String> spriteFrameName) { fbb_.AddOffset(Sprite::VT_SPRITEFRAMENAME, spriteFrameName); }
+  void add_spriteType(SpriteType spriteType) { fbb_.AddElement<int8_t>(Sprite::VT_SPRITETYPE, static_cast<int8_t>(spriteType), 0); }
   SpriteBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   SpriteBuilder &operator=(const SpriteBuilder &);
   flatbuffers::Offset<Sprite> Finish() {
@@ -570,20 +721,20 @@ struct SpriteBuilder {
 
 inline flatbuffers::Offset<Sprite> CreateSprite(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    flatbuffers::Offset<flatbuffers::String> spriteFrame = 0,
-    const Rect *centerRectNormalized = 0) {
+    flatbuffers::Offset<flatbuffers::String> spriteFrameName = 0,
+    SpriteType spriteType = SpriteType_Simple) {
   SpriteBuilder builder_(_fbb);
-  builder_.add_centerRectNormalized(centerRectNormalized);
-  builder_.add_spriteFrame(spriteFrame);
+  builder_.add_spriteFrameName(spriteFrameName);
   builder_.add_node(node);
+  builder_.add_spriteType(spriteType);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Sprite> CreateSpriteDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    const char *spriteFrame = nullptr,
-    const Rect *centerRectNormalized = 0) {
-  return CreateSprite(_fbb, node, spriteFrame ? _fbb.CreateString(spriteFrame) : 0, centerRectNormalized);
+    const char *spriteFrameName = nullptr,
+    SpriteType spriteType = SpriteType_Simple) {
+  return CreateSprite(_fbb, node, spriteFrameName ? _fbb.CreateString(spriteFrameName) : 0, spriteType);
 }
 
 struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -910,6 +1061,7 @@ inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj
     case AnyNode_Button: return verifier.VerifyTable(reinterpret_cast<const Button *>(union_obj));
     case AnyNode_ProgressBar: return verifier.VerifyTable(reinterpret_cast<const ProgressBar *>(union_obj));
     case AnyNode_ScrollView: return verifier.VerifyTable(reinterpret_cast<const ScrollView *>(union_obj));
+    case AnyNode_CreatorScene: return verifier.VerifyTable(reinterpret_cast<const CreatorScene *>(union_obj));
     default: return false;
   }
 }
