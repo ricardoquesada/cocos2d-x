@@ -136,7 +136,7 @@ table ProgressBar
 table ScrollView
 {
     node:Node;
-    backgroundImage:string;
+    backgroundImage:string;                         // it is a spriteFrameName
     backgroundImageScale9Enabled:bool;
     backgroundImageColor:RGB;
     direction:ScrollViewDirection;

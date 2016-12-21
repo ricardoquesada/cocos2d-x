@@ -396,9 +396,9 @@ void CreatorReader::parseScrollView(cocos2d::ui::ScrollView* scrollView, const b
     const auto& bounceEnabled = scrollViewBuffer->bounceEnabled();
     const auto& innerContainerSize = scrollViewBuffer->innerContainerSize();
 
-    scrollView->setBackGroundImage(backgroundImage->str());
-    scrollView->setBackGroundColor(cocos2d::Color3B(backgroundImageColor->r(), backgroundImageColor->g(), backgroundImageColor->b()));
+    scrollView->setBackGroundImage(backgroundImage->str(), cocos2d::ui::Widget::TextureResType::PLIST);
     scrollView->setBackGroundImageScale9Enabled(backgroundImageScale9Enabled);
+    scrollView->setBackGroundImageColor(cocos2d::Color3B(backgroundImageColor->r(), backgroundImageColor->g(), backgroundImageColor->b()));
     scrollView->setDirection(static_cast<cocos2d::ui::ScrollView::Direction>(direction));
     scrollView->setBounceEnabled(bounceEnabled);
     scrollView->setInnerContainerSize(cocos2d::Size(innerContainerSize->w(), innerContainerSize->h()));
