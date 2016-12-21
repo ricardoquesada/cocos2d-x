@@ -231,7 +231,7 @@ cocos2d::Sprite* CreatorReader::createSprite(const buffers::Sprite* spriteBuffer
 }
 cocos2d::TMXTiledMap* CreatorReader::createTileMap(const buffers::TileMap* tilemapBuffer) const
 {
-    const auto& tmxfilename = tilemapBuffer->tmxFile();
+    const auto& tmxfilename = tilemapBuffer->tmxFilename();
     cocos2d::TMXTiledMap* tilemap = TMXTiledMap::create(tmxfilename->str());
     if (tilemap)
         parseTilemap(tilemap, tilemapBuffer);
@@ -266,8 +266,8 @@ cocos2d::Label* CreatorReader::createLabel(const buffers::Label* labelBuffer) co
 
 cocos2d::ParticleSystemQuad* CreatorReader::createParticle(const buffers::Particle* particleBuffer) const
 {
-    const auto& plistfilename = particleBuffer->plistFile();
-    cocos2d::ParticleSystemQuad* particle = cocos2d::ParticleSystemQuad::create(plistfilename->str());
+    const auto& particleFilename = particleBuffer->particleFilename();
+    cocos2d::ParticleSystemQuad* particle = cocos2d::ParticleSystemQuad::create(particleFilename->str());
     if (particle)
         parseParticle(particle, particleBuffer);
     return particle;
@@ -328,7 +328,7 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     const auto& tag = nodeBuffer->tag();
     node->setTag(tag);
     const auto& contentSize = nodeBuffer->contentSize();
-    node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));    
+    if (contentSize) node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
 }
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const

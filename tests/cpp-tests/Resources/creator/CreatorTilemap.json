@@ -73,7 +73,8 @@
                         "skewX": 0,
                         "skewY": 0,
                         "tag": -1
-                    }
+                    },
+                    "tmxFilename": "creator/assets/iso-test.tmx"
                 },
                 "object_type": "TileMap"
             },
@@ -111,7 +112,8 @@
                         "skewX": 0,
                         "skewY": 0,
                         "tag": -1
-                    }
+                    },
+                    "particleFilename": "creator/assets/Galaxy.plist"
                 },
                 "object_type": "Particle"
             },

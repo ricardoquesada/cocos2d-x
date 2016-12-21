@@ -61,3 +61,11 @@ public:
     CreatorReaderTest3();
     virtual std::string title() const override;
 };
+
+class CreatorReaderTest4 : public CreatorReaderTestDemo
+{
+public:
+    CREATE_FUNC(CreatorReaderTest4);
+    CreatorReaderTest4();
+    virtual std::string title() const override;
+};

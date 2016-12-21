@@ -100,16 +100,14 @@ table Label
 table Particle
 {
     node:Node;
-
-    plistFile:string;
+    particleFilename:string;
 }
 
 
 table TileMap
 {
     node:Node;
-
-    tmxFile:string;
+    tmxFilename:string;
 }
 
 table Scene

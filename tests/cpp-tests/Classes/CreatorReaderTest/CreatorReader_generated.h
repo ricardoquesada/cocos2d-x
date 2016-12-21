@@ -905,16 +905,16 @@ inline flatbuffers::Offset<Label> CreateLabelDirect(flatbuffers::FlatBufferBuild
 struct Particle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
-    VT_PLISTFILE = 6
+    VT_PARTICLEFILENAME = 6
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
-  const flatbuffers::String *plistFile() const { return GetPointer<const flatbuffers::String *>(VT_PLISTFILE); }
+  const flatbuffers::String *particleFilename() const { return GetPointer<const flatbuffers::String *>(VT_PARTICLEFILENAME); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_PLISTFILE) &&
-           verifier.Verify(plistFile()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_PARTICLEFILENAME) &&
+           verifier.Verify(particleFilename()) &&
            verifier.EndTable();
   }
 };
@@ -923,7 +923,7 @@ struct ParticleBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(Particle::VT_NODE, node); }
-  void add_plistFile(flatbuffers::Offset<flatbuffers::String> plistFile) { fbb_.AddOffset(Particle::VT_PLISTFILE, plistFile); }
+  void add_particleFilename(flatbuffers::Offset<flatbuffers::String> particleFilename) { fbb_.AddOffset(Particle::VT_PARTICLEFILENAME, particleFilename); }
   ParticleBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ParticleBuilder &operator=(const ParticleBuilder &);
   flatbuffers::Offset<Particle> Finish() {
@@ -934,32 +934,32 @@ struct ParticleBuilder {
 
 inline flatbuffers::Offset<Particle> CreateParticle(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    flatbuffers::Offset<flatbuffers::String> plistFile = 0) {
+    flatbuffers::Offset<flatbuffers::String> particleFilename = 0) {
   ParticleBuilder builder_(_fbb);
-  builder_.add_plistFile(plistFile);
+  builder_.add_particleFilename(particleFilename);
   builder_.add_node(node);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<Particle> CreateParticleDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    const char *plistFile = nullptr) {
-  return CreateParticle(_fbb, node, plistFile ? _fbb.CreateString(plistFile) : 0);
+    const char *particleFilename = nullptr) {
+  return CreateParticle(_fbb, node, particleFilename ? _fbb.CreateString(particleFilename) : 0);
 }
 
 struct TileMap FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
-    VT_TMXFILE = 6
+    VT_TMXFILENAME = 6
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
-  const flatbuffers::String *tmxFile() const { return GetPointer<const flatbuffers::String *>(VT_TMXFILE); }
+  const flatbuffers::String *tmxFilename() const { return GetPointer<const flatbuffers::String *>(VT_TMXFILENAME); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
-           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TMXFILE) &&
-           verifier.Verify(tmxFile()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TMXFILENAME) &&
+           verifier.Verify(tmxFilename()) &&
            verifier.EndTable();
   }
 };
@@ -968,7 +968,7 @@ struct TileMapBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(TileMap::VT_NODE, node); }
-  void add_tmxFile(flatbuffers::Offset<flatbuffers::String> tmxFile) { fbb_.AddOffset(TileMap::VT_TMXFILE, tmxFile); }
+  void add_tmxFilename(flatbuffers::Offset<flatbuffers::String> tmxFilename) { fbb_.AddOffset(TileMap::VT_TMXFILENAME, tmxFilename); }
   TileMapBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TileMapBuilder &operator=(const TileMapBuilder &);
   flatbuffers::Offset<TileMap> Finish() {
@@ -979,17 +979,17 @@ struct TileMapBuilder {
 
 inline flatbuffers::Offset<TileMap> CreateTileMap(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    flatbuffers::Offset<flatbuffers::String> tmxFile = 0) {
+    flatbuffers::Offset<flatbuffers::String> tmxFilename = 0) {
   TileMapBuilder builder_(_fbb);
-  builder_.add_tmxFile(tmxFile);
+  builder_.add_tmxFilename(tmxFilename);
   builder_.add_node(node);
   return builder_.Finish();
 }
 
 inline flatbuffers::Offset<TileMap> CreateTileMapDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    const char *tmxFile = nullptr) {
-  return CreateTileMap(_fbb, node, tmxFile ? _fbb.CreateString(tmxFile) : 0);
+    const char *tmxFilename = nullptr) {
+  return CreateTileMap(_fbb, node, tmxFilename ? _fbb.CreateString(tmxFilename) : 0);
 }
 
 struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
