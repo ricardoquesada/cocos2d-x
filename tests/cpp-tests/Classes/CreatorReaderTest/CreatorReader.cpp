@@ -294,8 +294,6 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     //scale:Vec2;
     //tag:int = 0;
 
-    const auto& contentSize = nodeBuffer->contentSize();
-    node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
 //    auto enabled = nodeBuffer->enabled();
     const auto& globalZOrder = nodeBuffer->globalZOrder();
     node->setGlobalZOrder(globalZOrder);
@@ -323,6 +321,8 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     node->setSkewY(nodeBuffer->skewY());
     const auto& tag = nodeBuffer->tag();
     node->setTag(tag);
+    const auto& contentSize = nodeBuffer->contentSize();
+    node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));    
 }
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
@@ -333,9 +333,11 @@ void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* 
     if (frameName)
         sprite->setSpriteFrame(frameName->str());
 
+    
     // 2nd: node properties
     const auto& nodeBuffer = spriteBuffer->node();
     parseNode(sprite, nodeBuffer);
+
 
     // 3rd: sprite type
     const auto& spriteType = spriteBuffer->spriteType();
@@ -350,8 +352,6 @@ void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* 
         case buffers::SpriteType_Sliced:
             break;
     }
-
-    // re-set content size again
 }
 
 void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::TileMap* tilemapBuffer) const
