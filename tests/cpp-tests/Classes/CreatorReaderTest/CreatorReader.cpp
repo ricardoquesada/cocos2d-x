@@ -8,6 +8,12 @@ using namespace creator::buffers;
 
 USING_NS_CCR;
 
+static void setSpriteQuad(V3F_C4B_T2F_Quad* quad, const cocos2d::Size& origSize, const int x, const int y, float x_factor, float y_factor);
+static void tileSprite(cocos2d::Sprite* sprite);
+
+//
+// CreatorReader main class
+//
 CreatorReader::CreatorReader()
 : _scene(nullptr)
 , _version("")
@@ -291,20 +297,20 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     const auto& contentSize = nodeBuffer->contentSize();
     node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
 //    auto enabled = nodeBuffer->enabled();
-    const auto& name = nodeBuffer->name();
-    if (name) node->setName(name->str());
-    const auto& anchorPoint = nodeBuffer->anchorPoint();
-    if (anchorPoint) node->setAnchorPoint(cocos2d::Vec2(anchorPoint->x(), anchorPoint->y()));
-    const auto& cascadeOpacityEnabled = nodeBuffer->cascadeOpacityEnabled();
-    node->setCascadeOpacityEnabled(cascadeOpacityEnabled);
-    const auto& color = nodeBuffer->color();
-    if (color) node->setColor(cocos2d::Color3B(color->r(), color->g(), color->b()));
     const auto& globalZOrder = nodeBuffer->globalZOrder();
     node->setGlobalZOrder(globalZOrder);
     const auto& localZOrder = nodeBuffer->localZOrder();
     node->setLocalZOrder(localZOrder);
+    const auto& name = nodeBuffer->name();
+    if (name) node->setName(name->str());
+    const auto& anchorPoint = nodeBuffer->anchorPoint();
+    if (anchorPoint) node->setAnchorPoint(cocos2d::Vec2(anchorPoint->x(), anchorPoint->y()));
+    const auto& color = nodeBuffer->color();
+    if (color) node->setColor(cocos2d::Color3B(color->r(), color->g(), color->b()));
     const auto& opacity = nodeBuffer->opacity();
     node->setOpacity(opacity);
+    const auto& cascadeOpacityEnabled = nodeBuffer->cascadeOpacityEnabled();
+    node->setCascadeOpacityEnabled(cascadeOpacityEnabled);
     const auto& opacityModifyRGB = nodeBuffer->opacityModifyRGB();
     node->setOpacityModifyRGB(opacityModifyRGB);
     const auto& position = nodeBuffer->position();
@@ -321,26 +327,31 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
 
 void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* spriteBuffer) const
 {
+    // order is important:
+    // 1st: set sprite frame
     const auto& frameName = spriteBuffer->spriteFrameName();
     if (frameName)
         sprite->setSpriteFrame(frameName->str());
 
-    const auto& spriteType = spriteBuffer->spriteType();
-    if (spriteType) {
-        switch (spriteType) {
-            case buffers::SpriteType_Tiled:
-            case buffers::SpriteType_Filled:
-            case buffers::SpriteType_Sliced:
-                break;
-            case buffers::SpriteType_Simple:
-                sprite->setCenterRectNormalized(cocos2d::Rect(0,0,1,1));
-                break;
-        }
-    }
-
-    // parse node after sprite
+    // 2nd: node properties
     const auto& nodeBuffer = spriteBuffer->node();
     parseNode(sprite, nodeBuffer);
+
+    // 3rd: sprite type
+    const auto& spriteType = spriteBuffer->spriteType();
+    switch (spriteType) {
+        case buffers::SpriteType_Simple:
+            sprite->setCenterRectNormalized(cocos2d::Rect(0,0,1,1));
+            break;
+        case buffers::SpriteType_Tiled:
+            tileSprite(sprite);
+            break;
+        case buffers::SpriteType_Filled:
+        case buffers::SpriteType_Sliced:
+            break;
+    }
+
+    // re-set content size again
 }
 
 void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::TileMap* tilemapBuffer) const
@@ -486,4 +497,66 @@ void CreatorReader::parseButton(cocos2d::ui::Button* button, const buffers::Butt
 
     const auto& ignoreContentAdaptWithSize = buttonBuffer->ignoreContentAdaptWithSize();
     button->ignoreContentAdaptWithSize(ignoreContentAdaptWithSize);
+}
+
+
+//
+// Helper functions
+//
+static void setSpriteQuad(cocos2d::V3F_C4B_T2F_Quad* quad, const cocos2d::Size& origSize, const int x, const int y, float x_factor, float y_factor)
+{
+    float offset_x = origSize.width * x;
+    float offset_y = origSize.height * y;
+
+    quad->bl.vertices.set(cocos2d::Vec3(offset_x, offset_y, 0));
+    quad->br.vertices.set(cocos2d::Vec3(offset_x + (origSize.width * x_factor), offset_y, 0));
+    quad->tl.vertices.set(cocos2d::Vec3(offset_x, offset_y + (origSize.height * y_factor), 0));
+    quad->tr.vertices.set(cocos2d::Vec3(offset_x + (origSize.width * x_factor), offset_y + (origSize.height * y_factor), 0));
+
+    if (x_factor != 1.0f || y_factor != 1.0f) {
+        float x_size = (quad->br.texCoords.u - quad->bl.texCoords.u) * x_factor;
+        float y_size = (quad->tl.texCoords.v - quad->bl.texCoords.v) * y_factor;
+
+        quad->br.texCoords = Tex2F(quad->bl.texCoords.u + x_size, quad->bl.texCoords.v);
+        quad->tl.texCoords = Tex2F(quad->tl.texCoords.u, quad->bl.texCoords.v + y_size);
+        quad->tr.texCoords = Tex2F(quad->bl.texCoords.u + x_size, quad->bl.texCoords.v + y_size);
+    }
+}
+
+static void tileSprite(cocos2d::Sprite* sprite)
+{
+    const auto new_s = sprite->getContentSize();
+    const auto frame = sprite->getSpriteFrame();
+    const auto orig_s_pixel = frame->getOriginalSizeInPixels();
+    const auto orig_rect = frame->getRectInPixels();
+
+    // cheat: let the sprite calculate the original Quad for us.
+    sprite->setContentSize(orig_s_pixel);
+    V3F_C4B_T2F_Quad origQuad = sprite->getQuad();
+
+    // restore the size
+    sprite->setContentSize(new_s);
+
+    const float f_x = new_s.width / orig_rect.size.width;
+    const float f_y = new_s.height / orig_rect.size.height;
+    const int n_x = std::ceil(f_x);
+    const int n_y = std::ceil(f_y);
+
+    PolygonInfo poly;
+    const int totalQuads = n_x * n_y;
+
+    V3F_C4B_T2F_Quad* ptr = (V3F_C4B_T2F_Quad*) malloc(sizeof(V3F_C4B_T2F_Quad) * totalQuads);
+
+    for (int y=0; y<n_y; ++y) {
+        for (int x=0; x<n_x; ++x) {
+            ptr[y * n_x + x] = origQuad;
+            float x_factor = (orig_rect.size.width * (x+1) <= new_s.width) ? 1 : f_x - (long)f_x;
+            float y_factor = (orig_rect.size.height * (y+1) <= new_s.height) ? 1 : f_y - (long)f_y;
+            CCLOG("x=%g, y=%g", x_factor, y_factor);
+            setSpriteQuad(&ptr[y * n_x + x], orig_rect.size, x, y, x_factor, y_factor);
+        }
+    }
+
+    poly.setQuads(ptr, totalQuads);
+    sprite->setPolygonInfo(poly);
 }
