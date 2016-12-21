@@ -483,4 +483,7 @@ void CreatorReader::parseButton(cocos2d::ui::Button* button, const buffers::Butt
 {
     const auto& nodeBuffer = buttonBuffer->node();
     parseNode(button, nodeBuffer);
+
+    const auto& ignoreContentAdaptWithSize = buttonBuffer->ignoreContentAdaptWithSize();
+    button->ignoreContentAdaptWithSize(ignoreContentAdaptWithSize);
 }

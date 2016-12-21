@@ -110,16 +110,16 @@ inline const char **EnumNamesSpriteType() {
 inline const char *EnumNameSpriteType(SpriteType e) { return EnumNamesSpriteType()[static_cast<int>(e)]; }
 
 enum ScrollViewDirection {
-  ScrollViewDirection_Both = 0,
-  ScrollViewDirection_Horizontal = 1,
-  ScrollViewDirection_Vertical = 2,
-  ScrollViewDirection_None = 3,
-  ScrollViewDirection_MIN = ScrollViewDirection_Both,
-  ScrollViewDirection_MAX = ScrollViewDirection_None
+  ScrollViewDirection_None = 0,
+  ScrollViewDirection_Vertical = 1,
+  ScrollViewDirection_Horizontal = 2,
+  ScrollViewDirection_Both = 3,
+  ScrollViewDirection_MIN = ScrollViewDirection_None,
+  ScrollViewDirection_MAX = ScrollViewDirection_Both
 };
 
 inline const char **EnumNamesScrollViewDirection() {
-  static const char *names[] = { "Both", "Horizontal", "Vertical", "None", nullptr };
+  static const char *names[] = { "None", "Vertical", "Horizontal", "Both", nullptr };
   return names;
 }
 
@@ -1169,7 +1169,7 @@ inline flatbuffers::Offset<ScrollView> CreateScrollView(flatbuffers::FlatBufferB
     flatbuffers::Offset<flatbuffers::String> backgroundImage = 0,
     bool backgroundImageScale9Enabled = false,
     const RGB *backgroundImageColor = 0,
-    ScrollViewDirection direction = ScrollViewDirection_Both,
+    ScrollViewDirection direction = ScrollViewDirection_None,
     bool bounceEnabled = false,
     const Size *innerContainerSize = 0) {
   ScrollViewBuilder builder_(_fbb);
@@ -1188,7 +1188,7 @@ inline flatbuffers::Offset<ScrollView> CreateScrollViewDirect(flatbuffers::FlatB
     const char *backgroundImage = nullptr,
     bool backgroundImageScale9Enabled = false,
     const RGB *backgroundImageColor = 0,
-    ScrollViewDirection direction = ScrollViewDirection_Both,
+    ScrollViewDirection direction = ScrollViewDirection_None,
     bool bounceEnabled = false,
     const Size *innerContainerSize = 0) {
   return CreateScrollView(_fbb, node, backgroundImage ? _fbb.CreateString(backgroundImage) : 0, backgroundImageScale9Enabled, backgroundImageColor, direction, bounceEnabled, innerContainerSize);
