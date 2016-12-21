@@ -414,7 +414,8 @@ cocos2d::ui::EditBox* CreatorReader::createEditBox(const buffers::EditBox* editB
 {
     const auto& contentSize = editBoxBuffer->node()->contentSize();
     const auto& spriteFrameName = editBoxBuffer->backgroundImage();
-    auto editBox = ui::EditBox::create(cocos2d::Size(contentSize->w(), contentSize->h()), spriteFrameName->str(),
+    auto editBox = ui::EditBox::create(cocos2d::Size(contentSize->w(), contentSize->h()),
+                                       spriteFrameName->str(),
                                        cocos2d::ui::Widget::TextureResType::PLIST);
     parseEditBox(editBox, editBoxBuffer);
     return editBox;
@@ -423,6 +424,39 @@ void CreatorReader::parseEditBox(cocos2d::ui::EditBox* editBox, const buffers::E
 {
     const auto& nodeBuffer = editBoxBuffer->node();
     parseNode(editBox, nodeBuffer);
+
+    // backgroundImage:string;
+    // returnType:EditBoxReturnType;
+    // inputFlag:EditBoxInputFlag;
+    // inputMode:EditBoxInputMode;
+    // fontSize:int;
+    // fontColor:RGB;
+    // placeholder:string;
+    // placeholderFontSize:int;
+    // placeholderFontColor:RGB;
+    // maxLength:int;
+    // text:string;
+    const auto& returnType = editBoxBuffer->returnType();
+    const auto& inputFlag = editBoxBuffer->inputFlag();
+    const auto& inputMode = editBoxBuffer->inputMode();
+    const auto& fontSize = editBoxBuffer->fontSize();
+    const auto& fontColor = editBoxBuffer->fontColor();
+    const auto& placerholder = editBoxBuffer->placeholder();
+    const auto& placerholderFontSize = editBoxBuffer->placeholderFontSize();
+    const auto& placerholderFontColor = editBoxBuffer->placeholderFontColor();
+    const auto& maxLen = editBoxBuffer->maxLength();
+    const auto& text = editBoxBuffer->text();
+
+    editBox->setReturnType(static_cast<cocos2d::ui::EditBox::KeyboardReturnType>(returnType));
+    editBox->setInputFlag(static_cast<cocos2d::ui::EditBox::InputFlag>(inputFlag));
+    editBox->setInputMode(static_cast<cocos2d::ui::EditBox::InputMode>(inputMode));
+    editBox->setFontSize(fontSize);
+    editBox->setFontColor(cocos2d::Color3B(fontColor->r(), fontColor->g(), fontColor->b()));
+    editBox->setPlaceHolder(placerholder->c_str());
+    editBox->setPlaceholderFontSize(placerholderFontSize);
+    editBox->setPlaceholderFontColor(cocos2d::Color3B(placerholderFontColor->r(), placerholderFontColor->g(), placerholderFontColor->b()));
+    editBox->setMaxLength(maxLen);
+    editBox->setText(text->c_str());
 }
 
 cocos2d::ui::Button* CreatorReader::createButton(const buffers::Button* buttonBuffer) const
