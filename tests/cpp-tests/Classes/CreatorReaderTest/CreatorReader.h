@@ -66,7 +66,7 @@ protected:
     void parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const;
 
     cocos2d::ParticleSystemQuad* createParticle(const buffers::Particle* particleBuffer) const;
-    void parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const;
+    void parseParticle(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const;
 
     cocos2d::ui::ScrollView* createScrollView(const buffers::ScrollView* scrollViewBuffer) const;
     void parseScrollView(cocos2d::ui::ScrollView* scrollView, const buffers::ScrollView* scrollViewBuffer) const;
