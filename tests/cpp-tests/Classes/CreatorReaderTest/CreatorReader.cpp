@@ -135,6 +135,7 @@ std::string CreatorReader::getVersion() const
 cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
 {
     cocos2d::Node *node = nullptr;
+    bool treat_child_as_label = false;
 
     const void* buffer = tree->object();
     buffers::AnyNode bufferType = tree->object_type();
@@ -168,6 +169,7 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
             break;
         case buffers::AnyNode_Button:
             node = createButton(static_cast<const buffers::Button*>(buffer));
+            treat_child_as_label = true;
             break;
         case buffers::AnyNode_EditBox:
             node = createEditBox(static_cast<const buffers::EditBox*>(buffer));
@@ -180,7 +182,17 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
     const auto& children = tree->children();
     for(const auto& childBuffer: *children) {
         cocos2d::Node* child = createTree(childBuffer);
-        if (child && node) node->addChild(child);
+        if (child && node)  {
+            if (!treat_child_as_label) {
+                // every node should do this
+                node->addChild(child);
+            } else {
+                // ...except if for Buttons
+                auto button = static_cast<cocos2d::ui::Button*>(node);
+                auto label = static_cast<cocos2d::Label*>(child);
+                button->setTitleLabel(label);
+            }
+        }
     }
 
     return node;
@@ -461,7 +473,8 @@ void CreatorReader::parseEditBox(cocos2d::ui::EditBox* editBox, const buffers::E
 
 cocos2d::ui::Button* CreatorReader::createButton(const buffers::Button* buttonBuffer) const
 {
-    auto button = ui::Button::create();
+    const auto& spriteFrameName = buttonBuffer->spriteFrameName();
+    auto button = ui::Button::create(spriteFrameName->str(), "", "", cocos2d::ui::Widget::TextureResType::PLIST);
     parseButton(button, buttonBuffer);
     return button;
 }

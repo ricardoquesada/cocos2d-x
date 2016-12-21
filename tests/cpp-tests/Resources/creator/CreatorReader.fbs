@@ -123,6 +123,7 @@ table Scene
 table Button
 {
     node:Node;
+    spriteFrameName:string;
     ignoreContentAdaptWithSize:bool = false;
 }
 
