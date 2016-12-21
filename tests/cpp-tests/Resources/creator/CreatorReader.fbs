@@ -4,10 +4,14 @@ enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
 enum VerticalAlignment:byte { Top = 0, Center = 1, Bottom = 2 }
 enum HorizontalAlignment:byte { Left = 0, Center = 1, Right = 2 }
 enum SpriteType:byte {Simple = 0, Sliced = 1, Tiled = 2, Filled = 3}
+enum ScrollViewDirection:byte {Both = 0, Horizontal = 1, Vertical = 2, None = 3}
+enum EditBoxReturnType:byte {Default, Done, Send, Search, Go}
+enum EditBoxInputFlag:byte {Password, Sensitive, InitialCapsWord, InitialCapsSentence, InitialCapsAllCharacters, LowercaseAllCharacters}
+enum EditBoxInputMode:byte {Any, EmailAddress, Numeric, PhoneNumber, URL, Decime, SingleLine}
 
 // New nodes should be added at the end of the union
 // no more than 255 union objects can be added
-union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node, Button, ProgressBar, ScrollView, CreatorScene}
+union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node, Button, ProgressBar, ScrollView, CreatorScene, EditBox}
 
 table SceneGraph
 {
@@ -70,9 +74,9 @@ table Node
     tag:int = 0;
 }
 
-//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Render Nodes
-//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 table Sprite
 {
     node:Node;
@@ -113,9 +117,9 @@ table Scene
     node:Node;
 }
 
-//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // Render Nodes
-//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 table Button
 {
     node:Node;
@@ -125,13 +129,39 @@ table Button
 table ProgressBar
 {
     node:Node;
+    percent:float;
 }
 
 table ScrollView
 {
     node:Node;
+    backgroundImage:string;
+    backgroundImageScale9Enabled:bool;
+    backgroundImageColor:RGB;
+    direction:ScrollViewDirection;
+    bounceEnabled:bool;
+    innerContainerSize:Size;
 }
 
+table EditBox
+{
+    node:Node;
+    backgroundImage:string;
+    returnType:EditBoxReturnType;
+    inputFlag:EditBoxInputFlag;
+    inputMode:EditBoxInputMode;
+    fontSize:int;
+    fontColor:RGB;
+    placeholder:string;
+    placeholderFontSize:int;
+    placeholderFontColor:RGB;
+    maxLength:int;
+    text:string;
+}
+
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Structs
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 struct Vec2
 {
     x:float;
@@ -174,6 +204,9 @@ struct RGBA
     a:ubyte;
 }
 
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Root and misc
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 root_type SceneGraph;
 
 file_identifier "CCRE";

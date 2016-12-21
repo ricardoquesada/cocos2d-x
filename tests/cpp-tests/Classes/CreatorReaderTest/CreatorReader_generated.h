@@ -34,6 +34,8 @@ struct ProgressBar;
 
 struct ScrollView;
 
+struct EditBox;
+
 struct Vec2;
 
 struct Vec3;
@@ -107,6 +109,76 @@ inline const char **EnumNamesSpriteType() {
 
 inline const char *EnumNameSpriteType(SpriteType e) { return EnumNamesSpriteType()[static_cast<int>(e)]; }
 
+enum ScrollViewDirection {
+  ScrollViewDirection_Both = 0,
+  ScrollViewDirection_Horizontal = 1,
+  ScrollViewDirection_Vertical = 2,
+  ScrollViewDirection_None = 3,
+  ScrollViewDirection_MIN = ScrollViewDirection_Both,
+  ScrollViewDirection_MAX = ScrollViewDirection_None
+};
+
+inline const char **EnumNamesScrollViewDirection() {
+  static const char *names[] = { "Both", "Horizontal", "Vertical", "None", nullptr };
+  return names;
+}
+
+inline const char *EnumNameScrollViewDirection(ScrollViewDirection e) { return EnumNamesScrollViewDirection()[static_cast<int>(e)]; }
+
+enum EditBoxReturnType {
+  EditBoxReturnType_Default = 0,
+  EditBoxReturnType_Done = 1,
+  EditBoxReturnType_Send = 2,
+  EditBoxReturnType_Search = 3,
+  EditBoxReturnType_Go = 4,
+  EditBoxReturnType_MIN = EditBoxReturnType_Default,
+  EditBoxReturnType_MAX = EditBoxReturnType_Go
+};
+
+inline const char **EnumNamesEditBoxReturnType() {
+  static const char *names[] = { "Default", "Done", "Send", "Search", "Go", nullptr };
+  return names;
+}
+
+inline const char *EnumNameEditBoxReturnType(EditBoxReturnType e) { return EnumNamesEditBoxReturnType()[static_cast<int>(e)]; }
+
+enum EditBoxInputFlag {
+  EditBoxInputFlag_Password = 0,
+  EditBoxInputFlag_Sensitive = 1,
+  EditBoxInputFlag_InitialCapsWord = 2,
+  EditBoxInputFlag_InitialCapsSentence = 3,
+  EditBoxInputFlag_InitialCapsAllCharacters = 4,
+  EditBoxInputFlag_LowercaseAllCharacters = 5,
+  EditBoxInputFlag_MIN = EditBoxInputFlag_Password,
+  EditBoxInputFlag_MAX = EditBoxInputFlag_LowercaseAllCharacters
+};
+
+inline const char **EnumNamesEditBoxInputFlag() {
+  static const char *names[] = { "Password", "Sensitive", "InitialCapsWord", "InitialCapsSentence", "InitialCapsAllCharacters", "LowercaseAllCharacters", nullptr };
+  return names;
+}
+
+inline const char *EnumNameEditBoxInputFlag(EditBoxInputFlag e) { return EnumNamesEditBoxInputFlag()[static_cast<int>(e)]; }
+
+enum EditBoxInputMode {
+  EditBoxInputMode_Any = 0,
+  EditBoxInputMode_EmailAddress = 1,
+  EditBoxInputMode_Numeric = 2,
+  EditBoxInputMode_PhoneNumber = 3,
+  EditBoxInputMode_URL = 4,
+  EditBoxInputMode_Decime = 5,
+  EditBoxInputMode_SingleLine = 6,
+  EditBoxInputMode_MIN = EditBoxInputMode_Any,
+  EditBoxInputMode_MAX = EditBoxInputMode_SingleLine
+};
+
+inline const char **EnumNamesEditBoxInputMode() {
+  static const char *names[] = { "Any", "EmailAddress", "Numeric", "PhoneNumber", "URL", "Decime", "SingleLine", nullptr };
+  return names;
+}
+
+inline const char *EnumNameEditBoxInputMode(EditBoxInputMode e) { return EnumNamesEditBoxInputMode()[static_cast<int>(e)]; }
+
 enum AnyNode {
   AnyNode_NONE = 0,
   AnyNode_Scene = 1,
@@ -119,12 +191,13 @@ enum AnyNode {
   AnyNode_ProgressBar = 8,
   AnyNode_ScrollView = 9,
   AnyNode_CreatorScene = 10,
+  AnyNode_EditBox = 11,
   AnyNode_MIN = AnyNode_NONE,
-  AnyNode_MAX = AnyNode_CreatorScene
+  AnyNode_MAX = AnyNode_EditBox
 };
 
 inline const char **EnumNamesAnyNode() {
-  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", "CreatorScene", nullptr };
+  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", "CreatorScene", "EditBox", nullptr };
   return names;
 }
 
@@ -172,6 +245,10 @@ template<> struct AnyNodeTraits<ScrollView> {
 
 template<> struct AnyNodeTraits<CreatorScene> {
   static const AnyNode enum_value = AnyNode_CreatorScene;
+};
+
+template<> struct AnyNodeTraits<EditBox> {
+  static const AnyNode enum_value = AnyNode_EditBox;
 };
 
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type);
@@ -987,13 +1064,16 @@ inline flatbuffers::Offset<Button> CreateButton(flatbuffers::FlatBufferBuilder &
 
 struct ProgressBar FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_NODE = 4
+    VT_NODE = 4,
+    VT_PERCENT = 6
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  float percent() const { return GetField<float>(VT_PERCENT, 0.0f); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
+           VerifyField<float>(verifier, VT_PERCENT) &&
            verifier.EndTable();
   }
 };
@@ -1002,30 +1082,52 @@ struct ProgressBarBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(ProgressBar::VT_NODE, node); }
+  void add_percent(float percent) { fbb_.AddElement<float>(ProgressBar::VT_PERCENT, percent, 0.0f); }
   ProgressBarBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ProgressBarBuilder &operator=(const ProgressBarBuilder &);
   flatbuffers::Offset<ProgressBar> Finish() {
-    auto o = flatbuffers::Offset<ProgressBar>(fbb_.EndTable(start_, 1));
+    auto o = flatbuffers::Offset<ProgressBar>(fbb_.EndTable(start_, 2));
     return o;
   }
 };
 
 inline flatbuffers::Offset<ProgressBar> CreateProgressBar(flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<Node> node = 0) {
+    flatbuffers::Offset<Node> node = 0,
+    float percent = 0.0f) {
   ProgressBarBuilder builder_(_fbb);
+  builder_.add_percent(percent);
   builder_.add_node(node);
   return builder_.Finish();
 }
 
 struct ScrollView FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_NODE = 4
+    VT_NODE = 4,
+    VT_BACKGROUNDIMAGE = 6,
+    VT_BACKGROUNDIMAGESCALE9ENABLED = 8,
+    VT_BACKGROUNDIMAGECOLOR = 10,
+    VT_DIRECTION = 12,
+    VT_BOUNCEENABLED = 14,
+    VT_INNERCONTAINERSIZE = 16
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  const flatbuffers::String *backgroundImage() const { return GetPointer<const flatbuffers::String *>(VT_BACKGROUNDIMAGE); }
+  bool backgroundImageScale9Enabled() const { return GetField<uint8_t>(VT_BACKGROUNDIMAGESCALE9ENABLED, 0) != 0; }
+  const RGB *backgroundImageColor() const { return GetStruct<const RGB *>(VT_BACKGROUNDIMAGECOLOR); }
+  ScrollViewDirection direction() const { return static_cast<ScrollViewDirection>(GetField<int8_t>(VT_DIRECTION, 0)); }
+  bool bounceEnabled() const { return GetField<uint8_t>(VT_BOUNCEENABLED, 0) != 0; }
+  const Size *innerContainerSize() const { return GetStruct<const Size *>(VT_INNERCONTAINERSIZE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_BACKGROUNDIMAGE) &&
+           verifier.Verify(backgroundImage()) &&
+           VerifyField<uint8_t>(verifier, VT_BACKGROUNDIMAGESCALE9ENABLED) &&
+           VerifyField<RGB>(verifier, VT_BACKGROUNDIMAGECOLOR) &&
+           VerifyField<int8_t>(verifier, VT_DIRECTION) &&
+           VerifyField<uint8_t>(verifier, VT_BOUNCEENABLED) &&
+           VerifyField<Size>(verifier, VT_INNERCONTAINERSIZE) &&
            verifier.EndTable();
   }
 };
@@ -1034,19 +1136,165 @@ struct ScrollViewBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(ScrollView::VT_NODE, node); }
+  void add_backgroundImage(flatbuffers::Offset<flatbuffers::String> backgroundImage) { fbb_.AddOffset(ScrollView::VT_BACKGROUNDIMAGE, backgroundImage); }
+  void add_backgroundImageScale9Enabled(bool backgroundImageScale9Enabled) { fbb_.AddElement<uint8_t>(ScrollView::VT_BACKGROUNDIMAGESCALE9ENABLED, static_cast<uint8_t>(backgroundImageScale9Enabled), 0); }
+  void add_backgroundImageColor(const RGB *backgroundImageColor) { fbb_.AddStruct(ScrollView::VT_BACKGROUNDIMAGECOLOR, backgroundImageColor); }
+  void add_direction(ScrollViewDirection direction) { fbb_.AddElement<int8_t>(ScrollView::VT_DIRECTION, static_cast<int8_t>(direction), 0); }
+  void add_bounceEnabled(bool bounceEnabled) { fbb_.AddElement<uint8_t>(ScrollView::VT_BOUNCEENABLED, static_cast<uint8_t>(bounceEnabled), 0); }
+  void add_innerContainerSize(const Size *innerContainerSize) { fbb_.AddStruct(ScrollView::VT_INNERCONTAINERSIZE, innerContainerSize); }
   ScrollViewBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   ScrollViewBuilder &operator=(const ScrollViewBuilder &);
   flatbuffers::Offset<ScrollView> Finish() {
-    auto o = flatbuffers::Offset<ScrollView>(fbb_.EndTable(start_, 1));
+    auto o = flatbuffers::Offset<ScrollView>(fbb_.EndTable(start_, 7));
     return o;
   }
 };
 
 inline flatbuffers::Offset<ScrollView> CreateScrollView(flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<Node> node = 0) {
+    flatbuffers::Offset<Node> node = 0,
+    flatbuffers::Offset<flatbuffers::String> backgroundImage = 0,
+    bool backgroundImageScale9Enabled = false,
+    const RGB *backgroundImageColor = 0,
+    ScrollViewDirection direction = ScrollViewDirection_Both,
+    bool bounceEnabled = false,
+    const Size *innerContainerSize = 0) {
   ScrollViewBuilder builder_(_fbb);
+  builder_.add_innerContainerSize(innerContainerSize);
+  builder_.add_backgroundImageColor(backgroundImageColor);
+  builder_.add_backgroundImage(backgroundImage);
   builder_.add_node(node);
+  builder_.add_bounceEnabled(bounceEnabled);
+  builder_.add_direction(direction);
+  builder_.add_backgroundImageScale9Enabled(backgroundImageScale9Enabled);
   return builder_.Finish();
+}
+
+inline flatbuffers::Offset<ScrollView> CreateScrollViewDirect(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    const char *backgroundImage = nullptr,
+    bool backgroundImageScale9Enabled = false,
+    const RGB *backgroundImageColor = 0,
+    ScrollViewDirection direction = ScrollViewDirection_Both,
+    bool bounceEnabled = false,
+    const Size *innerContainerSize = 0) {
+  return CreateScrollView(_fbb, node, backgroundImage ? _fbb.CreateString(backgroundImage) : 0, backgroundImageScale9Enabled, backgroundImageColor, direction, bounceEnabled, innerContainerSize);
+}
+
+struct EditBox FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NODE = 4,
+    VT_BACKGROUNDIMAGE = 6,
+    VT_RETURNTYPE = 8,
+    VT_INPUTFLAG = 10,
+    VT_INPUTMODE = 12,
+    VT_FONTSIZE = 14,
+    VT_FONTCOLOR = 16,
+    VT_PLACEHOLDER = 18,
+    VT_PLACEHOLDERFONTSIZE = 20,
+    VT_PLACEHOLDERFONTCOLOR = 22,
+    VT_MAXLENGTH = 24,
+    VT_TEXT = 26
+  };
+  const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  const flatbuffers::String *backgroundImage() const { return GetPointer<const flatbuffers::String *>(VT_BACKGROUNDIMAGE); }
+  EditBoxReturnType returnType() const { return static_cast<EditBoxReturnType>(GetField<int8_t>(VT_RETURNTYPE, 0)); }
+  EditBoxInputFlag inputFlag() const { return static_cast<EditBoxInputFlag>(GetField<int8_t>(VT_INPUTFLAG, 0)); }
+  EditBoxInputMode inputMode() const { return static_cast<EditBoxInputMode>(GetField<int8_t>(VT_INPUTMODE, 0)); }
+  int32_t fontSize() const { return GetField<int32_t>(VT_FONTSIZE, 0); }
+  const RGB *fontColor() const { return GetStruct<const RGB *>(VT_FONTCOLOR); }
+  const flatbuffers::String *placeholder() const { return GetPointer<const flatbuffers::String *>(VT_PLACEHOLDER); }
+  int32_t placeholderFontSize() const { return GetField<int32_t>(VT_PLACEHOLDERFONTSIZE, 0); }
+  const RGB *placeholderFontColor() const { return GetStruct<const RGB *>(VT_PLACEHOLDERFONTCOLOR); }
+  int32_t maxLength() const { return GetField<int32_t>(VT_MAXLENGTH, 0); }
+  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(VT_TEXT); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
+           verifier.VerifyTable(node()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_BACKGROUNDIMAGE) &&
+           verifier.Verify(backgroundImage()) &&
+           VerifyField<int8_t>(verifier, VT_RETURNTYPE) &&
+           VerifyField<int8_t>(verifier, VT_INPUTFLAG) &&
+           VerifyField<int8_t>(verifier, VT_INPUTMODE) &&
+           VerifyField<int32_t>(verifier, VT_FONTSIZE) &&
+           VerifyField<RGB>(verifier, VT_FONTCOLOR) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_PLACEHOLDER) &&
+           verifier.Verify(placeholder()) &&
+           VerifyField<int32_t>(verifier, VT_PLACEHOLDERFONTSIZE) &&
+           VerifyField<RGB>(verifier, VT_PLACEHOLDERFONTCOLOR) &&
+           VerifyField<int32_t>(verifier, VT_MAXLENGTH) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEXT) &&
+           verifier.Verify(text()) &&
+           verifier.EndTable();
+  }
+};
+
+struct EditBoxBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(EditBox::VT_NODE, node); }
+  void add_backgroundImage(flatbuffers::Offset<flatbuffers::String> backgroundImage) { fbb_.AddOffset(EditBox::VT_BACKGROUNDIMAGE, backgroundImage); }
+  void add_returnType(EditBoxReturnType returnType) { fbb_.AddElement<int8_t>(EditBox::VT_RETURNTYPE, static_cast<int8_t>(returnType), 0); }
+  void add_inputFlag(EditBoxInputFlag inputFlag) { fbb_.AddElement<int8_t>(EditBox::VT_INPUTFLAG, static_cast<int8_t>(inputFlag), 0); }
+  void add_inputMode(EditBoxInputMode inputMode) { fbb_.AddElement<int8_t>(EditBox::VT_INPUTMODE, static_cast<int8_t>(inputMode), 0); }
+  void add_fontSize(int32_t fontSize) { fbb_.AddElement<int32_t>(EditBox::VT_FONTSIZE, fontSize, 0); }
+  void add_fontColor(const RGB *fontColor) { fbb_.AddStruct(EditBox::VT_FONTCOLOR, fontColor); }
+  void add_placeholder(flatbuffers::Offset<flatbuffers::String> placeholder) { fbb_.AddOffset(EditBox::VT_PLACEHOLDER, placeholder); }
+  void add_placeholderFontSize(int32_t placeholderFontSize) { fbb_.AddElement<int32_t>(EditBox::VT_PLACEHOLDERFONTSIZE, placeholderFontSize, 0); }
+  void add_placeholderFontColor(const RGB *placeholderFontColor) { fbb_.AddStruct(EditBox::VT_PLACEHOLDERFONTCOLOR, placeholderFontColor); }
+  void add_maxLength(int32_t maxLength) { fbb_.AddElement<int32_t>(EditBox::VT_MAXLENGTH, maxLength, 0); }
+  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(EditBox::VT_TEXT, text); }
+  EditBoxBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  EditBoxBuilder &operator=(const EditBoxBuilder &);
+  flatbuffers::Offset<EditBox> Finish() {
+    auto o = flatbuffers::Offset<EditBox>(fbb_.EndTable(start_, 12));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<EditBox> CreateEditBox(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    flatbuffers::Offset<flatbuffers::String> backgroundImage = 0,
+    EditBoxReturnType returnType = EditBoxReturnType_Default,
+    EditBoxInputFlag inputFlag = EditBoxInputFlag_Password,
+    EditBoxInputMode inputMode = EditBoxInputMode_Any,
+    int32_t fontSize = 0,
+    const RGB *fontColor = 0,
+    flatbuffers::Offset<flatbuffers::String> placeholder = 0,
+    int32_t placeholderFontSize = 0,
+    const RGB *placeholderFontColor = 0,
+    int32_t maxLength = 0,
+    flatbuffers::Offset<flatbuffers::String> text = 0) {
+  EditBoxBuilder builder_(_fbb);
+  builder_.add_text(text);
+  builder_.add_maxLength(maxLength);
+  builder_.add_placeholderFontColor(placeholderFontColor);
+  builder_.add_placeholderFontSize(placeholderFontSize);
+  builder_.add_placeholder(placeholder);
+  builder_.add_fontColor(fontColor);
+  builder_.add_fontSize(fontSize);
+  builder_.add_backgroundImage(backgroundImage);
+  builder_.add_node(node);
+  builder_.add_inputMode(inputMode);
+  builder_.add_inputFlag(inputFlag);
+  builder_.add_returnType(returnType);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<EditBox> CreateEditBoxDirect(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    const char *backgroundImage = nullptr,
+    EditBoxReturnType returnType = EditBoxReturnType_Default,
+    EditBoxInputFlag inputFlag = EditBoxInputFlag_Password,
+    EditBoxInputMode inputMode = EditBoxInputMode_Any,
+    int32_t fontSize = 0,
+    const RGB *fontColor = 0,
+    const char *placeholder = nullptr,
+    int32_t placeholderFontSize = 0,
+    const RGB *placeholderFontColor = 0,
+    int32_t maxLength = 0,
+    const char *text = nullptr) {
+  return CreateEditBox(_fbb, node, backgroundImage ? _fbb.CreateString(backgroundImage) : 0, returnType, inputFlag, inputMode, fontSize, fontColor, placeholder ? _fbb.CreateString(placeholder) : 0, placeholderFontSize, placeholderFontColor, maxLength, text ? _fbb.CreateString(text) : 0);
 }
 
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type) {
@@ -1062,6 +1310,7 @@ inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj
     case AnyNode_ProgressBar: return verifier.VerifyTable(reinterpret_cast<const ProgressBar *>(union_obj));
     case AnyNode_ScrollView: return verifier.VerifyTable(reinterpret_cast<const ScrollView *>(union_obj));
     case AnyNode_CreatorScene: return verifier.VerifyTable(reinterpret_cast<const CreatorScene *>(union_obj));
+    case AnyNode_EditBox: return verifier.VerifyTable(reinterpret_cast<const EditBox *>(union_obj));
     default: return false;
   }
 }

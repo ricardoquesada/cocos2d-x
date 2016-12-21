@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cocos2d.h"
+#include "ui/CocosGUI.h"
 
 #include "CreatorReader_generated.h"
 
@@ -66,6 +67,18 @@ protected:
 
     cocos2d::ParticleSystemQuad* createParticle(const buffers::Particle* particleBuffer) const;
     void parseScene(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const;
+
+    cocos2d::ui::ScrollView* createScrollView(const buffers::ScrollView* scrollViewBuffer) const;
+    void parseScrollView(cocos2d::ui::ScrollView* scrollView, const buffers::ScrollView* scrollViewBuffer) const;
+
+    cocos2d::ui::LoadingBar* createProgressBar(const buffers::ProgressBar* progressBarBuffer) const;
+    void parseProgressBar(cocos2d::ui::LoadingBar* progressBar, const buffers::ProgressBar* progressBarBuffer) const;
+
+    cocos2d::ui::EditBox* createEditBox(const buffers::EditBox* editBoxBuffer) const;
+    void parseEditBox(cocos2d::ui::EditBox* editBox, const buffers::EditBox* editBoxBuffer) const;
+
+    cocos2d::ui::Button* createButton(const buffers::Button* buttonBuffer) const;
+    void parseButton(cocos2d::ui::Button* button, const buffers::Button* buttonBuffer) const;
 
     void setupSpriteFrames();
 

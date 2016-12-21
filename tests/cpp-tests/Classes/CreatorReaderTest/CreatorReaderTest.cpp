@@ -33,6 +33,7 @@ CreatorReaderTests::CreatorReaderTests()
 {
     ADD_TEST_CASE(CreatorReaderTest1);
     ADD_TEST_CASE(CreatorReaderTest2);
+    ADD_TEST_CASE(CreatorReaderTest3);
 };
 
 //------------------------------------------------------------------
@@ -77,5 +78,28 @@ CreatorReaderTest2::CreatorReaderTest2()
 std::string CreatorReaderTest2::title() const
 {
     return "Reading sprites";
+}
+
+
+//------------------------------------------------------------------
+//
+// CreatorReaderTest3
+//
+//------------------------------------------------------------------
+
+CreatorReaderTest3::CreatorReaderTest3()
+{
+    CreatorReader* reader = CreatorReader::createWithFilename("creator/CreatorUI.ccreator");
+    CCLOG("Version: %s", reader->getVersion().c_str());
+
+    // will create the needed spritesheets, design resolution
+    reader->setup();
+    Scene* scene = reader->getSceneGraph();
+    addChild(scene);
+}
+
+std::string CreatorReaderTest3::title() const
+{
+    return "Reading UI";
 }
 

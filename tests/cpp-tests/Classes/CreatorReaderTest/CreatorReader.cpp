@@ -142,6 +142,9 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
     switch (bufferType) {
         case buffers::AnyNode_NONE:
             break;
+        case buffers::AnyNode_Node:
+            node = createNode(static_cast<const buffers::Node*>(buffer));
+            break;
         case buffers::AnyNode_Label:
             node = createLabel(static_cast<const buffers::Label*>(buffer));
             break;
@@ -158,12 +161,18 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
             node = createScene(static_cast<const buffers::Scene*>(buffer));
             break;
         case buffers::AnyNode_ScrollView:
-        case buffers::AnyNode_ProgressBar:
-        case buffers::AnyNode_Button:
-        case buffers::AnyNode_CreatorScene:
+            node = createScrollView(static_cast<const buffers::ScrollView*>(buffer));
             break;
-        case buffers::AnyNode_Node:
-            node = createNode(static_cast<const buffers::Node*>(buffer));
+        case buffers::AnyNode_ProgressBar:
+            node = createProgressBar(static_cast<const buffers::ProgressBar*>(buffer));
+            break;
+        case buffers::AnyNode_Button:
+            node = createButton(static_cast<const buffers::Button*>(buffer));
+            break;
+        case buffers::AnyNode_EditBox:
+            node = createEditBox(static_cast<const buffers::EditBox*>(buffer));
+            break;
+        case buffers::AnyNode_CreatorScene:
             break;
     }
 
@@ -171,7 +180,7 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
     const auto& children = tree->children();
     for(const auto& childBuffer: *children) {
         cocos2d::Node* child = createTree(childBuffer);
-        if (child) node->addChild(child);
+        if (child && node) node->addChild(child);
     }
 
     return node;
@@ -347,4 +356,84 @@ void CreatorReader::parseScene(cocos2d::ParticleSystemQuad* particle, const buff
 {
     const auto& nodeBuffer = particleBuffer->node();
     parseNode(particle, nodeBuffer);
+}
+
+cocos2d::ui::ScrollView* CreatorReader::createScrollView(const buffers::ScrollView* scrollViewBuffer) const
+{
+    auto scrollView = ui::ScrollView::create();
+    parseScrollView(scrollView, scrollViewBuffer);
+    return scrollView;
+}
+
+void CreatorReader::parseScrollView(cocos2d::ui::ScrollView* scrollView, const buffers::ScrollView* scrollViewBuffer) const
+{
+    const auto& nodeBuffer = scrollViewBuffer->node();
+    parseNode(scrollView, nodeBuffer);
+
+    // backgroundImage:string;
+    // backgroundImageScale9Enabled:bool;
+    // backgroundImageColor:RGB;
+    // direction:ScrollViewDirection;
+    // bounceEnabled:bool;
+    // innerContainerSize:Size;
+
+    const auto& backgroundImage = scrollViewBuffer->backgroundImage();
+    const auto& backgroundImageScale9Enabled = scrollViewBuffer->backgroundImageScale9Enabled();
+    const auto& backgroundImageColor = scrollViewBuffer->backgroundImageColor();
+    const auto& direction = scrollViewBuffer->direction();
+    const auto& bounceEnabled = scrollViewBuffer->bounceEnabled();
+    const auto& innerContainerSize = scrollViewBuffer->innerContainerSize();
+
+    scrollView->setBackGroundImage(backgroundImage->str());
+    scrollView->setBackGroundColor(cocos2d::Color3B(backgroundImageColor->r(), backgroundImageColor->g(), backgroundImageColor->b()));
+    scrollView->setBackGroundImageScale9Enabled(backgroundImageScale9Enabled);
+    scrollView->setDirection(static_cast<cocos2d::ui::ScrollView::Direction>(direction));
+    scrollView->setBounceEnabled(bounceEnabled);
+    scrollView->setInnerContainerSize(cocos2d::Size(innerContainerSize->w(), innerContainerSize->h()));
+
+    // FIXME: Call setJumpToPercent at the end, because it depens on having the contentSize correct
+    // FIXME: uses the anchorPoint for the percent in the bar, but this migh break if it changes the position of the bar content node
+    const auto& anchorPoint = scrollViewBuffer->node()->anchorPoint();
+    scrollView->jumpToPercentHorizontal(anchorPoint->x() * 100.0f);
+    scrollView->jumpToPercentVertical((1-anchorPoint->y() * 100.0f));
+}
+
+cocos2d::ui::LoadingBar* CreatorReader::createProgressBar(const buffers::ProgressBar* progressBarBuffer) const
+{
+    auto progressBar = ui::LoadingBar::create();
+    parseProgressBar(progressBar, progressBarBuffer);
+    return progressBar;
+}
+void CreatorReader::parseProgressBar(cocos2d::ui::LoadingBar* progressBar, const buffers::ProgressBar* progressBarBuffer) const
+{
+    const auto& nodeBuffer = progressBarBuffer->node();
+    parseNode(progressBar, nodeBuffer);
+}
+
+cocos2d::ui::EditBox* CreatorReader::createEditBox(const buffers::EditBox* editBoxBuffer) const
+{
+    const auto& contentSize = editBoxBuffer->node()->contentSize();
+    const auto& spriteFrameName = editBoxBuffer->backgroundImage();
+    auto editBox = ui::EditBox::create(cocos2d::Size(contentSize->w(), contentSize->h()), spriteFrameName->str(),
+                                       cocos2d::ui::Widget::TextureResType::PLIST);
+    parseEditBox(editBox, editBoxBuffer);
+    return editBox;
+}
+void CreatorReader::parseEditBox(cocos2d::ui::EditBox* editBox, const buffers::EditBox* editBoxBuffer) const
+{
+    const auto& nodeBuffer = editBoxBuffer->node();
+    parseNode(editBox, nodeBuffer);
+}
+
+cocos2d::ui::Button* CreatorReader::createButton(const buffers::Button* buttonBuffer) const
+{
+    auto button = ui::Button::create();
+    parseButton(button, buttonBuffer);
+    return button;
+}
+
+void CreatorReader::parseButton(cocos2d::ui::Button* button, const buffers::Button* buttonBuffer) const
+{
+    const auto& nodeBuffer = buttonBuffer->node();
+    parseNode(button, nodeBuffer);
 }
