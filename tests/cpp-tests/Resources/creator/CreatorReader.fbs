@@ -108,6 +108,7 @@ table TileMap
 {
     node:Node;
     tmxFilename:string;
+    desiredContentSize:Size;
 }
 
 table Scene

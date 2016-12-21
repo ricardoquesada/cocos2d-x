@@ -46,6 +46,10 @@
             {
                 "children": [],
                 "object": {
+                    "desiredContentSize": {
+                        "h": 2048,
+                        "w": 4096
+                    },
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,
@@ -63,8 +67,8 @@
                         "opacity": 255,
                         "opacityModifyRGB": false,
                         "position": {
-                            "x": 494,
-                            "y": 231
+                            "x": 473,
+                            "y": 241
                         },
                         "rotationSkewX": 0,
                         "rotationSkewY": 0,

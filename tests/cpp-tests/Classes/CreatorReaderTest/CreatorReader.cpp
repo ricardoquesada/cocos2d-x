@@ -364,6 +364,20 @@ void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::T
 {
     const auto& nodeBuffer = tilemapBuffer->node();
     parseNode(tilemap, nodeBuffer);
+
+    // calculate scale. changing the contentSize in TMX doesn't affect its visual size
+    // so we have to re-scale the map
+    const auto& desiredSize = tilemapBuffer->desiredContentSize();
+    const auto& currentSize = tilemap->getContentSize();
+
+    float wr = desiredSize->w() / currentSize.width;
+    float hr = desiredSize->h() / currentSize.height;
+
+    float sx = tilemap->getScaleX();
+    float sy = tilemap->getScaleY();
+
+    tilemap->setScaleX(wr * sx);
+    tilemap->setScaleY(hr * sy);
 }
 
 void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const

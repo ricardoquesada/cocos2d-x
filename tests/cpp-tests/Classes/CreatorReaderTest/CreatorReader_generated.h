@@ -950,16 +950,19 @@ inline flatbuffers::Offset<Particle> CreateParticleDirect(flatbuffers::FlatBuffe
 struct TileMap FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
-    VT_TMXFILENAME = 6
+    VT_TMXFILENAME = 6,
+    VT_DESIREDCONTENTSIZE = 8
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
   const flatbuffers::String *tmxFilename() const { return GetPointer<const flatbuffers::String *>(VT_TMXFILENAME); }
+  const Size *desiredContentSize() const { return GetStruct<const Size *>(VT_DESIREDCONTENTSIZE); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
            verifier.VerifyTable(node()) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_TMXFILENAME) &&
            verifier.Verify(tmxFilename()) &&
+           VerifyField<Size>(verifier, VT_DESIREDCONTENTSIZE) &&
            verifier.EndTable();
   }
 };
@@ -969,18 +972,21 @@ struct TileMapBuilder {
   flatbuffers::uoffset_t start_;
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(TileMap::VT_NODE, node); }
   void add_tmxFilename(flatbuffers::Offset<flatbuffers::String> tmxFilename) { fbb_.AddOffset(TileMap::VT_TMXFILENAME, tmxFilename); }
+  void add_desiredContentSize(const Size *desiredContentSize) { fbb_.AddStruct(TileMap::VT_DESIREDCONTENTSIZE, desiredContentSize); }
   TileMapBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   TileMapBuilder &operator=(const TileMapBuilder &);
   flatbuffers::Offset<TileMap> Finish() {
-    auto o = flatbuffers::Offset<TileMap>(fbb_.EndTable(start_, 2));
+    auto o = flatbuffers::Offset<TileMap>(fbb_.EndTable(start_, 3));
     return o;
   }
 };
 
 inline flatbuffers::Offset<TileMap> CreateTileMap(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    flatbuffers::Offset<flatbuffers::String> tmxFilename = 0) {
+    flatbuffers::Offset<flatbuffers::String> tmxFilename = 0,
+    const Size *desiredContentSize = 0) {
   TileMapBuilder builder_(_fbb);
+  builder_.add_desiredContentSize(desiredContentSize);
   builder_.add_tmxFilename(tmxFilename);
   builder_.add_node(node);
   return builder_.Finish();
@@ -988,8 +994,9 @@ inline flatbuffers::Offset<TileMap> CreateTileMap(flatbuffers::FlatBufferBuilder
 
 inline flatbuffers::Offset<TileMap> CreateTileMapDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
-    const char *tmxFilename = nullptr) {
-  return CreateTileMap(_fbb, node, tmxFilename ? _fbb.CreateString(tmxFilename) : 0);
+    const char *tmxFilename = nullptr,
+    const Size *desiredContentSize = 0) {
+  return CreateTileMap(_fbb, node, tmxFilename ? _fbb.CreateString(tmxFilename) : 0, desiredContentSize);
 }
 
 struct Scene FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
