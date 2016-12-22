@@ -204,6 +204,7 @@
             {
                 "children": [],
                 "object": {
+                    "enableWrap": true,
                     "fontName": "arial",
                     "fontSize": 40,
                     "fontType": "System",
@@ -249,6 +250,7 @@
             {
                 "children": [],
                 "object": {
+                    "enableWrap": true,
                     "fontName": "arial",
                     "fontSize": 40,
                     "fontType": "System",

@@ -97,6 +97,7 @@ table Label
     fontSize:float;
     fontType:FontType;
     overflowType:LabelOverflowType;
+    enableWrap:bool;
 }
 
 table RichText
