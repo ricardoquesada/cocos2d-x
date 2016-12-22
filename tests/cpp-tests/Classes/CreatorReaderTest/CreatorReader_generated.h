@@ -181,6 +181,22 @@ inline const char **EnumNamesEditBoxInputMode() {
 
 inline const char *EnumNameEditBoxInputMode(EditBoxInputMode e) { return EnumNamesEditBoxInputMode()[static_cast<int>(e)]; }
 
+enum LabelOverflowType {
+  LabelOverflowType_None = 0,
+  LabelOverflowType_Clamp = 1,
+  LabelOverflowType_Shrink = 2,
+  LabelOverflowType_ResizeHeight = 3,
+  LabelOverflowType_MIN = LabelOverflowType_None,
+  LabelOverflowType_MAX = LabelOverflowType_ResizeHeight
+};
+
+inline const char **EnumNamesLabelOverflowType() {
+  static const char *names[] = { "None", "Clamp", "Shrink", "ResizeHeight", nullptr };
+  return names;
+}
+
+inline const char *EnumNameLabelOverflowType(LabelOverflowType e) { return EnumNamesLabelOverflowType()[static_cast<int>(e)]; }
+
 enum AnyNode {
   AnyNode_NONE = 0,
   AnyNode_Scene = 1,
@@ -830,7 +846,8 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_LINEHEIGHT = 12,
     VT_FONTNAME = 14,
     VT_FONTSIZE = 16,
-    VT_FONTTYPE = 18
+    VT_FONTTYPE = 18,
+    VT_OVERFLOWTYPE = 20
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
   const flatbuffers::String *labelText() const { return GetPointer<const flatbuffers::String *>(VT_LABELTEXT); }
@@ -840,6 +857,7 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const flatbuffers::String *fontName() const { return GetPointer<const flatbuffers::String *>(VT_FONTNAME); }
   float fontSize() const { return GetField<float>(VT_FONTSIZE, 0.0f); }
   FontType fontType() const { return static_cast<FontType>(GetField<int8_t>(VT_FONTTYPE, 0)); }
+  LabelOverflowType overflowType() const { return static_cast<LabelOverflowType>(GetField<int8_t>(VT_OVERFLOWTYPE, 0)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
@@ -853,6 +871,7 @@ struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            verifier.Verify(fontName()) &&
            VerifyField<float>(verifier, VT_FONTSIZE) &&
            VerifyField<int8_t>(verifier, VT_FONTTYPE) &&
+           VerifyField<int8_t>(verifier, VT_OVERFLOWTYPE) &&
            verifier.EndTable();
   }
 };
@@ -868,10 +887,11 @@ struct LabelBuilder {
   void add_fontName(flatbuffers::Offset<flatbuffers::String> fontName) { fbb_.AddOffset(Label::VT_FONTNAME, fontName); }
   void add_fontSize(float fontSize) { fbb_.AddElement<float>(Label::VT_FONTSIZE, fontSize, 0.0f); }
   void add_fontType(FontType fontType) { fbb_.AddElement<int8_t>(Label::VT_FONTTYPE, static_cast<int8_t>(fontType), 0); }
+  void add_overflowType(LabelOverflowType overflowType) { fbb_.AddElement<int8_t>(Label::VT_OVERFLOWTYPE, static_cast<int8_t>(overflowType), 0); }
   LabelBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   LabelBuilder &operator=(const LabelBuilder &);
   flatbuffers::Offset<Label> Finish() {
-    auto o = flatbuffers::Offset<Label>(fbb_.EndTable(start_, 8));
+    auto o = flatbuffers::Offset<Label>(fbb_.EndTable(start_, 9));
     return o;
   }
 };
@@ -884,13 +904,15 @@ inline flatbuffers::Offset<Label> CreateLabel(flatbuffers::FlatBufferBuilder &_f
     float lineHeight = 0.0f,
     flatbuffers::Offset<flatbuffers::String> fontName = 0,
     float fontSize = 0.0f,
-    FontType fontType = FontType_System) {
+    FontType fontType = FontType_System,
+    LabelOverflowType overflowType = LabelOverflowType_None) {
   LabelBuilder builder_(_fbb);
   builder_.add_fontSize(fontSize);
   builder_.add_fontName(fontName);
   builder_.add_lineHeight(lineHeight);
   builder_.add_labelText(labelText);
   builder_.add_node(node);
+  builder_.add_overflowType(overflowType);
   builder_.add_fontType(fontType);
   builder_.add_verticalAlignment(verticalAlignment);
   builder_.add_horizontalAlignment(horizontalAlignment);
@@ -905,8 +927,9 @@ inline flatbuffers::Offset<Label> CreateLabelDirect(flatbuffers::FlatBufferBuild
     float lineHeight = 0.0f,
     const char *fontName = nullptr,
     float fontSize = 0.0f,
-    FontType fontType = FontType_System) {
-  return CreateLabel(_fbb, node, labelText ? _fbb.CreateString(labelText) : 0, horizontalAlignment, verticalAlignment, lineHeight, fontName ? _fbb.CreateString(fontName) : 0, fontSize, fontType);
+    FontType fontType = FontType_System,
+    LabelOverflowType overflowType = LabelOverflowType_None) {
+  return CreateLabel(_fbb, node, labelText ? _fbb.CreateString(labelText) : 0, horizontalAlignment, verticalAlignment, lineHeight, fontName ? _fbb.CreateString(fontName) : 0, fontSize, fontType, overflowType);
 }
 
 struct RichText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

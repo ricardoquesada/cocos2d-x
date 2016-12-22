@@ -8,6 +8,7 @@ enum ScrollViewDirection:byte {None, Vertical, Horizontal, Both}
 enum EditBoxReturnType:byte {Default, Done, Send, Search, Go}
 enum EditBoxInputFlag:byte {Password, Sensitive, InitialCapsWord, InitialCapsSentence, InitialCapsAllCharacters, LowercaseAllCharacters}
 enum EditBoxInputMode:byte {Any, EmailAddress, Numeric, PhoneNumber, URL, Decime, SingleLine}
+enum LabelOverflowType:byte {None, Clamp, Shrink, ResizeHeight}
 
 // New nodes should be added at the end of the union
 // no more than 255 union objects can be added
@@ -95,6 +96,7 @@ table Label
     fontName:string;
     fontSize:float;
     fontType:FontType;
+    overflowType:LabelOverflowType;
 }
 
 table RichText

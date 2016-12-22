@@ -404,11 +404,13 @@ void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labe
     const auto& lineHeight = labelBuffer->lineHeight();
     const auto& verticalA = labelBuffer->verticalAlignment();
     const auto& horizontalA = labelBuffer->horizontalAlignment();
-    label->setVerticalAlignment(static_cast<cocos2d::TextVAlignment>(verticalA));
-    label->setHorizontalAlignment(static_cast<cocos2d::TextHAlignment>(horizontalA));
+    const auto& overflowType = labelBuffer->overflowType();
 
     if (labelBuffer->fontType() != FontType_System)
         label->setLineHeight(lineHeight);
+    label->setVerticalAlignment(static_cast<cocos2d::TextVAlignment>(verticalA));
+    label->setHorizontalAlignment(static_cast<cocos2d::TextHAlignment>(horizontalA));
+    label->setOverflow(static_cast<cocos2d::Label::Overflow>(overflowType));
 }
 
 void CreatorReader::parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const
