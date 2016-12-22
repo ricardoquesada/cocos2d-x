@@ -155,6 +155,9 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
         case buffers::AnyNode_Label:
             node = createLabel(static_cast<const buffers::Label*>(buffer));
             break;
+        case buffers::AnyNode_RichText:
+            node = createRichText(static_cast<const buffers::RichText*>(buffer));
+            break;
         case buffers::AnyNode_Sprite:
             node = createSprite(static_cast<const buffers::Sprite*>(buffer));
             break;
@@ -263,6 +266,19 @@ cocos2d::Label* CreatorReader::createLabel(const buffers::Label* labelBuffer) co
         parseLabel(label, labelBuffer);
     return label;
 }
+
+cocos2d::ui::RichText* CreatorReader::createRichText(const buffers::RichText* richTextBuffer) const
+{
+    cocos2d::ui::RichText* richText = nullptr;
+    const auto& text = richTextBuffer->text();
+    if (text)
+        richText = cocos2d::ui::RichText::createWithXML(text->str());
+    else
+        richText = cocos2d::ui::RichText::create();
+    parseRichText(richText, richTextBuffer);
+    return richText;
+}
+
 
 cocos2d::ParticleSystemQuad* CreatorReader::createParticle(const buffers::Particle* particleBuffer) const
 {
@@ -393,6 +409,28 @@ void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labe
 
     if (labelBuffer->fontType() != FontType_System)
         label->setLineHeight(lineHeight);
+}
+
+void CreatorReader::parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const
+{
+    const auto& nodeBuffer = richTextBuffer->node();
+    parseNode(richText, nodeBuffer);
+
+    // text:string;
+    // horizontalAlignment:HorizontalAlignment;
+    // fontSize:int;
+    // maxWidth:int;
+    // lineHeight:int;
+    // fontFilename:string;
+
+    const auto& fontSize = richTextBuffer->fontSize();
+    richText->setFontSize(fontSize);
+    const auto& lineHeight = richTextBuffer->lineHeight();
+    richText->setVerticalSpace(lineHeight);
+    const auto& fontFilename = richTextBuffer->fontFilename();
+    if (fontFilename) richText->setFontFace(fontFilename->str());
+
+//    richText->ignoreContentAdaptWithSize(false);
 }
 
 void CreatorReader::parseParticle(cocos2d::ParticleSystemQuad* particle, const buffers::Particle* particleBuffer) const

@@ -22,6 +22,8 @@ struct Sprite;
 
 struct Label;
 
+struct RichText;
+
 struct Particle;
 
 struct TileMap;
@@ -192,12 +194,13 @@ enum AnyNode {
   AnyNode_ScrollView = 9,
   AnyNode_CreatorScene = 10,
   AnyNode_EditBox = 11,
+  AnyNode_RichText = 12,
   AnyNode_MIN = AnyNode_NONE,
-  AnyNode_MAX = AnyNode_EditBox
+  AnyNode_MAX = AnyNode_RichText
 };
 
 inline const char **EnumNamesAnyNode() {
-  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", "CreatorScene", "EditBox", nullptr };
+  static const char *names[] = { "NONE", "Scene", "Sprite", "Label", "Particle", "TileMap", "Node", "Button", "ProgressBar", "ScrollView", "CreatorScene", "EditBox", "RichText", nullptr };
   return names;
 }
 
@@ -249,6 +252,10 @@ template<> struct AnyNodeTraits<CreatorScene> {
 
 template<> struct AnyNodeTraits<EditBox> {
   static const AnyNode enum_value = AnyNode_EditBox;
+};
+
+template<> struct AnyNodeTraits<RichText> {
+  static const AnyNode enum_value = AnyNode_RichText;
 };
 
 inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj, AnyNode type);
@@ -902,6 +909,87 @@ inline flatbuffers::Offset<Label> CreateLabelDirect(flatbuffers::FlatBufferBuild
   return CreateLabel(_fbb, node, labelText ? _fbb.CreateString(labelText) : 0, horizontalAlignment, verticalAlignment, lineHeight, fontName ? _fbb.CreateString(fontName) : 0, fontSize, fontType);
 }
 
+struct RichText FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_NODE = 4,
+    VT_TEXT = 6,
+    VT_HORIZONTALALIGNMENT = 8,
+    VT_FONTSIZE = 10,
+    VT_MAXWIDTH = 12,
+    VT_LINEHEIGHT = 14,
+    VT_FONTFILENAME = 16
+  };
+  const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
+  const flatbuffers::String *text() const { return GetPointer<const flatbuffers::String *>(VT_TEXT); }
+  HorizontalAlignment horizontalAlignment() const { return static_cast<HorizontalAlignment>(GetField<int8_t>(VT_HORIZONTALALIGNMENT, 0)); }
+  float fontSize() const { return GetField<float>(VT_FONTSIZE, 0.0f); }
+  float maxWidth() const { return GetField<float>(VT_MAXWIDTH, 0.0f); }
+  float lineHeight() const { return GetField<float>(VT_LINEHEIGHT, 0.0f); }
+  const flatbuffers::String *fontFilename() const { return GetPointer<const flatbuffers::String *>(VT_FONTFILENAME); }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
+           verifier.VerifyTable(node()) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_TEXT) &&
+           verifier.Verify(text()) &&
+           VerifyField<int8_t>(verifier, VT_HORIZONTALALIGNMENT) &&
+           VerifyField<float>(verifier, VT_FONTSIZE) &&
+           VerifyField<float>(verifier, VT_MAXWIDTH) &&
+           VerifyField<float>(verifier, VT_LINEHEIGHT) &&
+           VerifyField<flatbuffers::uoffset_t>(verifier, VT_FONTFILENAME) &&
+           verifier.Verify(fontFilename()) &&
+           verifier.EndTable();
+  }
+};
+
+struct RichTextBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(RichText::VT_NODE, node); }
+  void add_text(flatbuffers::Offset<flatbuffers::String> text) { fbb_.AddOffset(RichText::VT_TEXT, text); }
+  void add_horizontalAlignment(HorizontalAlignment horizontalAlignment) { fbb_.AddElement<int8_t>(RichText::VT_HORIZONTALALIGNMENT, static_cast<int8_t>(horizontalAlignment), 0); }
+  void add_fontSize(float fontSize) { fbb_.AddElement<float>(RichText::VT_FONTSIZE, fontSize, 0.0f); }
+  void add_maxWidth(float maxWidth) { fbb_.AddElement<float>(RichText::VT_MAXWIDTH, maxWidth, 0.0f); }
+  void add_lineHeight(float lineHeight) { fbb_.AddElement<float>(RichText::VT_LINEHEIGHT, lineHeight, 0.0f); }
+  void add_fontFilename(flatbuffers::Offset<flatbuffers::String> fontFilename) { fbb_.AddOffset(RichText::VT_FONTFILENAME, fontFilename); }
+  RichTextBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
+  RichTextBuilder &operator=(const RichTextBuilder &);
+  flatbuffers::Offset<RichText> Finish() {
+    auto o = flatbuffers::Offset<RichText>(fbb_.EndTable(start_, 7));
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<RichText> CreateRichText(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    flatbuffers::Offset<flatbuffers::String> text = 0,
+    HorizontalAlignment horizontalAlignment = HorizontalAlignment_Left,
+    float fontSize = 0.0f,
+    float maxWidth = 0.0f,
+    float lineHeight = 0.0f,
+    flatbuffers::Offset<flatbuffers::String> fontFilename = 0) {
+  RichTextBuilder builder_(_fbb);
+  builder_.add_fontFilename(fontFilename);
+  builder_.add_lineHeight(lineHeight);
+  builder_.add_maxWidth(maxWidth);
+  builder_.add_fontSize(fontSize);
+  builder_.add_text(text);
+  builder_.add_node(node);
+  builder_.add_horizontalAlignment(horizontalAlignment);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<RichText> CreateRichTextDirect(flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<Node> node = 0,
+    const char *text = nullptr,
+    HorizontalAlignment horizontalAlignment = HorizontalAlignment_Left,
+    float fontSize = 0.0f,
+    float maxWidth = 0.0f,
+    float lineHeight = 0.0f,
+    const char *fontFilename = nullptr) {
+  return CreateRichText(_fbb, node, text ? _fbb.CreateString(text) : 0, horizontalAlignment, fontSize, maxWidth, lineHeight, fontFilename ? _fbb.CreateString(fontFilename) : 0);
+}
+
 struct Particle FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
@@ -1332,6 +1420,7 @@ inline bool VerifyAnyNode(flatbuffers::Verifier &verifier, const void *union_obj
     case AnyNode_ScrollView: return verifier.VerifyTable(reinterpret_cast<const ScrollView *>(union_obj));
     case AnyNode_CreatorScene: return verifier.VerifyTable(reinterpret_cast<const CreatorScene *>(union_obj));
     case AnyNode_EditBox: return verifier.VerifyTable(reinterpret_cast<const EditBox *>(union_obj));
+    case AnyNode_RichText: return verifier.VerifyTable(reinterpret_cast<const RichText *>(union_obj));
     default: return false;
   }
 }

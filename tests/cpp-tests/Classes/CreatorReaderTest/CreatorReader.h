@@ -65,6 +65,9 @@ protected:
     cocos2d::Label* createLabel(const buffers::Label* labelBuffer) const;
     void parseLabel(cocos2d::Label* label, const buffers::Label* labelBuffer) const;
 
+    cocos2d::ui::RichText* createRichText(const buffers::RichText* richTextBuffer) const;
+    void parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const;
+
     cocos2d::ParticleSystemQuad* createParticle(const buffers::Particle* particleBuffer) const;
     void parseParticle(cocos2d::ParticleSystemQuad* partile, const buffers::Particle* particleBuffer) const;
 

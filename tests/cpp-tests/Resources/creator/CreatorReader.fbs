@@ -11,7 +11,7 @@ enum EditBoxInputMode:byte {Any, EmailAddress, Numeric, PhoneNumber, URL, Decime
 
 // New nodes should be added at the end of the union
 // no more than 255 union objects can be added
-union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node, Button, ProgressBar, ScrollView, CreatorScene, EditBox}
+union AnyNode {Scene, Sprite, Label, Particle, TileMap, Node, Button, ProgressBar, ScrollView, CreatorScene, EditBox, RichText}
 
 table SceneGraph
 {
@@ -95,6 +95,17 @@ table Label
     fontName:string;
     fontSize:float;
     fontType:FontType;
+}
+
+table RichText
+{
+    node:Node;
+    text:string;
+    horizontalAlignment:HorizontalAlignment;
+    fontSize:float;
+    maxWidth:float;
+    lineHeight:float;
+    fontFilename:string;
 }
 
 table Particle
