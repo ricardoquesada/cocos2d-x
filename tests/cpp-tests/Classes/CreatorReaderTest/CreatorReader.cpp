@@ -374,6 +374,19 @@ void CreatorReader::parseSprite(cocos2d::Sprite* sprite, const buffers::Sprite* 
         case buffers::SpriteType_Sliced:
             break;
     }
+
+    const auto& srcBlend = spriteBuffer->srcBlend();
+    const auto& dstBlend = spriteBuffer->dstBlend();
+    cocos2d::BlendFunc blendFunc;
+    blendFunc.src = srcBlend;
+    blendFunc.dst = dstBlend;
+    sprite->setBlendFunc(blendFunc);
+
+#if 0
+    // FIXME: do something with these values
+    const auto& isTrimmed = spriteBuffer->trimEnabled();
+    const auto& sizeMode = spriteBuffer->sizeMode();
+#endif
 }
 
 void CreatorReader::parseTilemap(cocos2d::TMXTiledMap* tilemap, const buffers::TileMap* tilemapBuffer) const
@@ -417,6 +430,10 @@ void CreatorReader::parseLabel(cocos2d::Label* label, const buffers::Label* labe
 
 void CreatorReader::parseRichText(cocos2d::ui::RichText* richText, const buffers::RichText* richTextBuffer) const
 {
+    // FIXME: EXPERIMENTAL SUPPORT
+    // Creator's RichText uses a different format than Cocos2d-x's RichText
+    // Having 100% compatibility is feaseble, but not easy.
+
     const auto& nodeBuffer = richTextBuffer->node();
     parseNode(richText, nodeBuffer);
 

@@ -124,6 +124,7 @@
             {
                 "children": [],
                 "object": {
+                    "dstBlend": 771,
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,
@@ -156,14 +157,18 @@
                         "skewY": 0,
                         "tag": -1
                     },
+                    "sizeMode": "Raw",
                     "spriteFrameName": "grossini_dance_08",
-                    "spriteType": "Simple"
+                    "spriteType": "Simple",
+                    "srcBlend": 770,
+                    "trimEnabled": false
                 },
                 "object_type": "Sprite"
             },
             {
                 "children": [],
                 "object": {
+                    "dstBlend": 771,
                     "node": {
                         "anchorPoint": {
                             "x": 0.5,
@@ -196,8 +201,11 @@
                         "skewY": 0,
                         "tag": -1
                     },
+                    "sizeMode": "Raw",
                     "spriteFrameName": "grossini_dance_08",
-                    "spriteType": "Simple"
+                    "spriteType": "Simple",
+                    "srcBlend": 770,
+                    "trimEnabled": false
                 },
                 "object_type": "Sprite"
             },

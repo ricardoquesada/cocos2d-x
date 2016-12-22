@@ -111,6 +111,21 @@ inline const char **EnumNamesSpriteType() {
 
 inline const char *EnumNameSpriteType(SpriteType e) { return EnumNamesSpriteType()[static_cast<int>(e)]; }
 
+enum SpriteSizeMode {
+  SpriteSizeMode_Custom = 0,
+  SpriteSizeMode_Trimmed = 1,
+  SpriteSizeMode_Raw = 2,
+  SpriteSizeMode_MIN = SpriteSizeMode_Custom,
+  SpriteSizeMode_MAX = SpriteSizeMode_Raw
+};
+
+inline const char **EnumNamesSpriteSizeMode() {
+  static const char *names[] = { "Custom", "Trimmed", "Raw", nullptr };
+  return names;
+}
+
+inline const char *EnumNameSpriteSizeMode(SpriteSizeMode e) { return EnumNamesSpriteSizeMode()[static_cast<int>(e)]; }
+
 enum ScrollViewDirection {
   ScrollViewDirection_None = 0,
   ScrollViewDirection_Vertical = 1,
@@ -789,11 +804,19 @@ struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_NODE = 4,
     VT_SPRITEFRAMENAME = 6,
-    VT_SPRITETYPE = 8
+    VT_SPRITETYPE = 8,
+    VT_SRCBLEND = 10,
+    VT_DSTBLEND = 12,
+    VT_TRIMENABLED = 14,
+    VT_SIZEMODE = 16
   };
   const Node *node() const { return GetPointer<const Node *>(VT_NODE); }
   const flatbuffers::String *spriteFrameName() const { return GetPointer<const flatbuffers::String *>(VT_SPRITEFRAMENAME); }
   SpriteType spriteType() const { return static_cast<SpriteType>(GetField<int8_t>(VT_SPRITETYPE, 0)); }
+  int32_t srcBlend() const { return GetField<int32_t>(VT_SRCBLEND, 770); }
+  int32_t dstBlend() const { return GetField<int32_t>(VT_DSTBLEND, 771); }
+  bool trimEnabled() const { return GetField<uint8_t>(VT_TRIMENABLED, 0) != 0; }
+  SpriteSizeMode sizeMode() const { return static_cast<SpriteSizeMode>(GetField<int8_t>(VT_SIZEMODE, 0)); }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_NODE) &&
@@ -801,6 +824,10 @@ struct Sprite FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
            VerifyField<flatbuffers::uoffset_t>(verifier, VT_SPRITEFRAMENAME) &&
            verifier.Verify(spriteFrameName()) &&
            VerifyField<int8_t>(verifier, VT_SPRITETYPE) &&
+           VerifyField<int32_t>(verifier, VT_SRCBLEND) &&
+           VerifyField<int32_t>(verifier, VT_DSTBLEND) &&
+           VerifyField<uint8_t>(verifier, VT_TRIMENABLED) &&
+           VerifyField<int8_t>(verifier, VT_SIZEMODE) &&
            verifier.EndTable();
   }
 };
@@ -811,10 +838,14 @@ struct SpriteBuilder {
   void add_node(flatbuffers::Offset<Node> node) { fbb_.AddOffset(Sprite::VT_NODE, node); }
   void add_spriteFrameName(flatbuffers::Offset<flatbuffers::String> spriteFrameName) { fbb_.AddOffset(Sprite::VT_SPRITEFRAMENAME, spriteFrameName); }
   void add_spriteType(SpriteType spriteType) { fbb_.AddElement<int8_t>(Sprite::VT_SPRITETYPE, static_cast<int8_t>(spriteType), 0); }
+  void add_srcBlend(int32_t srcBlend) { fbb_.AddElement<int32_t>(Sprite::VT_SRCBLEND, srcBlend, 770); }
+  void add_dstBlend(int32_t dstBlend) { fbb_.AddElement<int32_t>(Sprite::VT_DSTBLEND, dstBlend, 771); }
+  void add_trimEnabled(bool trimEnabled) { fbb_.AddElement<uint8_t>(Sprite::VT_TRIMENABLED, static_cast<uint8_t>(trimEnabled), 0); }
+  void add_sizeMode(SpriteSizeMode sizeMode) { fbb_.AddElement<int8_t>(Sprite::VT_SIZEMODE, static_cast<int8_t>(sizeMode), 0); }
   SpriteBuilder(flatbuffers::FlatBufferBuilder &_fbb) : fbb_(_fbb) { start_ = fbb_.StartTable(); }
   SpriteBuilder &operator=(const SpriteBuilder &);
   flatbuffers::Offset<Sprite> Finish() {
-    auto o = flatbuffers::Offset<Sprite>(fbb_.EndTable(start_, 3));
+    auto o = flatbuffers::Offset<Sprite>(fbb_.EndTable(start_, 7));
     return o;
   }
 };
@@ -822,10 +853,18 @@ struct SpriteBuilder {
 inline flatbuffers::Offset<Sprite> CreateSprite(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
     flatbuffers::Offset<flatbuffers::String> spriteFrameName = 0,
-    SpriteType spriteType = SpriteType_Simple) {
+    SpriteType spriteType = SpriteType_Simple,
+    int32_t srcBlend = 770,
+    int32_t dstBlend = 771,
+    bool trimEnabled = false,
+    SpriteSizeMode sizeMode = SpriteSizeMode_Custom) {
   SpriteBuilder builder_(_fbb);
+  builder_.add_dstBlend(dstBlend);
+  builder_.add_srcBlend(srcBlend);
   builder_.add_spriteFrameName(spriteFrameName);
   builder_.add_node(node);
+  builder_.add_sizeMode(sizeMode);
+  builder_.add_trimEnabled(trimEnabled);
   builder_.add_spriteType(spriteType);
   return builder_.Finish();
 }
@@ -833,8 +872,12 @@ inline flatbuffers::Offset<Sprite> CreateSprite(flatbuffers::FlatBufferBuilder &
 inline flatbuffers::Offset<Sprite> CreateSpriteDirect(flatbuffers::FlatBufferBuilder &_fbb,
     flatbuffers::Offset<Node> node = 0,
     const char *spriteFrameName = nullptr,
-    SpriteType spriteType = SpriteType_Simple) {
-  return CreateSprite(_fbb, node, spriteFrameName ? _fbb.CreateString(spriteFrameName) : 0, spriteType);
+    SpriteType spriteType = SpriteType_Simple,
+    int32_t srcBlend = 770,
+    int32_t dstBlend = 771,
+    bool trimEnabled = false,
+    SpriteSizeMode sizeMode = SpriteSizeMode_Custom) {
+  return CreateSprite(_fbb, node, spriteFrameName ? _fbb.CreateString(spriteFrameName) : 0, spriteType, srcBlend, dstBlend, trimEnabled, sizeMode);
 }
 
 struct Label FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {

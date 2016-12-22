@@ -4,6 +4,7 @@ enum FontType:byte { System = 0, BMFont = 1, TTF = 2 }
 enum VerticalAlignment:byte { Top = 0, Center = 1, Bottom = 2 }
 enum HorizontalAlignment:byte { Left = 0, Center = 1, Right = 2 }
 enum SpriteType:byte {Simple, Sliced, Tiled, Filled}
+enum SpriteSizeMode:byte {Custom, Trimmed, Raw}
 enum ScrollViewDirection:byte {None, Vertical, Horizontal, Both}
 enum EditBoxReturnType:byte {Default, Done, Send, Search, Go}
 enum EditBoxInputFlag:byte {Password, Sensitive, InitialCapsWord, InitialCapsSentence, InitialCapsAllCharacters, LowercaseAllCharacters}
@@ -83,6 +84,10 @@ table Sprite
     node:Node;
     spriteFrameName:string;
     spriteType:SpriteType;
+    srcBlend:int = 770;
+    dstBlend:int = 771;
+    trimEnabled:bool = false;
+    sizeMode:SpriteSizeMode;
 }
 
 table Label
