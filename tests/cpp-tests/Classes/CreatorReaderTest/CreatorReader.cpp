@@ -195,6 +195,7 @@ cocos2d::Node* CreatorReader::createTree(const buffers::NodeTree* tree) const
             if (!treat_child_as_label) {
                 // every node should do this
                 node->addChild(child);
+                adjustPosition(child);
             } else {
                 // ...except if for Buttons
                 auto button = static_cast<cocos2d::ui::Button*>(node);
@@ -578,6 +579,19 @@ void CreatorReader::parseButton(cocos2d::ui::Button* button, const buffers::Butt
     button->ignoreContentAdaptWithSize(ignoreContentAdaptWithSize);
 }
 
+void CreatorReader::adjustPosition(cocos2d::Node* node) const
+{
+    const cocos2d::Node* parent = node->getParent();
+    // only adjust position if there is a parent, and the parent is no the root scene
+    if (parent && dynamic_cast<const cocos2d::Scene*>(parent) == nullptr) {
+        const auto p_ap = parent->getAnchorPoint();
+        const auto p_cs = parent->getContentSize();
+
+        const auto offset = cocos2d::Vec2(p_ap.x * p_cs.width, p_ap.y * p_cs.height);
+        const auto new_pos = node->getPosition() + offset;
+        node->setPosition(new_pos);
+    }
+}
 
 //
 // Helper functions

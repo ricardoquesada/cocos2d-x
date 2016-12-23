@@ -85,6 +85,11 @@ protected:
 
     void setupSpriteFrames();
 
+    /** Creator uses parent's anchorpoint for child positioning.
+     cocos2d-x uses parent's (0,0) for child positioning
+     this function adjust that */
+    void adjustPosition(cocos2d::Node* node) const;
+
     // variables
     cocos2d::Scene* _scene;
     cocos2d::Data _data;
