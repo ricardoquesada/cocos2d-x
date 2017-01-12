@@ -35,6 +35,7 @@ CreatorReaderTests::CreatorReaderTests()
     ADD_TEST_CASE(CreatorReaderTest2);
     ADD_TEST_CASE(CreatorReaderTest3);
     ADD_TEST_CASE(CreatorReaderTest4);
+    ADD_TEST_CASE(CreatorReaderTest5);
 };
 
 //------------------------------------------------------------------
@@ -124,5 +125,27 @@ CreatorReaderTest4::CreatorReaderTest4()
 std::string CreatorReaderTest4::title() const
 {
     return "Reading Tilemaps";
+}
+
+//------------------------------------------------------------------
+//
+// CreatorReaderTest5
+//
+//------------------------------------------------------------------
+
+CreatorReaderTest5::CreatorReaderTest5()
+{
+    CreatorReader* reader = CreatorReader::createWithFilename("creator/CreatorAnim.ccreator");
+    CCLOG("Version: %s", reader->getVersion().c_str());
+
+    // will create the needed spritesheets, design resolution
+    reader->setup();
+    Scene* scene = reader->getSceneGraph();
+    addChild(scene);
+}
+
+std::string CreatorReaderTest5::title() const
+{
+    return "Reading Animations";
 }
 
