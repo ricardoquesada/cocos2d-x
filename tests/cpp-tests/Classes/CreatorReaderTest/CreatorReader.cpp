@@ -502,8 +502,10 @@ void CreatorReader::parseScrollView(cocos2d::ui::ScrollView* scrollView, const b
     // FIXME: Call setJumpToPercent at the end, because it depens on having the contentSize correct
     // FIXME: uses the anchorPoint for the percent in the bar, but this migh break if it changes the position of the bar content node
     const auto& anchorPoint = scrollViewBuffer->node()->anchorPoint();
-    scrollView->jumpToPercentHorizontal(anchorPoint->x() * 100.0f);
-    scrollView->jumpToPercentVertical((1-anchorPoint->y() * 100.0f));
+    if (anchorPoint) {
+        scrollView->jumpToPercentHorizontal(anchorPoint->x() * 100.0f);
+        scrollView->jumpToPercentVertical((1-anchorPoint->y() * 100.0f));
+    }
 }
 
 cocos2d::ui::LoadingBar* CreatorReader::createProgressBar(const buffers::ProgressBar* progressBarBuffer) const
