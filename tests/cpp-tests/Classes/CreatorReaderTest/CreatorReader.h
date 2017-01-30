@@ -88,6 +88,7 @@ protected:
     void parseSpineSkeleton(spine::SkeletonAnimation* button, const buffers::SpineSkeleton* spineBuffer) const;
 
     void setupSpriteFrames();
+    void setupAnimClips();
 
     /** Creator uses parent's anchorpoint for child positioning.
      cocos2d-x uses parent's (0,0) for child positioning

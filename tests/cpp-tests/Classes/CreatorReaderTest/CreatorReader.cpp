@@ -82,6 +82,18 @@ void CreatorReader::setup()
     }
 
     setupSpriteFrames();
+    setupAnimClips();
+}
+
+void CreatorReader::setupAnimClips()
+{
+    const void* buffer = _data.getBytes();
+    const auto& sceneGraph = GetSceneGraph(buffer);
+    const auto& animationClips = sceneGraph->animationClips();
+
+    for (const auto& animationClip: *animationClips) {
+
+    }
 }
 
 void CreatorReader::setupSpriteFrames()
