@@ -51,6 +51,10 @@ AnimationClip::AnimationClip()
 {
 }
 
+AnimationClip::~AnimationClip()
+{
+}
+
 void AnimationClip::setName(const std::string& name)
 {
     _name = name;
