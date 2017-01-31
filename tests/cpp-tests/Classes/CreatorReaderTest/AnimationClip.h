@@ -50,12 +50,25 @@ public:
     bool init();
 
     void setName(const std::string& name);
+    const std::string& getName() const;
+
     void setUUID(const std::string& uuid);
+    const std::string& getUUID() const;
+
     void setDuration(float duration);
+    float getDuration() const;
+
     void setSample(float sample);
+    float getSample() const;
+
     void setSpeed(float speed);
+    float getSpeed() const;
+
     void setWrapMode(WrapMode wrapMode);
+    WrapMode getWrapMode() const;
+
     void setAnimProperties(const AnimProperties& properties);
+    const AnimProperties& getAnimProperties() const;
 
 protected:
     AnimationClip();

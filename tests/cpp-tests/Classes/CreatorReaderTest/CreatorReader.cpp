@@ -24,7 +24,6 @@
 
 #include "CreatorReader.h"
 #include "AnimationClip.h"
-#include "AnimationClipCache.h"
 
 #include "CreatorReader_generated.h"
 
@@ -173,6 +172,9 @@ void CreatorReader::setupAnimClips()
                         properties.animPositionY.push_back(propPosY);
                     }
                 }
+
+                animClip->setAnimProperties(properties);
+                _clips.insert(animClip->getName(), animClip);
             }
         }
     }

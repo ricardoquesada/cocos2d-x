@@ -31,13 +31,14 @@ AnimationClip* AnimationClip::create()
     auto animClip = new (std::nothrow) AnimationClip;
     if (animClip && animClip->init()) {
         animClip->autorelease();
+        return animClip;
     }
     return nullptr;
 }
 
 bool AnimationClip::init()
 {
-    return false;
+    return true;
 }
 
 AnimationClip::AnimationClip()
@@ -60,9 +61,19 @@ void AnimationClip::setName(const std::string& name)
     _name = name;
 }
 
+const std::string& AnimationClip::getName() const
+{
+    return _name;
+}
+
 void AnimationClip::setUUID(const std::string& uuid)
 {
     _uuid = uuid;
+}
+
+const std::string& AnimationClip::getUUID() const
+{
+    return _uuid;
 }
 
 void AnimationClip::setDuration(float duration)
@@ -70,9 +81,19 @@ void AnimationClip::setDuration(float duration)
     _duration = duration;
 }
 
+float AnimationClip::getDuration() const
+{
+    return _duration;
+}
+
 void AnimationClip::setSample(float sample)
 {
     _sample = sample;
+}
+
+float AnimationClip::getSample() const
+{
+    return _sample;
 }
 
 void AnimationClip::setSpeed(float speed)
@@ -80,12 +101,27 @@ void AnimationClip::setSpeed(float speed)
     _speed = speed;
 }
 
+float AnimationClip::getSpeed() const
+{
+    return _speed;
+}
+
 void AnimationClip::setWrapMode(WrapMode wrapMode)
 {
     _wrapMode = wrapMode;
 }
 
+creator::AnimationClip::WrapMode AnimationClip::getWrapMode() const
+{
+    return _wrapMode;
+}
+
 void AnimationClip::setAnimProperties(const AnimProperties& properties)
 {
     _animProperties = properties;
+}
+
+const AnimProperties& AnimationClip::getAnimProperties() const
+{
+    return _animProperties;
 }

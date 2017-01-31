@@ -26,6 +26,7 @@
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
+#include "AnimationClip.h"
 #include <spine/spine-cocos2dx.h>
 
 #include "CreatorReader_generated.h"
@@ -123,6 +124,8 @@ protected:
     cocos2d::Scene* _scene;
     cocos2d::Data _data;
     std::string _version;
+
+    cocos2d::Map<std::string, AnimationClip*> _clips;
 };
 
 NS_CCR_END
