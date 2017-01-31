@@ -812,6 +812,9 @@
 		507AC1AA1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
 		507AC1AB1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
 		507AC1AC1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
+		507AC1C11E402B070051D4FD /* AnimateClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1BF1E402B070051D4FD /* AnimateClip.cpp */; };
+		507AC1C21E402B070051D4FD /* AnimateClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1BF1E402B070051D4FD /* AnimateClip.cpp */; };
+		507AC1C31E402B070051D4FD /* AnimateClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1BF1E402B070051D4FD /* AnimateClip.cpp */; };
 		507B41021C31BEA60067B53E /* components in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35CB318CED84500F37B72 /* components */; };
 		507B41031C31BEA60067B53E /* Icon-144.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35C7918CECF1400F37B72 /* Icon-144.png */; };
 		507B41041C31BEA60067B53E /* Icon-50.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35C7D18CECF1400F37B72 /* Icon-50.png */; };
@@ -2513,6 +2516,8 @@
 		507AC1A61E4003200051D4FD /* AnimationClip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationClip.cpp; path = CreatorReaderTest/AnimationClip.cpp; sourceTree = "<group>"; };
 		507AC1A71E4003200051D4FD /* AnimationClip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationClip.h; path = CreatorReaderTest/AnimationClip.h; sourceTree = "<group>"; };
 		507AC1B61E400C060051D4FD /* AnimationClipProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationClipProperties.h; path = CreatorReaderTest/AnimationClipProperties.h; sourceTree = "<group>"; };
+		507AC1BF1E402B070051D4FD /* AnimateClip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimateClip.cpp; path = CreatorReaderTest/AnimateClip.cpp; sourceTree = "<group>"; };
+		507AC1C01E402B070051D4FD /* AnimateClip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimateClip.h; path = CreatorReaderTest/AnimateClip.h; sourceTree = "<group>"; };
 		507B420D1C31BEA60067B53E /* cpp-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cpp-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B42B01C31E6070067B53E /* js-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "js-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B43B91C31FB670067B53E /* lua-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lua-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3473,6 +3478,8 @@
 			isa = PBXGroup;
 			children = (
 				5013B5E31DFBC6740044D212 /* flatbuffers */,
+				507AC1BF1E402B070051D4FD /* AnimateClip.cpp */,
+				507AC1C01E402B070051D4FD /* AnimateClip.h */,
 				507AC1B61E400C060051D4FD /* AnimationClipProperties.h */,
 				507AC1A61E4003200051D4FD /* AnimationClip.cpp */,
 				507AC1A71E4003200051D4FD /* AnimationClip.h */,
@@ -7077,6 +7084,7 @@
 				1AC35B2518CECF0C00F37B72 /* ActionsProgressTest.cpp in Sources */,
 				1AC35B6518CECF0C00F37B72 /* EffectsTest.cpp in Sources */,
 				1AC35B7118CECF0C00F37B72 /* TestHeaderLayer.cpp in Sources */,
+				507AC1C11E402B070051D4FD /* AnimateClip.cpp in Sources */,
 				94D793D91B4B7A3600F60F10 /* Bug-CCDrawNode.cpp in Sources */,
 				1AC35B2118CECF0C00F37B72 /* ActionManagerTest.cpp in Sources */,
 				1AC35C3D18CECF0C00F37B72 /* PhysicsTest.cpp in Sources */,
@@ -7217,6 +7225,7 @@
 				507B41A11C31BEA60067B53E /* Ball.cpp in Sources */,
 				507B41A31C31BEA60067B53E /* ExtensionsTest.cpp in Sources */,
 				507B41A41C31BEA60067B53E /* TestEntries.cpp in Sources */,
+				507AC1C31E402B070051D4FD /* AnimateClip.cpp in Sources */,
 				507B41A51C31BEA60067B53E /* AssetsManagerExTest.cpp in Sources */,
 				507B41A61C31BEA60067B53E /* Box2dTest.cpp in Sources */,
 				507B41A81C31BEA60067B53E /* LabelTestNew.cpp in Sources */,
@@ -7458,6 +7467,7 @@
 				1AC35C0A18CECF0C00F37B72 /* IntervalTest.cpp in Sources */,
 				29080DD0191B595E0066F8DF /* UISliderTest.cpp in Sources */,
 				1AC35BEE18CECF0C00F37B72 /* CCControlStepperTest.cpp in Sources */,
+				507AC1C21E402B070051D4FD /* AnimateClip.cpp in Sources */,
 				29080DA4191B595E0066F8DF /* UIButtonTest.cpp in Sources */,
 				1AC35C5A18CECF0C00F37B72 /* TextureAtlasEncryptionTest.cpp in Sources */,
 				1AC35B5618CECF0C00F37B72 /* ConfigurationTest.cpp in Sources */,

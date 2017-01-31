@@ -39,105 +39,29 @@
 
 NS_CCR_BEGIN
 
-struct AnimPropRotation
-{
-    float frame;
-    float value;
-};
+class AnimationClip;
 
-struct AnimPropPosition
+class AnimateClip: public cocos2d::ActionInterval
 {
-    float frame;
-    cocos2d::Vec2 value;
-    std::vector<float> motionPath;
-};
+public:
+    static AnimateClip* createWithAnimationClip(AnimationClip* clip);
 
-struct AnimPropPositionX
-{
-    float frame;
-    float value;
-};
+    //
+    // Overrides
+    //
+    virtual void startWithTarget(cocos2d::Node *target) override;
+    virtual void update(float time) override;
+    virtual AnimateClip* clone() const override;
+    virtual AnimateClip* reverse() const override;
 
-struct AnimPropPositionY
-{
-    float frame;
-    float value;
-};
+CC_CONSTRUCTOR_ACCESS:
+    AnimateClip();
+    virtual ~AnimateClip();
+    bool initWithAnimationClip(AnimationClip* clip);
 
-struct AnimPropScaleX
-{
-    float frame;
-    float value;
-};
 
-struct AnimPropScaleY
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropWidth
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropHeight
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropColor
-{
-    float frame;
-    cocos2d::Color4B color;
-};
-
-struct AnimPropOpacity
-{
-    float frame;
-    cocos2d::Color4B opacity;
-};
-
-struct AnimPropAnchorX
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropAnchorY
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropSkewX
-{
-    float frame;
-    float value;
-};
-
-struct AnimPropSkewY
-{
-    float frame;
-    float value;
-};
-
-struct AnimProperties
-{
-    std::vector<AnimPropRotation> animRotation;
-    std::vector<AnimPropPosition> animPosition;
-    std::vector<AnimPropPositionX> animPositionX;
-    std::vector<AnimPropPositionY> animPositionY;
-    std::vector<AnimPropSkewX> animSkewX;
-    std::vector<AnimPropSkewY> animSkewY;
-    std::vector<AnimPropAnchorX> animAnchorX;
-    std::vector<AnimPropAnchorY> animAnchorY;
-    std::vector<AnimPropColor> animColor;
-    std::vector<AnimPropOpacity> animOpacity;
-    std::vector<AnimPropWidth> animWidth;
-    std::vector<AnimPropHeight> animHeight;
+    AnimationClip* _clip;
+    cocos2d::Vector<cocos2d::ActionInterval*> _actions;
 };
 
 NS_CCR_END

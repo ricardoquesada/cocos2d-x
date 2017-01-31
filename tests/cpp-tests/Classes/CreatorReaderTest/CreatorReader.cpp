@@ -347,6 +347,7 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     //rotationSkew:Vec2;
     //scale:Vec2;
     //tag:int = 0;
+    //anim:AnimationRef
 
 //    auto enabled = nodeBuffer->enabled();
     const auto& globalZOrder = nodeBuffer->globalZOrder();
@@ -365,7 +366,7 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     node->setCascadeOpacityEnabled(cascadeOpacityEnabled);
     const auto& opacityModifyRGB = nodeBuffer->opacityModifyRGB();
     node->setOpacityModifyRGB(opacityModifyRGB);
-    const auto& position = nodeBuffer->position();
+    const auto position = nodeBuffer->position();
     if (position) node->setPosition(position->x(), position->y());
     node->setRotationSkewX(nodeBuffer->rotationSkewX());
     node->setRotationSkewY(nodeBuffer->rotationSkewY());
@@ -375,8 +376,14 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     node->setSkewY(nodeBuffer->skewY());
     const auto& tag = nodeBuffer->tag();
     node->setTag(tag);
-    const auto& contentSize = nodeBuffer->contentSize();
+    const auto contentSize = nodeBuffer->contentSize();
     if (contentSize) node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
+    const auto animRef = nodeBuffer->anim();
+    if (animRef) {
+        const auto def = animRef->defaultClip();
+        if (def) {
+        }
+    }
 }
 
 cocos2d::Sprite* CreatorReader::createSprite(const buffers::Sprite* spriteBuffer) const
