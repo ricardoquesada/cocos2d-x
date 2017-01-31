@@ -22,58 +22,66 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#pragma once
+#include "AnimationClip.h"
 
-#include "cocos2d.h"
-#include "../BaseTest.h"
-#include <string>
+USING_NS_CCR;
 
-DEFINE_TEST_SUITE(CreatorReaderTests);
-
-class CreatorReaderTestDemo : public TestCase
+AnimationClip* AnimationClip::create()
 {
-protected:
-    std::string    _title;
+    auto animClip = new (std::nothrow) AnimationClip;
+    if (animClip && animClip->init()) {
+        animClip->autorelease();
+    }
+    return nullptr;
+}
 
-public:
-};
-
-class CreatorReaderTest1 : public CreatorReaderTestDemo
+bool AnimationClip::init()
 {
-public:
-    CREATE_FUNC(CreatorReaderTest1);
-    CreatorReaderTest1();
-    virtual std::string title() const override;
-};
+    return false;
+}
 
-class CreatorReaderTest2 : public CreatorReaderTestDemo
+AnimationClip::AnimationClip()
+: _name("")
+, _uuid("")
+, _speed(0)
+, _sample(0)
+, _duration(0)
+, _objFlags(0)
+, _wrapMode(WrapMode::Default)
 {
-public:
-    CREATE_FUNC(CreatorReaderTest2);
-    CreatorReaderTest2();
-    virtual std::string title() const override;
-};
+}
 
-class CreatorReaderTest3 : public CreatorReaderTestDemo
+void AnimationClip::setName(const std::string& name)
 {
-public:
-    CREATE_FUNC(CreatorReaderTest3);
-    CreatorReaderTest3();
-    virtual std::string title() const override;
-};
+    _name = name;
+}
 
-class CreatorReaderTest4 : public CreatorReaderTestDemo
+void AnimationClip::setUUID(const std::string& uuid)
 {
-public:
-    CREATE_FUNC(CreatorReaderTest4);
-    CreatorReaderTest4();
-    virtual std::string title() const override;
-};
+    _uuid = uuid;
+}
 
-class CreatorReaderTest5 : public CreatorReaderTestDemo
+void AnimationClip::setDuration(float duration)
 {
-public:
-    CREATE_FUNC(CreatorReaderTest5);
-    CreatorReaderTest5();
-    virtual std::string title() const override;
-};
+    _duration = duration;
+}
+
+void AnimationClip::setSample(float sample)
+{
+    _sample = sample;
+}
+
+void AnimationClip::setSpeed(float speed)
+{
+    _speed = speed;
+}
+
+void AnimationClip::setWrapMode(WrapMode wrapMode)
+{
+    _wrapMode = wrapMode;
+}
+
+void AnimationClip::setAnimProperties(const AnimProperties& properties)
+{
+    _animProperties = properties;
+}

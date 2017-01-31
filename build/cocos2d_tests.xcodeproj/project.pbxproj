@@ -809,6 +809,12 @@
 		505D76A81DFBAB6500024157 /* CreatorReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */; };
 		505D76A91DFBAB6500024157 /* CreatorReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */; };
 		505D76AA1DFBAB6500024157 /* CreatorReaderTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */; };
+		507AC1AA1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
+		507AC1AB1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
+		507AC1AC1E4003200051D4FD /* AnimationClip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A61E4003200051D4FD /* AnimationClip.cpp */; };
+		507AC1AD1E4003200051D4FD /* AnimationClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A81E4003200051D4FD /* AnimationClipCache.cpp */; };
+		507AC1AE1E4003200051D4FD /* AnimationClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A81E4003200051D4FD /* AnimationClipCache.cpp */; };
+		507AC1AF1E4003200051D4FD /* AnimationClipCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507AC1A81E4003200051D4FD /* AnimationClipCache.cpp */; };
 		507B41021C31BEA60067B53E /* components in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35CB318CED84500F37B72 /* components */; };
 		507B41031C31BEA60067B53E /* Icon-144.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35C7918CECF1400F37B72 /* Icon-144.png */; };
 		507B41041C31BEA60067B53E /* Icon-50.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC35C7D18CECF1400F37B72 /* Icon-50.png */; };
@@ -2507,6 +2513,11 @@
 		505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CreatorReaderTest.cpp; path = CreatorReaderTest/CreatorReaderTest.cpp; sourceTree = "<group>"; };
 		505D76A31DFBAB6500024157 /* CreatorReaderTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreatorReaderTest.h; path = CreatorReaderTest/CreatorReaderTest.h; sourceTree = "<group>"; };
 		505D76A41DFBAB6500024157 /* CreatorReader_generated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CreatorReader_generated.h; path = CreatorReaderTest/CreatorReader_generated.h; sourceTree = "<group>"; };
+		507AC1A61E4003200051D4FD /* AnimationClip.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationClip.cpp; path = CreatorReaderTest/AnimationClip.cpp; sourceTree = "<group>"; };
+		507AC1A71E4003200051D4FD /* AnimationClip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationClip.h; path = CreatorReaderTest/AnimationClip.h; sourceTree = "<group>"; };
+		507AC1A81E4003200051D4FD /* AnimationClipCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AnimationClipCache.cpp; path = CreatorReaderTest/AnimationClipCache.cpp; sourceTree = "<group>"; };
+		507AC1A91E4003200051D4FD /* AnimationClipCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationClipCache.h; path = CreatorReaderTest/AnimationClipCache.h; sourceTree = "<group>"; };
+		507AC1B61E400C060051D4FD /* AnimationClipProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AnimationClipProperties.h; path = CreatorReaderTest/AnimationClipProperties.h; sourceTree = "<group>"; };
 		507B420D1C31BEA60067B53E /* cpp-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "cpp-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B42B01C31E6070067B53E /* js-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "js-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		507B43B91C31FB670067B53E /* lua-tests tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lua-tests tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3467,6 +3478,11 @@
 			isa = PBXGroup;
 			children = (
 				5013B5E31DFBC6740044D212 /* flatbuffers */,
+				507AC1B61E400C060051D4FD /* AnimationClipProperties.h */,
+				507AC1A61E4003200051D4FD /* AnimationClip.cpp */,
+				507AC1A71E4003200051D4FD /* AnimationClip.h */,
+				507AC1A81E4003200051D4FD /* AnimationClipCache.cpp */,
+				507AC1A91E4003200051D4FD /* AnimationClipCache.h */,
 				50462C261E00D3E800C01497 /* CreatorReader.cpp */,
 				50462C271E00D3E800C01497 /* CreatorReader.h */,
 				505D76A21DFBAB6500024157 /* CreatorReaderTest.cpp */,
@@ -7010,6 +7026,7 @@
 				1AC35BF718CECF0C00F37B72 /* SocketIOTest.cpp in Sources */,
 				1AC35C4F18CECF0C00F37B72 /* SpriteTest.cpp in Sources */,
 				1AC35C0318CECF0C00F37B72 /* FileUtilsTest.cpp in Sources */,
+				507AC1AA1E4003200051D4FD /* AnimationClip.cpp in Sources */,
 				B5CE6DD11B3C08F8002B0419 /* UIRadioButtonTest.cpp in Sources */,
 				B6C039D919C95D83007207DC /* LightTest.cpp in Sources */,
 				1AC35B5B18CECF0C00F37B72 /* CurlTest.cpp in Sources */,
@@ -7049,6 +7066,7 @@
 				29080D8D191B595E0066F8DF /* CocosGUIScene.cpp in Sources */,
 				5EBEECB01995247000429821 /* DrawNode3D.cpp in Sources */,
 				1AC35BED18CECF0C00F37B72 /* CCControlStepperTest.cpp in Sources */,
+				507AC1AD1E4003200051D4FD /* AnimationClipCache.cpp in Sources */,
 				1AC35C5918CECF0C00F37B72 /* TextureAtlasEncryptionTest.cpp in Sources */,
 				1AC35B5518CECF0C00F37B72 /* ConfigurationTest.cpp in Sources */,
 				1AC35BE518CECF0C00F37B72 /* CCControlPotentiometerTest.cpp in Sources */,
@@ -7166,6 +7184,7 @@
 				507B41701C31BEA60067B53E /* Paddle.cpp in Sources */,
 				507B41711C31BEA60067B53E /* UIPageViewTest.cpp in Sources */,
 				507B41731C31BEA60067B53E /* Scene3DTest.cpp in Sources */,
+				507AC1AC1E4003200051D4FD /* AnimationClip.cpp in Sources */,
 				507B41741C31BEA60067B53E /* OpenURLTest.cpp in Sources */,
 				507B41751C31BEA60067B53E /* BugsTest.cpp in Sources */,
 				507B41761C31BEA60067B53E /* testBasic.cpp in Sources */,
@@ -7226,6 +7245,7 @@
 				507B41BE1C31BEA60067B53E /* Test.cpp in Sources */,
 				507B41BF1C31BEA60067B53E /* ParticleTest.cpp in Sources */,
 				507B41C01C31BEA60067B53E /* TouchesTest.cpp in Sources */,
+				507AC1AF1E4003200051D4FD /* AnimationClipCache.cpp in Sources */,
 				507B41C21C31BEA60067B53E /* TransitionsTest.cpp in Sources */,
 				507B41C31C31BEA60067B53E /* RotateWorldTest.cpp in Sources */,
 				507B41C41C31BEA60067B53E /* ActionsProgressTest.cpp in Sources */,
@@ -7407,6 +7427,7 @@
 				1AC35B6218CECF0C00F37B72 /* DrawPrimitivesTest.cpp in Sources */,
 				29080DDC191B595E0066F8DF /* UITextFieldTest.cpp in Sources */,
 				1AC35C1818CECF0C00F37B72 /* MotionStreakTest.cpp in Sources */,
+				507AC1AB1E4003200051D4FD /* AnimationClip.cpp in Sources */,
 				D0FD03651A3B546400825BB5 /* AllocatorTest.cpp in Sources */,
 				1AC35C0618CECF0C00F37B72 /* FontTest.cpp in Sources */,
 				1F33635018E37E840074764D /* RefPtrTest.cpp in Sources */,
@@ -7497,6 +7518,7 @@
 				94D793DA1B4B7A3600F60F10 /* Bug-CCDrawNode.cpp in Sources */,
 				1AC35BFC18CECF0C00F37B72 /* NotificationCenterTest.cpp in Sources */,
 				B6DD2FFD1B04979C00E47F5F /* NavMeshTest.cpp in Sources */,
+				507AC1AE1E4003200051D4FD /* AnimationClipCache.cpp in Sources */,
 				B6C039DA19C95D83007207DC /* LightTest.cpp in Sources */,
 				1AC35B3E18CECF0C00F37B72 /* Bug-422.cpp in Sources */,
 				29080DAC191B595E0066F8DF /* UIFocusTest.cpp in Sources */,

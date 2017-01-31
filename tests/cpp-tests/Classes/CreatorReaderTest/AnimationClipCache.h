@@ -22,58 +22,14 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#pragma once
+#ifndef AnimationClipCache_hpp
+#define AnimationClipCache_hpp
 
+#include <stdio.h>
 #include "cocos2d.h"
-#include "../BaseTest.h"
-#include <string>
 
-DEFINE_TEST_SUITE(CreatorReaderTests);
-
-class CreatorReaderTestDemo : public TestCase
+class AnimationClipCache: public cocos2d::Ref
 {
-protected:
-    std::string    _title;
-
-public:
 };
 
-class CreatorReaderTest1 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest1);
-    CreatorReaderTest1();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest2 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest2);
-    CreatorReaderTest2();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest3 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest3);
-    CreatorReaderTest3();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest4 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest4);
-    CreatorReaderTest4();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest5 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest5);
-    CreatorReaderTest5();
-    virtual std::string title() const override;
-};
+#endif /* AnimationClipCache_hpp */

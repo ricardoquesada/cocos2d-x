@@ -25,55 +25,51 @@
 #pragma once
 
 #include "cocos2d.h"
-#include "../BaseTest.h"
-#include <string>
 
-DEFINE_TEST_SUITE(CreatorReaderTests);
+#include "AnimationClipProperties.h"
 
-class CreatorReaderTestDemo : public TestCase
+#ifdef __cplusplus
+#define NS_CCR_BEGIN                     namespace creator {
+#define NS_CCR_END                       }
+#define USING_NS_CCR                     using namespace creator
+#else
+#define NS_CC_BEGIN
+#define NS_CC_END
+#define USING_NS_CC
+#define NS_CC
+#endif
+
+NS_CCR_BEGIN
+
+class AnimationClip: public cocos2d::Ref
 {
+public:
+    enum class WrapMode {Default, Normal, Loop, PingPong, Reverse, LoopReverse, PingPongReverse};
+
+    static AnimationClip* create();
+    bool init();
+
+    void setName(const std::string& name);
+    void setUUID(const std::string& uuid);
+    void setDuration(float duration);
+    void setSample(float sample);
+    void setSpeed(float speed);
+    void setWrapMode(WrapMode wrapMode);
+    void setAnimProperties(const AnimProperties& properties);
+
 protected:
-    std::string    _title;
+    AnimationClip();
+    virtual ~AnimationClip();
 
-public:
+    std::string _name;
+    std::string _uuid;
+    float _duration;
+    float _sample;
+    float _speed;
+    WrapMode _wrapMode;
+    AnimProperties _animProperties;
+    int _objFlags;
+//    AnimEvents _events;       // FIXME: neede ?
 };
 
-class CreatorReaderTest1 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest1);
-    CreatorReaderTest1();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest2 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest2);
-    CreatorReaderTest2();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest3 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest3);
-    CreatorReaderTest3();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest4 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest4);
-    CreatorReaderTest4();
-    virtual std::string title() const override;
-};
-
-class CreatorReaderTest5 : public CreatorReaderTestDemo
-{
-public:
-    CREATE_FUNC(CreatorReaderTest5);
-    CreatorReaderTest5();
-    virtual std::string title() const override;
-};
+NS_CCR_END
