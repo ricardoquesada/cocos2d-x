@@ -10,6 +10,19 @@
 
 #include "cocos2d.h"
 
+#ifdef __cplusplus
+#define NS_CCR_BEGIN                     namespace creator {
+#define NS_CCR_END                       }
+#define USING_NS_CCR                     using namespace creator
+#else
+#define NS_CC_BEGIN
+#define NS_CC_END
+#define USING_NS_CC
+#define NS_CC
+#endif
+
+NS_CCR_BEGIN
+
 struct AnimPropRotation
 {
     float frame;
@@ -110,3 +123,5 @@ struct AnimProperties
     std::vector<AnimPropWidth> animWidth;
     std::vector<AnimPropHeight> animHeight;
 };
+
+NS_CCR_END

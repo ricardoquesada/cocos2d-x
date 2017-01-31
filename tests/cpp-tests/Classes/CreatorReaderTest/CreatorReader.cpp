@@ -135,6 +135,46 @@ void CreatorReader::setupAnimClips()
         const auto& uuid = fbAnimationClip->uuid();
         animClip->setUUID(uuid->str());
 
+        const AnimCurveData* fbCurveData = fbAnimationClip->curveData();
+        if (fbCurveData) {
+            const AnimProps* fbAnimProps = fbCurveData->props();
+            if (fbAnimProps) {
+
+                AnimProperties properties;
+                // position
+                const auto fbPositions = fbAnimProps->position();
+                if (fbPositions) {
+                    for(const auto fbPos: *fbPositions) {
+                        const auto fbFrame = fbPos->frame();
+                        const auto fbValue = fbPos->value();
+                        creator::AnimPropPosition propPos = {fbFrame, cocos2d::Vec2(fbValue->x(), fbValue->y())};
+                        properties.animPosition.push_back(propPos);
+                    }
+                }
+
+                // position X
+                const auto fbPositionX = fbAnimProps->positionX();
+                if (fbPositionX) {
+                    for(const auto fbPosX: *fbPositionX) {
+                        const auto fbFrame = fbPosX->frame();
+                        const auto fbValue = fbPosX->value();
+                        creator::AnimPropPositionX propPosX = {fbFrame, fbValue};
+                        properties.animPositionX.push_back(propPosX);
+                    }
+                }
+
+                // position Y
+                const auto fbPositionY = fbAnimProps->positionY();
+                if (fbPositionY) {
+                    for(const auto fbPosY: *fbPositionY) {
+                        const auto fbFrame = fbPosY->frame();
+                        const auto fbValue = fbPosY->value();
+                        creator::AnimPropPositionY propPosY = {fbFrame, fbValue};
+                        properties.animPositionY.push_back(propPosY);
+                    }
+                }
+            }
+        }
     }
 }
 
