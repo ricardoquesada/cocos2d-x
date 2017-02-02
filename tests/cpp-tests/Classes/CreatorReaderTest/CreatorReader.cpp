@@ -24,6 +24,7 @@
 
 #include "CreatorReader.h"
 #include "AnimationClip.h"
+#include "AnimateClip.h"
 
 #include "CreatorReader_generated.h"
 
@@ -174,7 +175,8 @@ void CreatorReader::setupAnimClips()
                 }
 
                 animClip->setAnimProperties(properties);
-                _clips.insert(animClip->getName(), animClip);
+                // using UUID intead of Name for key
+                _clips.insert(animClip->getUUID(), animClip);
             }
         }
     }
@@ -378,10 +380,21 @@ void CreatorReader::parseNode(cocos2d::Node* node, const buffers::Node* nodeBuff
     node->setTag(tag);
     const auto contentSize = nodeBuffer->contentSize();
     if (contentSize) node->setContentSize(cocos2d::Size(contentSize->w(), contentSize->h()));
+
+    // animation?
     const auto animRef = nodeBuffer->anim();
     if (animRef) {
         const auto def = animRef->defaultClip();
-        if (def) {
+        const auto autoplay = animRef->playOnLoad();
+        if (def && autoplay) {
+            const auto& key = def->str();
+            AnimationClip* animationClip = _clips.at(key);
+            if (animationClip) {
+                AnimateClip* animateClip = AnimateClip::createWithAnimationClip(animationClip);
+                node->runAction(animateClip);
+            } else {
+                CCLOG("CreatorReader: AnimationClip key not found: %s", key.c_str());
+            }
         }
     }
 }
