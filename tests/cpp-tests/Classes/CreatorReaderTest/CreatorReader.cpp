@@ -160,11 +160,29 @@ void CreatorReader::setupAnimClips()
                 // skew Y
                 setupAnimClipsPropFloat(fbAnimProps->skewY(), properties.animSkewY);
 
+                // Color
+                setupAnimClipsPropColor(fbAnimProps->color(), properties.animColor);
+
 
                 animClip->setAnimProperties(properties);
                 // using UUID intead of Name for key
                 _clips.insert(animClip->getUUID(), animClip);
             }
+        }
+    }
+}
+
+template <typename T, typename U>
+void CreatorReader::setupAnimClipsPropFloat(T fbPropList, U& proplist)
+{
+    if (fbPropList) {
+        for(const auto fbProp: *fbPropList) {
+            const auto fbFrame = fbProp->frame();
+            const auto fbValue = fbProp->value();
+            proplist.push_back(
+                               {fbFrame,
+                                   fbValue
+                               });
         }
     }
 }
@@ -185,7 +203,7 @@ void CreatorReader::setupAnimClipsPropVec2(T fbPropList, U& proplist)
 }
 
 template <typename T, typename U>
-void CreatorReader::setupAnimClipsPropFloat(T fbPropList, U& proplist)
+void CreatorReader::setupAnimClipsPropColor(T fbPropList, U& proplist)
 {
     if (fbPropList) {
         for(const auto fbProp: *fbPropList) {
@@ -193,7 +211,7 @@ void CreatorReader::setupAnimClipsPropFloat(T fbPropList, U& proplist)
             const auto fbValue = fbProp->value();
             proplist.push_back(
                                {fbFrame,
-                                fbValue
+                                cocos2d::Color3B(fbValue->r(), fbValue->g(), fbValue->b())
                                });
         }
     }

@@ -93,10 +93,10 @@ bool AnimateClip::initWithAnimationClip(AnimationClip* clip)
         createAction<cocos2d::ScaleTo>(animProperties.animSkewX, framesPerSecond);
 
         // color
-//        createAction<cocos2d::TintTo>(animProperties.animColor, framesPerSecond);
+        createAction<cocos2d::TintTo>(animProperties.animColor, framesPerSecond);
 
         // opacity
-//        createAction<cocos2d::FadeTo>(animProperties.animOpacity, framesPerSecond);
+        createAction<cocos2d::FadeTo>(animProperties.animOpacity, framesPerSecond);
     }
 
     return ret;
@@ -119,7 +119,6 @@ void AnimateClip::createAction(const P &properties, const float framesPerSecond)
         }
         auto a = A::create((prop.frame - prevFrame) * framesPerSecond, prop.value);
         array.pushBack(a);
-        CCLOG("frame:%f dt: %f  tot:%f", prop.frame, prevFrame, prop.frame - prevFrame);
 
         prevFrame = prop.frame;
     }
